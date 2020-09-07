@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "foundation.e.camera"
-        minSdkVersion 15
+        minSdkVersion 21
         targetSdkVersion 34
         //compileSdkVersion 31 // needed to support appcompat:1.4.0 (which we need for emoji policy support, and not yet ready to target SDK 30)
 
@@ -42,9 +42,16 @@ android {
         buildConfig true
     }
     //useLibrary 'android.test.mock'
+
+    aaptOptions {
+        additionalParameters '-I', 'e-ui-sdk.jar'
+    }
 }
 
 dependencies {
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    compileOnly files("../e-ui-sdk.jar")
+
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
 
     // appcompat version must be 1.4.0 or later to satisfy emoji policy!

@@ -7,6 +7,7 @@ import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
 import net.sourceforge.opencamera.remotecontrol.BluetoothRemoteControl;
 import net.sourceforge.opencamera.ui.DrawPreview;
+import net.sourceforge.opencamera.ui.CircleImageView;
 import net.sourceforge.opencamera.ui.FolderChooserDialog;
 import net.sourceforge.opencamera.ui.MainUI;
 import net.sourceforge.opencamera.ui.ManualSeekbars;
@@ -17,7 +18,7 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -141,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     private boolean camera_in_background; // whether the camera is covered by a fragment/dialog (such as settings or folder picker)
     private GestureDetector gestureDetector;
     private boolean screen_is_locked; // whether screen is "locked" - this is Open Camera's own lock to guard against accidental presses, not the standard Android lock
-    private final Map<Integer, Bitmap> preloaded_bitmap_resources = new Hashtable<>();
+    private final Map<Integer, Bitmap> preloaded_bitmap_resources = new HashMap<>();
     private ValueAnimator gallery_save_anim;
     private boolean last_continuous_fast_burst; // whether the last photo operation was a continuous_fast_burst
     private Future<?> update_gallery_future;
@@ -213,6 +214,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     private static final float WATER_DENSITY_FRESHWATER = 1.0f;
     private static final float WATER_DENSITY_SALTWATER = 1.03f;
     private float mWaterDensity = 1.0f;
+    private ImageButton switchVideoButton;
 
     // whether to lock to landscape orientation, or allow switching between portrait and landscape orientations
     //public static final boolean lock_to_landscape = true;
@@ -252,6 +254,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false); // initialise any unset preferences to their default values
+
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: time after setting default preference values: " + (System.currentTimeMillis() - debug_time));
 
@@ -276,7 +279,6 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 Log.d(TAG, "shortcut: " + getIntent().getAction());
         }
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
         // determine whether we should support "auto stabilise" feature
         // risk of running out of memory on lower end devices, due to manipulation of large bitmaps
         ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
@@ -454,7 +456,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
 
         // initialise on-screen button visibility
-        View switchCameraButton = findViewById(R.id.switch_camera);
+        ImageButton switchCameraButton = findViewById(R.id.switch_camera);
+
         switchCameraButton.setVisibility(n_cameras > 1 ? View.VISIBLE : View.GONE);
         // switchMultiCameraButton visibility updated below in mainUI.updateOnScreenIcons(), as it also depends on user preference
         View speechRecognizerButton = findViewById(R.id.audio_control);
@@ -463,7 +466,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             Log.d(TAG, "onCreate: time after setting button visibility: " + (System.currentTimeMillis() - debug_time));
         View pauseVideoButton = findViewById(R.id.pause_video);
         pauseVideoButton.setVisibility(View.GONE);
-        View takePhotoVideoButton = findViewById(R.id.take_photo_when_video_recording);
+        ImageButton takePhotoVideoButton = findViewById(R.id.take_photo_when_video_recording);
+
+        switchVideoButton = findViewById(R.id.switch_video);
+
         takePhotoVideoButton.setVisibility(View.GONE);
         View cancelPanoramaButton = findViewById(R.id.cancel_panorama);
         cancelPanoramaButton.setVisibility(View.GONE);
@@ -474,12 +480,14 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         // setContentView()!
         // To be safe, we also do so for take_photo and zoom_seekbar (we already know we've had no reported crashes for focus_seekbar,
         // however).
-        View takePhotoButton = findViewById(R.id.take_photo);
+        ImageButton takePhotoButton = findViewById(R.id.take_photo);
         takePhotoButton.setVisibility(View.INVISIBLE);
         View zoomControls = findViewById(R.id.zoom);
         zoomControls.setVisibility(View.GONE);
         View zoomSeekbar = findViewById(R.id.zoom_seekbar);
         zoomSeekbar.setVisibility(View.INVISIBLE);
+        View zoomSeekbarIcon = findViewById(R.id.zoom_seekbar_icon);
+        zoomSeekbarIcon.setVisibility(View.INVISIBLE);
 
         // initialise state of on-screen icons
         mainUI.updateOnScreenIcons();
@@ -626,7 +634,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                         launchOnlineHelp();
                     }
                 });
-                alertDialog.show();
+                showAlertDialog(alertDialog, "first time load dialog dismissed");
             }
 
             setFirstTimeFlag();
@@ -684,7 +692,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                                 startActivity(browserIntent);
                             }
                         });*/
-                        alertDialog.show();
+                        showAlertDialog(alertDialog, "whats new dialog dismissed");
                     }
                 }
                 // We set the latest_version whether or not the dialog is shown - if we showed the first time dialog, we don't
@@ -752,6 +760,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: total time for Activity startup: " + (System.currentTimeMillis() - debug_time));
+
+
     }
 
     /** Whether to use codepaths that are compatible with scoped storage.
@@ -1301,7 +1311,9 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         for(Map.Entry<Integer, Bitmap> entry : preloaded_bitmap_resources.entrySet()) {
             if( MyDebug.LOG )
                 Log.d(TAG, "recycle: " + entry.getKey());
-            entry.getValue().recycle();
+            if (entry.getValue() != null) {
+                entry.getValue().recycle();
+            }
         }
         preloaded_bitmap_resources.clear();
         if( textToSpeech != null ) {
@@ -2106,13 +2118,16 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             }
         });
         alertDialog.setNegativeButton(android.R.string.cancel, null);
+        showAlertDialog(alertDialog, "custom stamp text dialog dismissed");
+    }
 
+    private void showAlertDialog(AlertDialog.Builder alertDialog, final String logMessageOnDismiss) {
         final AlertDialog alert = alertDialog.create();
         alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface arg0) {
-                if( MyDebug.LOG )
-                    Log.d(TAG, "custom stamp text dialog dismissed");
+                if (MyDebug.LOG)
+                    Log.d(TAG, logMessageOnDismiss);
                 setWindowFlagsForCamera();
                 showPreview(true);
             }
@@ -2523,7 +2538,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         // safe.
         applicationInterface.stopPanorama(true);
 
-        View switchVideoButton = findViewById(R.id.switch_video);
+
         switchVideoButton.setEnabled(false); // prevent slowdown if user repeatedly clicks
         applicationInterface.reset(false);
         this.getApplicationInterface().getDrawPreview().setDimPreview(true);
@@ -4259,7 +4274,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     private void updateGalleryIconToBlank() {
         if( MyDebug.LOG )
             Log.d(TAG, "updateGalleryIconToBlank");
-        ImageButton galleryButton = this.findViewById(R.id.gallery);
+        CircleImageView galleryButton = this.findViewById(R.id.gallery);
         int bottom = galleryButton.getPaddingBottom();
         int top = galleryButton.getPaddingTop();
         int right = galleryButton.getPaddingRight();
@@ -4267,12 +4282,14 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 	    /*if( MyDebug.LOG )
 			Log.d(TAG, "padding: " + bottom);*/
         galleryButton.setImageBitmap(null);
-        galleryButton.setImageResource(R.drawable.baseline_photo_library_white_48);
+        galleryButton.setImageResource(R.drawable.ic_album);
+        galleryButton.setBorderWidth(0);
         // workaround for setImageResource also resetting padding, Android bug
         galleryButton.setPadding(left, top, right, bottom);
         gallery_bitmap = null;
     }
 
+    /** Shows a thumbnail for the gallery icon.
     /** Shows a thumbnail for the gallery icon.
      */
     void updateGalleryIcon(Bitmap thumbnail) {
@@ -4287,8 +4304,9 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 Log.d(TAG, "cancel update_gallery_future");
             update_gallery_future.cancel(true);
         }
-        ImageButton galleryButton = this.findViewById(R.id.gallery);
+        CircleImageView galleryButton = this.findViewById(R.id.gallery);
         galleryButton.setImageBitmap(thumbnail);
+        galleryButton.setBorderWidth(6);
         gallery_bitmap = thumbnail;
     }
 
@@ -4461,7 +4479,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
         this.runOnUiThread(new Runnable() {
             public void run() {
-                final ImageButton galleryButton = findViewById(R.id.gallery);
+                final CircleImageView galleryButton = findViewById(R.id.gallery);
                 if( started ) {
                     //galleryButton.setColorFilter(0x80ffffff, PorterDuff.Mode.MULTIPLY);
                     if( gallery_save_anim == null ) {
@@ -5484,36 +5502,39 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 Log.d(TAG, "set up zoom");
             if( MyDebug.LOG )
                 Log.d(TAG, "has_zoom? " + preview.supportsZoom());
-            ZoomControls zoomControls = findViewById(R.id.zoom);
+            View zoomControlHolder = findViewById(R.id.zoom);
             SeekBar zoomSeekBar = findViewById(R.id.zoom_seekbar);
+            View zoomSeekbarIcon = findViewById(R.id.zoom_seekbar_icon);
 
             if( preview.supportsZoom() ) {
                 if( sharedPreferences.getBoolean(PreferenceKeys.ShowZoomControlsPreferenceKey, false) ) {
-                    zoomControls.setIsZoomInEnabled(true);
-                    zoomControls.setIsZoomOutEnabled(true);
-                    zoomControls.setZoomSpeed(20);
-
-                    zoomControls.setOnZoomInClickListener(new View.OnClickListener(){
-                        public void onClick(View v){
-                            zoomIn();
-                        }
-                    });
-                    zoomControls.setOnZoomOutClickListener(new View.OnClickListener(){
-                        public void onClick(View v){
-                            zoomOut();
-                        }
-                    });
                     if( !mainUI.inImmersiveMode() ) {
-                        zoomControls.setVisibility(View.VISIBLE);
+                        View zoomInButton = findViewById(R.id.button_zoom_in);
+                        View zoomOutButton = findViewById(R.id.button_zoom_out);
+
+                        zoomInButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                zoomIn();
+                            }
+                        });
+
+                        zoomOutButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                zoomOut();
+                            }
+                        });
+                        zoomControlHolder.setVisibility(View.VISIBLE);
                     }
                 }
                 else {
-                    zoomControls.setVisibility(View.GONE);
+                    zoomControlHolder.setVisibility(View.GONE);
                 }
 
                 zoomSeekBar.setOnSeekBarChangeListener(null); // clear an existing listener - don't want to call the listener when setting up the progress bar to match the existing state
                 zoomSeekBar.setMax(preview.getMaxZoom());
-                zoomSeekBar.setProgress(preview.getMaxZoom()-preview.getCameraController().getZoom());
+                zoomSeekBar.setProgress(preview.getCameraController().getZoom());
                 zoomSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -5523,7 +5544,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                         // indirectly set zoom via this method, from setting the zoom slider
                         // if hasSmoothZoom()==true, then the preview already handled zooming to the current value
                         if( !preview.hasSmoothZoom() )
-                            preview.zoomTo(preview.getMaxZoom() - progress, false);
+                            preview.zoomTo(progress, false);
                     }
 
                     @Override
@@ -5538,20 +5559,23 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 if( sharedPreferences.getBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, true) ) {
                     if( !mainUI.inImmersiveMode() ) {
                         zoomSeekBar.setVisibility(View.VISIBLE);
+                        zoomSeekbarIcon.setVisibility(View.VISIBLE);
                     }
                 }
                 else {
                     zoomSeekBar.setVisibility(View.INVISIBLE); // should be INVISIBLE not GONE, as the focus_seekbar is aligned to be left to this; in future we might want this similarly for exposure panel
+                    zoomSeekbarIcon.setVisibility(View.INVISIBLE);
                 }
             }
             else {
-                zoomControls.setVisibility(View.GONE);
+                zoomControlHolder.setVisibility(View.GONE);
                 zoomSeekBar.setVisibility(View.INVISIBLE); // should be INVISIBLE not GONE, as the focus_seekbar is aligned to be left to this; in future we might want this similarly for the exposure panel
+                zoomSeekbarIcon.setVisibility(View.INVISIBLE);
             }
             if( MyDebug.LOG )
                 Log.d(TAG, "cameraSetup: time after setting up zoom: " + (System.currentTimeMillis() - debug_time));
 
-            View takePhotoButton = findViewById(R.id.take_photo);
+            ImageButton takePhotoButton = findViewById(R.id.take_photo);
             if( sharedPreferences.getBoolean(PreferenceKeys.ShowTakePhotoPreferenceKey, true) ) {
                 if( !mainUI.inImmersiveMode() ) {
                     takePhotoButton.setVisibility(View.VISIBLE);
@@ -5666,18 +5690,6 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {
-                    }
-                });
-
-                ZoomControls seek_bar_zoom = findViewById(R.id.exposure_seekbar_zoom);
-                seek_bar_zoom.setOnZoomInClickListener(new View.OnClickListener(){
-                    public void onClick(View v){
-                        changeExposure(1);
-                    }
-                });
-                seek_bar_zoom.setOnZoomOutClickListener(new View.OnClickListener(){
-                    public void onClick(View v){
-                        changeExposure(-1);
                     }
                 });
             }
@@ -6514,3 +6526,5 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         return has_notification;
     }*/
 }
+
+

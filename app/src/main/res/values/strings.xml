@@ -1103,4 +1103,8 @@
         - Support for Camera2 API\n
         - Panorama, including for front camera.</string>
     <string name="preferences_service_terms">Terms of service</string>
+
+    <string name="back_button_label">Back</string>
+    <string name="next_button_label">Next</string>
+    <string name="skip_button_label">Skip</string>
 </resources>

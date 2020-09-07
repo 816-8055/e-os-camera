@@ -18,6 +18,7 @@ import net.sourceforge.opencamera.preview.ApplicationInterface;
 import net.sourceforge.opencamera.preview.BasicApplicationInterface;
 import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
+import net.sourceforge.opencamera.ui.CircleImageView;
 import net.sourceforge.opencamera.ui.DrawPreview;
 
 import android.annotation.TargetApi;
@@ -26,6 +27,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -2347,6 +2349,9 @@ public class MyApplicationInterface extends BasicApplicationInterface {
             // ability to switch between auto and manual
             main_activity.getMainUI().setupExposureUI();
         }
+
+        ImageButton view = main_activity.findViewById(R.id.take_photo);
+        view.setImageResource(R.drawable.ic_camera_video_recording);
         final VideoMethod video_method = this.createOutputVideoMethod();
         boolean dategeo_subtitles = getVideoSubtitlePref(video_method).equals("preference_video_subtitle_yes");
         if( dategeo_subtitles && video_method != ApplicationInterface.VideoMethod.URI ) {
@@ -2458,7 +2463,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                 }
             }
             if( thumbnail != null ) {
-                ImageButton galleryButton = main_activity.findViewById(R.id.gallery);
+                CircleImageView galleryButton = main_activity.findViewById(R.id.gallery);
                 int width = thumbnail.getWidth();
                 int height = thumbnail.getHeight();
                 if( MyDebug.LOG )
