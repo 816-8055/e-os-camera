@@ -1,4 +1,4 @@
-image: "registry.gitlab.e.foundation:5000/e/apps/docker-android-apps-cicd:latest"
+image: "registry.gitlab.e.foundation:5000/e/apps/docker-android-apps-cicd:backlog_3595-all-upstream"
 
 stages:
 - build
