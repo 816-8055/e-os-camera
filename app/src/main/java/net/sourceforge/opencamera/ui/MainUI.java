@@ -1386,7 +1386,7 @@ public class MainUI {
                 if( main_activity.getPreview().supportsZoom() && sharedPreferences.getBoolean(PreferenceKeys.ShowZoomControlsPreferenceKey, false) ) {
                     zoomControls.setVisibility(visibility);
                 }
-                if( main_activity.getPreview().supportsZoom() && sharedPreferences.getBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, true) ) {
+                if( main_activity.getPreview().supportsZoom() && sharedPreferences.getBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, false) ) {
                     zoomSeekBar.setVisibility(visibility);
                 }
                 if( main_activity.showManualFocusSeekbar(false) )
