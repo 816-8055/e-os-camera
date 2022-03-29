@@ -119,7 +119,7 @@
         android:key="preference_show_zoom_slider_controls"
         android:title="@string/preference_show_zoom_slider_controls"
         android:summary="@string/preference_show_zoom_slider_controls_summary"
-        android:defaultValue="true"
+        android:defaultValue="false"
         />
 
     <CheckBoxPreference
