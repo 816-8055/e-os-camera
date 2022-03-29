@@ -1375,7 +1375,7 @@ public class MainUI {
                 if( MyDebug.LOG ) {
                     Log.d(TAG, "has_zoom: " + main_activity.getPreview().supportsZoom());
                 }
-                if( main_activity.getPreview().supportsZoom() && sharedPreferences.getBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, true) ) {
+                if( main_activity.getPreview().supportsZoom() && sharedPreferences.getBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, false) ) {
                     zoomSeekBar.setVisibility(visibility);
                 }
                 if( main_activity.showManualFocusSeekbar(false) )
