@@ -193,6 +193,8 @@ public class MainUI {
     }
 
     private UIPlacement computeUIPlacement() {
+        // Default top
+        if (true) return UIPlacement.UIPLACEMENT_TOP;
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(main_activity);
         String ui_placement_string = sharedPreferences.getString(PreferenceKeys.UIPlacementPreferenceKey, "ui_top");
         switch( ui_placement_string ) {

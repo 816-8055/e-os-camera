@@ -2,14 +2,14 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:key="preferences_root">
 
-    <ListPreference
+    <!-- <ListPreference
         android:key="preference_ui_placement"
         android:title="@string/preference_ui_placement"
         android:summary="%s"
         android:entries="@array/preference_ui_placement_entries"
         android:entryValues="@array/preference_ui_placement_values"
         android:defaultValue="ui_top"
-        />
+        /> -->
 
     <!--  if we move this to another PreferenceGroup, we should update code to remove this Preference -->
     <ListPreference
