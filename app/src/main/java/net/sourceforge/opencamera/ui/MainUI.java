@@ -768,19 +768,19 @@ public class MainUI {
                 layoutParams.addRule(above, 0);
                 layoutParams.addRule(below, 0);
                 layoutParams.addRule(left_of, 0);
-                layoutParams.addRule(right_of, R.id.popup);
+                layoutParams.addRule(right_of, R.id.top_bg);
                 layoutParams.addRule(align_parent_top, system_orientation_portrait ? 0 : RelativeLayout.TRUE);
                 layoutParams.addRule(align_parent_bottom, system_orientation_portrait ? 0 : RelativeLayout.TRUE);
                 layoutParams.addRule(align_parent_left, 0);
                 layoutParams.addRule(align_parent_right, 0);
             }
             else {
-                layoutParams.addRule(align_right, R.id.popup);
+                layoutParams.addRule(align_right, R.id.top_bg);
                 layoutParams.addRule(align_bottom, 0);
                 layoutParams.addRule(align_left, 0);
                 layoutParams.addRule(align_top, 0);
                 layoutParams.addRule(above, 0);
-                layoutParams.addRule(below, R.id.popup);
+                layoutParams.addRule(below, R.id.top_bg);
                 layoutParams.addRule(left_of, 0);
                 layoutParams.addRule(right_of, 0);
                 layoutParams.addRule(align_parent_top, 0);
