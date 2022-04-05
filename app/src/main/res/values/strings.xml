@@ -910,7 +910,7 @@
         This feature provides no guarantees on availability or accuracy. Results are a best guess, and not guaranteed to be meaningful or correct.
         \n%s</string>
 
-    <string name="intro_text">Touch to focus, and press the circular blue shutter button to take photos.
+    <string name="intro_text">Touch to focus, and press the circular white shutter button to take photos.
         \n\nTo disable maximum screen brightness, see Settings/On screen GUI/\"Force maximum brightness\".
         To save to SD cards on Android 5+, see Settings/More camera controls/\"Storage Access Framework\".
         For more help, click \"Online help\" from Settings.
