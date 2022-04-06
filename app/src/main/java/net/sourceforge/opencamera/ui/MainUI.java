@@ -595,6 +595,9 @@ public class MainUI {
             view = main_activity.findViewById(R.id.cancel_panorama);
             setViewRotation(view, ui_rotation);
 
+            view = main_activity.findViewById(R.id.finish_panorama);
+            setViewRotation(view, ui_rotation);
+
             view = main_activity.findViewById(R.id.switch_video);
             setViewRotation(view, ui_rotation);
 
@@ -977,14 +980,6 @@ public class MainUI {
                 content_description = main_activity.getPreview().isVideoRecording() ? R.string.stop_video : R.string.start_video;
                 switch_video_content_description = R.string.switch_to_photo;
             }
-            else if( main_activity.getApplicationInterface().getPhotoMode() == MyApplicationInterface.PhotoMode.Panorama &&
-                    main_activity.getApplicationInterface().getGyroSensor().isRecording() ) {
-                if( MyDebug.LOG )
-                    Log.d(TAG, "set icon to recording panorama");
-                resource = R.drawable.ic_done;
-                content_description = R.string.finish_panorama;
-                switch_video_content_description = R.string.switch_to_video;
-            }
             else {
                 if( MyDebug.LOG )
                     Log.d(TAG, "set icon to photo");
@@ -1001,6 +996,33 @@ public class MainUI {
             resource = main_activity.getPreview().isVideo() ? R.drawable.ic_switch_camera : R.drawable.ic_switch_video;
             view.setImageResource(resource);
             view.setTag(resource); // for testing
+        }
+    }
+
+    /**
+     * Show/hide photoShutter, panorama cancel & finish buttons on photoMode.
+     * If user save not to show photoShutter button, don't show photoShutter & panorama finish buttons.
+     * If user wants to view the shutter button, update the shutterButton's icon to the appropriate one.
+     */
+    public void handlePanoromaModeButtonsVisibility() {
+        boolean isPanoramaRunning = (main_activity.getApplicationInterface().getPhotoMode() == MyApplicationInterface.PhotoMode.Panorama &&
+                main_activity.getApplicationInterface().getGyroSensor().isRecording());
+
+        View view = main_activity.findViewById(R.id.cancel_panorama);
+        view.setVisibility(isPanoramaRunning ? View.VISIBLE : View.GONE);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(main_activity);
+        if (!sharedPreferences.getBoolean(PreferenceKeys.ShowTakePhotoPreferenceKey, true)) {
+            return;
+        }
+
+        view = main_activity.findViewById(R.id.finish_panorama);
+        view.setVisibility(isPanoramaRunning ? View.VISIBLE : View.GONE);
+
+        view = main_activity.findViewById(R.id.take_photo);
+        view.setVisibility(isPanoramaRunning ? View.INVISIBLE : View.VISIBLE);
+        if (!isPanoramaRunning) {
+            setTakePhotoIcon();
         }
     }
 
@@ -1291,7 +1313,9 @@ public class MainUI {
                     focusBracketingTargetSeekBar.setVisibility(visibility);
                 String pref_immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_low_profile");
                 if( pref_immersive_mode.equals("immersive_mode_everything") ) {
-                    if( sharedPreferences.getBoolean(PreferenceKeys.ShowTakePhotoPreferenceKey, true) ) {
+                    final boolean showTakePhotoPreferenceKey = sharedPreferences.getBoolean(PreferenceKeys.ShowTakePhotoPreferenceKey, true);
+
+                    if (showTakePhotoPreferenceKey) {
                         View takePhotoButton = main_activity.findViewById(R.id.take_photo);
                         takePhotoButton.setVisibility(visibility);
                     }
@@ -1306,6 +1330,11 @@ public class MainUI {
                     if( main_activity.getApplicationInterface().getGyroSensor().isRecording() ) {
                         View cancelPanoramaButton = main_activity.findViewById(R.id.cancel_panorama);
                         cancelPanoramaButton.setVisibility(visibility);
+
+                        if (showTakePhotoPreferenceKey) {
+                            View finishPanoramaButton = main_activity.findViewById(R.id.finish_panorama);
+                            finishPanoramaButton.setVisibility(visibility);
+                        }
                     }
                 }
                 if( !immersive_mode ) {

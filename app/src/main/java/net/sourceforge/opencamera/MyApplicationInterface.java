@@ -1889,9 +1889,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         panorama_pic_accepted = false;
         panorama_dir_left_to_right = true;
 
-        main_activity.getMainUI().setTakePhotoIcon();
-        View cancelPanoramaButton = main_activity.findViewById(R.id.cancel_panorama);
-        cancelPanoramaButton.setVisibility(View.VISIBLE);
+        main_activity.getMainUI().handlePanoromaModeButtonsVisibility();
         main_activity.getMainUI().closeExposureUI(); // close seekbars if open (popup is already closed when taking a photo)
         // taking the photo will end up calling MainUI.showGUI(), which will hide the other on-screen icons
     }
@@ -1927,9 +1925,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         if( is_cancelled ) {
             imageSaver.flushImageBatch();
         }
-        main_activity.getMainUI().setTakePhotoIcon();
-        View cancelPanoramaButton = main_activity.findViewById(R.id.cancel_panorama);
-        cancelPanoramaButton.setVisibility(View.GONE);
+        main_activity.getMainUI().handlePanoromaModeButtonsVisibility();
         main_activity.getMainUI().showGUI(); // refresh UI icons now that we've stopped panorama
     }
 

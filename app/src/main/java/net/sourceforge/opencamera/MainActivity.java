@@ -473,6 +473,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         takePhotoVideoButton.setVisibility(View.GONE);
         View cancelPanoramaButton = findViewById(R.id.cancel_panorama);
         cancelPanoramaButton.setVisibility(View.GONE);
+        View finishPanoramaButton = findViewById(R.id.finish_panorama);
+        finishPanoramaButton.setVisibility(View.GONE);
 
         // We initialise optional controls to invisible/gone, so they don't show while the camera is opening - the actual visibility is
         // set in cameraSetup().
@@ -2035,6 +2037,13 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( MyDebug.LOG )
             Log.d(TAG, "clickedCancelPanorama");
         applicationInterface.stopPanorama(true);
+    }
+
+    public void clickedFinishPanorama(View view) {
+        if (MyDebug.LOG) {
+            Log.d(TAG, "clickedFinishPanorama");
+        }
+        this.takePicture(false);
     }
 
     public void clickedCycleRaw(View view) {
@@ -4739,7 +4748,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
-        if( MyDebug.LOG )
+        if (MyDebug.LOG)
             Log.d(TAG, "onActivityResult: " + requestCode);
 
         super.onActivityResult(requestCode, resultCode, resultData);
