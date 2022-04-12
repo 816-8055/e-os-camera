@@ -636,7 +636,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                         launchOnlineHelp();
                     }
                 });
-                showAlertDialog(alertDialog, "first time load dialog dismissed");
+                /* On application start 20 millisecond delay is not enough for all screen rotating animation to be complete
+                    (if user use the camera in portrait mode, then it moves from portrait to landscape & then again landscape to portrait).
+                    500 milliseconds delay would do the trick. */
+                showAlertDialog(alertDialog, "first time load dialog dismissed", 500L);
             }
 
             setFirstTimeFlag();
@@ -2131,6 +2134,14 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     }
 
     private void showAlertDialog(AlertDialog.Builder alertDialog, final String logMessageOnDismiss) {
+        showAlertDialog(alertDialog, logMessageOnDismiss, -1L);
+    }
+
+    /**
+     * @param delayInMs how much time in milliseconds should the alertDialog wait to popup.
+     *              If delay <= 0, then use default delay time (20 milliseconds)
+     */
+    private void showAlertDialog(AlertDialog.Builder alertDialog, final String logMessageOnDismiss, long delayInMs) {
         final AlertDialog alert = alertDialog.create();
         alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -2144,6 +2155,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
         showPreview(false);
         setWindowFlagsForSettings();
+        if (delayInMs > 0) {
+            showAlert(alert, delayInMs);
+            return;
+        }
         showAlert(alert);
     }
 
@@ -4121,7 +4136,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
      *  the dialog doesn't show properly if the phone is held in portrait. A workaround seems to be
      *  to use postDelayed. Note that postOnAnimation() doesn't work.
      */
-    public void showAlert(final AlertDialog alert) {
+    public void showAlert(final AlertDialog alert, long delayInMs) {
         if( MyDebug.LOG )
             Log.d(TAG, "showAlert");
         Handler handler = new Handler();
@@ -4129,7 +4144,11 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             public void run() {
                 alert.show();
             }
-        }, 20);
+        }, delayInMs);
+    }
+
+    public void showAlert(final AlertDialog alert) {
+        showAlert(alert, 20L);
         // note that 1ms usually fixes the problem, but not always; 10ms seems fine, have set 20ms
         // just in case
     }
