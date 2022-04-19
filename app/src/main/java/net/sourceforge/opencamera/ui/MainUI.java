@@ -505,7 +505,7 @@ public class MainUI {
 					}*/
                     int total_button_size = count*button_size;
                     int margin = 0;
-                    int topMargin = (int) ScaleUtils.convertDpToPx(main_activity, 24.0f);
+                    int topMargin = (int) ScaleUtils.convertDpToPx(main_activity, 8.0f);
                     if( total_button_size > display_height ) {
                         if( MyDebug.LOG )
                             Log.d(TAG, "need to reduce button size");
@@ -522,7 +522,6 @@ public class MainUI {
                         Log.d(TAG, "total_button_size: " + total_button_size);
                         Log.d(TAG, "margin: " + margin);
                     }
-                    int leftMargin = (int) ScaleUtils.convertDpToPx(main_activity, 16.0f);
                     for(View this_view : buttons_permanent) {
                         if( this_view.getVisibility() == View.VISIBLE ) {
                             if( MyDebug.LOG ) {
@@ -537,7 +536,7 @@ public class MainUI {
                             // is displayed (when taking a photo) if it is still shown left-most, rather than centred; also
                             // needed for "pause preview" trash/icons to be shown properly (test by rotating the phone to update
                             // the layout)
-                            layoutParams.setMargins(leftMargin, this_view == first_visible_view ? topMargin : margin / 2, 0, this_view == last_visible_view ? topMargin : margin / 2);
+                            layoutParams.setMargins(0, this_view == first_visible_view ? topMargin : margin / 2, 0, this_view == last_visible_view ? topMargin : margin / 2);
                             layoutParams.width = button_size;
                             layoutParams.height = button_size;
                             this_view.setLayoutParams(layoutParams);
@@ -546,7 +545,7 @@ public class MainUI {
 
                     view = main_activity.findViewById(R.id.top_bg);
                     layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
-                    layoutParams.width = button_size + (2 * leftMargin);
+                    layoutParams.width = button_size;
                     view.setLayoutParams(layoutParams);
                     top_icon = view;
                 }
