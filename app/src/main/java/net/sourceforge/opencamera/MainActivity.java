@@ -737,8 +737,39 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         this.hasOldSystemOrientation = true;
         this.oldSystemOrientation = getSystemOrientation();
 
+        calculateNavigationGap();
+
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: total time for Activity startup: " + (System.currentTimeMillis() - debug_time));
+    }
+
+    /**
+     * if navigationMode is no gesture, then retrieve navigationBar's height & update navigation_gap
+     */
+    private void calculateNavigationGap() {
+        int resourceId = getResources().getIdentifier("config_navBarInteractionMode", "integer", "android");
+        if (resourceId > 0) {
+            int navType = getResources().getInteger(resourceId);
+            if (navType != 2) { //gesture mode = 2
+                resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+                if (resourceId > 0) {
+                    navigation_gap = getResources().getDimensionPixelSize(resourceId);
+                }
+            }
+        }
+    }
+
+    public void handleDecorFitsSystemWindows() {
+        setDecorFitsSystemWindows(!isInFullScreenMode());
+    }
+
+    /**
+     * check is the preview size = maximise && is not in video mode, then return true
+     */
+    public boolean isInFullScreenMode() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String preview_size = sharedPreferences.getString(PreferenceKeys.PreviewSizePreferenceKey, "preference_preview_size_display");
+        return !(preview_size.equals("preference_preview_size_wysiwyg") || preview.isVideo());
     }
 
     /** Whether to use codepaths that are compatible with scoped storage.
@@ -3866,16 +3897,30 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
+    /**
+     * if sdk>=R & not in full screen, means the DecorFitsSystemWindows=true, then we can ignore navigationGap.
+     */
     public int getNavigationGap() {
+        if (isFullScreen()) return 0;
         return (want_no_limits || edge_to_edge_mode) ? navigation_gap : 0;
     }
 
     public int getNavigationGapLandscape() {
+        if (isFullScreen()) return 0;
         return edge_to_edge_mode ? navigation_gap_landscape : 0;
     }
 
     public int getNavigationGapReverseLandscape() {
+        if (isFullScreen()) return 0;
         return edge_to_edge_mode ? navigation_gap_reverse_landscape : 0;
+    }
+
+    private boolean isFullScreen() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !isInFullScreenMode()) {
+            return true;
+        }
+
+        return false;
     }
 
     /** The system is now such that we have entered or exited immersive mode. If visible is true,
@@ -4248,6 +4293,18 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
+    /**
+     * setDecorFitsSystemWindows for build >=R
+     * @return if the operation successful or not
+     */
+    public boolean setDecorFitsSystemWindows(boolean decorFitsSystemWindows) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(decorFitsSystemWindows);
+            return true;
+        }
+        return false;
+    }
+
     /** Sets the brightness level for normal operation (when camera preview is visible).
      *  If force_max is true, this always forces maximum brightness; otherwise this depends on user preference.
      */
@@ -4433,6 +4490,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
 
         setImmersiveMode(false);
+        setDecorFitsSystemWindows(true);
         camera_in_background = true;
 
         // we disable location listening when showing settings or a dialog etc - saves battery life, also better for privacy
