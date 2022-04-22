@@ -622,7 +622,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             Log.d(TAG, "onCreate: time after setting system ui visibility listener: " + (System.currentTimeMillis() - debug_time));
 
         // show "about" dialog for first time use
-        if( !has_done_first_time ) {
+        if(false) {
             if( !is_test ) {
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
                 alertDialog.setTitle(R.string.app_name);
