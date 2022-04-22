@@ -71,7 +71,7 @@ public class PreferenceSubPhoto extends PreferenceSubScreen {
         if( MyDebug.LOG )
             Log.d(TAG, "supports_photo_video_recording: " + supports_photo_video_recording);
 
-        if( widths != null && heights != null && supports_burst != null ) {
+        if( false && widths != null && heights != null && supports_burst != null ) {
             CharSequence [] entries = new CharSequence[widths.length];
             CharSequence [] values = new CharSequence[widths.length];
             for(int i=0;i<widths.length;i++) {
