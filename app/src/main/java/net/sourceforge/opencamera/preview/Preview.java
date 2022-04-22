@@ -4063,6 +4063,11 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 optimalSize = getClosestSize(sizes, targetRatio, null);
             }
         }
+
+        if (((MainActivity)getContext()).isInFullScreenMode()) {
+            camera_controller.setPictureSize(optimalSize.width, optimalSize.height);
+        }
+
         if( MyDebug.LOG ) {
             Log.d(TAG, "chose optimalSize: " + optimalSize.width + " x " + optimalSize.height);
             Log.d(TAG, "optimalSize ratio: " + ((double)optimalSize.width / optimalSize.height));
