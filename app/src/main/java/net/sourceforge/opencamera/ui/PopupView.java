@@ -375,7 +375,7 @@ public class PopupView extends LinearLayout {
             if( MyDebug.LOG )
                 Log.d(TAG, "PopupView time 8: " + (System.nanoTime() - debug_time));
 
-            if( !preview.isVideo() && photo_mode != MyApplicationInterface.PhotoMode.Panorama ) {
+            if( !preview.isVideo() && photo_mode != MyApplicationInterface.PhotoMode.Panorama && !main_activity.isInFullScreenMode()) {
                 // Only show photo resolutions in photo mode - even if photo snapshots whilst recording video is supported, the
                 // resolutions for that won't match what the user has requested for photo mode resolutions.
                 // And Panorama mode chooses its own resolution.
