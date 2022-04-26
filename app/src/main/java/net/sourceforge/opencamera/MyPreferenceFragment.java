@@ -223,9 +223,29 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         final int [] heights = bundle.getIntArray("resolution_heights");
         final boolean [] supports_burst = bundle.getBooleanArray("resolution_supports_burst");
 
-        Preference pref1 = findPreference("preference_resolution");
-        PreferenceGroup pg1 = (PreferenceGroup)this.findPreference("preference_screen_photo_settings");
-        pg1.removePreference(pref1);
+        if( widths != null && heights != null && supports_burst != null ) {
+            CharSequence [] entries = new CharSequence[widths.length];
+            CharSequence [] values = new CharSequence[widths.length];
+            for(int i=0;i<widths.length;i++) {
+                entries[i] = widths[i] + " x " + heights[i] + " " + Preview.getAspectRatioMPString(getResources(), widths[i], heights[i], supports_burst[i]);
+                values[i] = widths[i] + " " + heights[i];
+            }
+            ListPreference lp = (ListPreference)findPreference("preference_resolution");
+            lp.setEntries(entries);
+            lp.setEntryValues(values);
+            String resolution_preference_key = PreferenceKeys.getResolutionPreferenceKey(cameraId);
+            String resolution_value = sharedPreferences.getString(resolution_preference_key, "");
+            if( MyDebug.LOG )
+                Log.d(TAG, "resolution_value: " + resolution_value);
+            lp.setValue(resolution_value);
+            // now set the key, so we save for the correct cameraId
+            lp.setKey(resolution_preference_key);
+        }
+        else {
+            Preference pref = findPreference("preference_resolution");
+            PreferenceGroup pg = (PreferenceGroup)this.findPreference("preference_screen_photo_settings");
+            pg.removePreference(pref);
+        }
 
         String fps_preference_key = PreferenceKeys.getVideoFPSPreferenceKey(cameraId);
         if( MyDebug.LOG )

@@ -2593,9 +2593,13 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if (current_size_index == -1) {
                 // set to largest
                 CameraController.Size current_size = null;
+
+                double targetRatio = getDisplayRatio();
+
                 for (int i = 0; i < photo_sizes.size(); i++) {
                     CameraController.Size size = photo_sizes.get(i);
-                    if (current_size == null || size.width * size.height > current_size.width * current_size.height) {
+                    double ratio = (double) size.width / size.height;
+                    if (current_size == null || isPerfectFullScreenRatio(targetRatio, ratio)) {
                         current_size_index = i;
                         current_size = size;
                     }
@@ -2906,6 +2910,26 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if (MyDebug.LOG) {
             Log.d(TAG, "setupCameraParameters: total time for setting up camera parameters: " + (System.currentTimeMillis() - debug_time));
         }
+    }
+
+    private boolean isPerfectFullScreenRatio(double targetRatio, double ratio) {
+        return (ratio >= targetRatio) && (ratio - targetRatio) < 0.05D;
+    }
+
+    private double getDisplayRatio() {
+        Point display_size = new Point();
+        Display display = ((Activity)getContext()).getWindowManager().getDefaultDisplay();
+        display.getSize(display_size);
+        // getSize() is adjusted based on the current rotation, so should already be landscape format, but:
+        // (a) it would be good to not assume Open Camera runs in landscape mode (if we ever ran in portrait mode,
+        // we'd still want display_size.x > display_size.y as preview resolutions also have width > height,
+        // (b) on some devices (e.g., Nokia 8), when coming back from the Settings when device is held in Preview,
+        // display size is returned in portrait format! (To reproduce, enable "Maximise preview size"; or if that's
+        // already enabled, change the setting off and on.)
+        if (display_size.x < display_size.y) {
+            display_size.set(display_size.y, display_size.x);
+        }
+        return ((double) display_size.x) / (double) display_size.y;
     }
 
     private void setPreviewSize() {
