@@ -164,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     //private final boolean edge_to_edge_mode = true; // whether running always in edge-to-edge mode
     private final boolean edge_to_edge_mode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM; // whether running always in edge-to-edge mode
     private boolean want_no_limits; // whether we want to run with FLAG_LAYOUT_NO_LIMITS
+    private boolean can_draw_nav_bar = true;
     private boolean set_window_insets_listener; // whether we've enabled a setOnApplyWindowInsetsListener()
     private int navigation_gap; // gap for navigation bar along bottom (portrait) or right (landscape)
     private int navigation_gap_landscape; // gap for navigation bar along left (portrait) or bottom (landscape); only set for edge_to_edge_mode==true
@@ -759,8 +760,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
-    public void handleDecorFitsSystemWindows() {
-        setDecorFitsSystemWindows(!isInFullScreenMode());
+    public void handleDecorFitsSystemWindows(double previewRatio, double screenRatio) {
+        boolean decorFitsSystemWindows = screenRatio >= previewRatio;
+        setDecorFitsSystemWindows(decorFitsSystemWindows);
+        can_draw_nav_bar = !decorFitsSystemWindows;
     }
 
     /**
@@ -3897,9 +3900,6 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
-    /**
-     * if sdk>=R & not in full screen, means the DecorFitsSystemWindows=true, then we can ignore navigationGap.
-     */
     public int getNavigationGap() {
         if (isFullScreen()) return 0;
         return (want_no_limits || edge_to_edge_mode) ? navigation_gap : 0;
@@ -3915,8 +3915,12 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         return edge_to_edge_mode ? navigation_gap_reverse_landscape : 0;
     }
 
+
+    /**
+     * if sdk>=R & can't draw navigation bar, means the DecorFitsSystemWindows=true, then we can ignore navigationGap.
+     */
     private boolean isFullScreen() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !isInFullScreenMode()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !can_draw_nav_bar) {
             return true;
         }
 
