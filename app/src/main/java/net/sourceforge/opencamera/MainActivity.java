@@ -154,6 +154,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     //private boolean ui_placement_right = true;
 
     private boolean want_no_limits; // whether we want to run with FLAG_LAYOUT_NO_LIMITS
+    private boolean can_draw_nav_bar = true;
     private boolean set_window_insets_listener; // whether we've enabled a setOnApplyWindowInsetsListener()
     private int navigation_gap;
     public static volatile boolean test_preview_want_no_limits; // test flag, if set to true then instead use test_preview_want_no_limits_value; needs to be static, as it needs to be set before activity is created to take effect
@@ -772,8 +773,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
-    public void handleDecorFitsSystemWindows() {
-        setDecorFitsSystemWindows(!isInFullScreenMode());
+    public void handleDecorFitsSystemWindows(double previewRatio, double screenRatio) {
+        boolean decorFitsSystemWindows = screenRatio >= previewRatio;
+        setDecorFitsSystemWindows(decorFitsSystemWindows);
+        can_draw_nav_bar = !decorFitsSystemWindows;
     }
 
     /**
@@ -3624,10 +3627,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     }
 
     /**
-     * if sdk>=R & not in full screen, means the DecorFitsSystemWindows=true, then we can ignore navigationGap.
+     * if sdk>=R & can't draw navigation bar, means the DecorFitsSystemWindows=true, then we can ignore navigationGap.
      */
     public int getNavigationGap() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !isInFullScreenMode()) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !can_draw_nav_bar) {
             return 0;
         }
         return want_no_limits ? navigation_gap : 0;
