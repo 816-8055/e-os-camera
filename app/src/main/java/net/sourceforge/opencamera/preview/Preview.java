@@ -1439,7 +1439,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 if( MyDebug.LOG ) {
                     Log.d(TAG, "closeCamera: about to pause preview: " + (System.currentTimeMillis() - debug_time));
                 }
-                pausePreview(false);
+                pausePreview(true);
                 // we set camera_controller to null before starting background thread, so that other callers won't try
                 // to use it
                 final CameraController camera_controller_local = camera_controller;
