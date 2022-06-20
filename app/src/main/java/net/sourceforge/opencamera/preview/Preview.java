@@ -4,6 +4,7 @@ import net.sourceforge.opencamera.HDRProcessor;
 import net.sourceforge.opencamera.JavaImageFunctions;
 import net.sourceforge.opencamera.JavaImageProcessing;
 import net.sourceforge.opencamera.MainActivity;
+import net.sourceforge.opencamera.PropertyUtility;
 import net.sourceforge.opencamera.cameracontroller.RawImage;
 import net.sourceforge.opencamera.MyDebug;
 import net.sourceforge.opencamera.R;
@@ -1718,7 +1719,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
         //final boolean use_background_thread = false;
         //final boolean use_background_thread = true;
-        final boolean use_background_thread = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+        boolean use_background_thread = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+        if ("true".equalsIgnoreCase(PropertyUtility.getProperty("camera.load.sync"))) {
+            use_background_thread = true;
+        }
 		/* Opening camera on background thread is important so that we don't block the UI thread:
 		 *   - For old Camera API, this is recommended behaviour by Google for Camera.open().
 		     - For Camera2, the manager.openCamera() call is asynchronous, but CameraController2
