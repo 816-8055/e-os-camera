@@ -62,6 +62,8 @@ dependencies {
     // needed to fix errors since upgrading to appcompat:1.7.0, see https://stackoverflow.com/questions/75263047/duplicate-class-in-kotlin-android
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.9.0"))
 
+    implementation "org.greenrobot:eventbus:3.3.1"
+
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
     implementation 'androidx.exifinterface:exifinterface:1.4.1'

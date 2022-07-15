@@ -1,5 +1,6 @@
 package net.sourceforge.opencamera.cameracontroller;
 
+import net.sourceforge.opencamera.ContinuousBurstImageRunningAction;
 import net.sourceforge.opencamera.HDRProcessor;
 import net.sourceforge.opencamera.MyDebug;
 
@@ -69,6 +70,8 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.TextureView;
 import android.view.WindowMetrics;
+
+import org.greenrobot.eventbus.EventBus;
 
 /** Provides support using Android 5's Camera 2 API
  *  android.hardware.camera2.*.
@@ -1691,6 +1694,9 @@ public class CameraController2 extends CameraController {
                 takePhotoCompleted();
             }
 
+            if (n_burst_taken == 1) {
+                EventBus.getDefault().post(new ContinuousBurstImageRunningAction());
+            }
             if( MyDebug.LOG )
                 Log.d(TAG, "done onImageAvailable");
         }
