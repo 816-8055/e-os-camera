@@ -11,6 +11,10 @@ import net.sourceforge.opencamera.ui.FolderChooserDialog;
 import net.sourceforge.opencamera.ui.MainUI;
 import net.sourceforge.opencamera.ui.ManualSeekbars;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -145,6 +149,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     private ValueAnimator gallery_save_anim;
     private boolean last_continuous_fast_burst; // whether the last photo operation was a continuous_fast_burst
     private Future<?> update_gallery_future;
+    private boolean should_run_continuous_fast_burst = false;
 
     private TextToSpeech textToSpeech;
     private boolean textToSpeechSuccess;
@@ -757,6 +762,12 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             Log.d(TAG, "onCreate: total time for Activity startup: " + (System.currentTimeMillis() - debug_time));
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
     /**
      * if navigationMode is no gesture, then retrieve navigationBar's height & update navigation_gap
      */
@@ -1279,6 +1290,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( MyDebug.LOG )
             Log.d(TAG, "onStop");
         super.onStop();
+        EventBus.getDefault().unregister(this);
 
         // we stop location listening in onPause, but done here again just to be certain!
         applicationInterface.getLocationSupplier().freeLocationListeners();
@@ -5337,6 +5349,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         closePopup();
 
         this.last_continuous_fast_burst = continuous_fast_burst;
+        this.should_run_continuous_fast_burst = continuous_fast_burst;
         this.preview.takePicturePressed(photo_snapshot, continuous_fast_burst);
     }
 
@@ -6532,7 +6545,18 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     public void takePhotoButtonLongClickCancelled() {
         if( MyDebug.LOG )
             Log.d(TAG, "takePhotoButtonLongClickCancelled");
-        if( preview.getCameraController() != null && preview.getCameraController().isContinuousBurstInProgress() ) {
+        if (preview.getCameraController() == null) {
+            return;
+        }
+        if (preview.getCameraController().isContinuousBurstInProgress()) {
+            preview.getCameraController().stopContinuousBurst();
+        }
+        should_run_continuous_fast_burst = false;
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN_ORDERED)
+    public void onContinuousBurstImageRunningAction(ContinuousBurstImageRunningAction action) {
+        if (!should_run_continuous_fast_burst && preview.getCameraController() != null && preview.getCameraController().isContinuousBurstInProgress()) {
             preview.getCameraController().stopContinuousBurst();
         }
     }
