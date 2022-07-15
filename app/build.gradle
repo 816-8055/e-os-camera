@@ -68,6 +68,8 @@ dependencies {
     // needed to fix errors since upgrading to appcompat:1.7.0, see https://stackoverflow.com/questions/75263047/duplicate-class-in-kotlin-android
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.9.0"))
 
+    implementation "org.greenrobot:eventbus:3.3.1"
+
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
     // 1.4.0 has bug where exif_new.setAttribute(ExifInterface.TAG_XMP, null); in ImageSaver.removeExifTags() crashes - so only update
