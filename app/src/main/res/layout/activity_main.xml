@@ -15,26 +15,22 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottom_buttons_holder"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:background="@color/navigation_background"
-        android:layout_alignParentEnd="true">
+        android:layout_height="wrap_content"
+        android:background="@color/navigation_background">
 
         <View
             android:id="@+id/place_holder_view"
             android:layout_width="@dimen/onscreen_bottom_button_size"
             android:layout_height="@dimen/onscreen_bottom_button_size"
             android:background="@android:color/transparent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             android:clickable="false"
             android:focusable="false"
             android:visibility="invisible"/>
 
         <View
             android:id="@+id/place_holder_center_view"
-            android:layout_width="1dp"
-            android:layout_height="1dp"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
             android:background="@android:color/transparent"
             android:clickable="false"
             android:focusable="false"
@@ -63,9 +59,6 @@
             android:layout_width="@dimen/onscreen_bottom_button_size"
             android:layout_height="@dimen/onscreen_bottom_button_size"
             android:onClick="clickedGallery"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             android:src="@drawable/ic_album"
             app:civ_border_color="#40FFFFFF"
             app:civ_border_width="0dp" />
@@ -74,10 +67,6 @@
             android:id="@+id/switch_camera"
             android:layout_width="@dimen/onscreen_bottom_button_size"
             android:layout_height="@dimen/onscreen_bottom_button_size"
-            app:layout_constraintTop_toBottomOf="@id/gallery"
-            app:layout_constraintBottom_toTopOf="@id/take_photo"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             android:background="@null"
             android:contentDescription="@string/switch_to_front_camera"
             android:onClick="clickedSwitchCamera"
@@ -88,10 +77,6 @@
             android:id="@+id/pause_video"
             android:layout_width="@dimen/onscreen_bottom_button_size"
             android:layout_height="@dimen/onscreen_bottom_button_size"
-            app:layout_constraintTop_toBottomOf="@id/gallery"
-            app:layout_constraintBottom_toTopOf="@id/take_photo"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             android:background="@null"
             android:contentDescription="@string/pause_video"
             android:onClick="clickedPauseVideo"
@@ -103,10 +88,6 @@
             android:id="@+id/cancel_panorama"
             android:layout_width="@dimen/onscreen_bottom_panorama_button_size"
             android:layout_height="@dimen/onscreen_bottom_panorama_button_size"
-            app:layout_constraintBottom_toTopOf="@id/place_holder_center_view"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="13dp"
             android:background="@null"
             android:contentDescription="@string/cancel_panorama"
             android:onClick="clickedCancelPanorama"
@@ -118,10 +99,6 @@
             android:id="@+id/finish_panorama"
             android:layout_width="@dimen/onscreen_bottom_panorama_button_size"
             android:layout_height="@dimen/onscreen_bottom_panorama_button_size"
-            app:layout_constraintTop_toBottomOf="@id/place_holder_center_view"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="13dp"
             android:background="@null"
             android:contentDescription="@string/finish_panorama"
             android:onClick="clickedFinishPanorama"
@@ -133,10 +110,6 @@
             android:id="@+id/switch_video"
             android:layout_width="@dimen/onscreen_bottom_button_size"
             android:layout_height="@dimen/onscreen_bottom_button_size"
-            app:layout_constraintBottom_toTopOf="@id/place_holder_view"
-            app:layout_constraintTop_toBottomOf="@id/take_photo"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             android:background="@null"
             android:contentDescription="@string/switch_to_video"
             android:onClick="clickedSwitchVideo"
@@ -147,10 +120,6 @@
             android:id="@+id/take_photo_when_video_recording"
             android:layout_width="@dimen/onscreen_bottom_button_size"
             android:layout_height="@dimen/onscreen_bottom_button_size"
-            app:layout_constraintBottom_toTopOf="@id/place_holder_view"
-            app:layout_constraintTop_toBottomOf="@id/take_photo"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             android:background="@null"
             android:contentDescription="@string/take_photo"
             android:onClick="clickedTakePhotoVideoSnapshot"
@@ -162,19 +131,13 @@
     <View
         android:id="@+id/top_bg"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_alignParentStart="true"
+        android:layout_height="wrap_content"
         android:background="@color/navigation_background"/>
-
 
     <ImageButton
         android:id="@+id/switch_multi_camera"
         android:layout_width="@dimen/onscreen_bottom_button_size"
         android:layout_height="@dimen/onscreen_bottom_button_size"
-        android:layout_alignParentTop="true"
-        android:layout_toStartOf="@id/bottom_buttons_holder"
-        android:layout_marginEnd="20dp"
-        android:layout_marginTop="21dp"
         android:background="@null"
         android:contentDescription="@string/switch_multi_camera"
         android:onClick="clickedSwitchMultiCamera"
@@ -232,20 +195,25 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/zoom_seekbar_holder"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:gravity="center|end"
-        android:orientation="horizontal">
+        android:gravity="center"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="-300dp">
 
         <ImageView
             android:id="@+id/zoom_seekbar_icon"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_zoom_in"
-            android:layout_marginTop="155dp"
-            android:layout_marginEnd="-150dp"
-            android:rotation="270"/>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/zoom_seekbar"
+            android:contentDescription="@string/zoom" />
 
         <SeekBar
             android:id="@+id/zoom_seekbar"
@@ -253,18 +221,25 @@
             android:layout_height="48dp"
             android:background="@null"
             android:contentDescription="@string/zoom"
-            android:rotation="270" />
-    </LinearLayout>
+            app:layout_constraintStart_toEndOf="@id/zoom_seekbar_icon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- n.b., layout_marginLeft set programmatically in DrawPreview -->
+    <LinearLayout
+        android:id="@+id/focus_seekbar_holder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:orientation="vertical">
     <SeekBar
         android:id="@+id/focus_seekbar"
         android:layout_width="150dp"
         android:layout_height="50dp"
-        android:layout_marginLeft="135dp"
-        android:layout_marginTop="0dp"
-        android:layout_marginRight="0dp"
-        android:layout_marginBottom="0dp"
+        android:layout_marginBottom="5dp"
         android:background="@drawable/bg_rounded_corner"
         android:contentDescription="@string/focus_distance"
         android:visibility="gone" />
@@ -274,13 +249,10 @@
         android:id="@+id/focus_bracketing_target_seekbar"
         android:layout_width="150dp"
         android:layout_height="50dp"
-        android:layout_marginLeft="135dp"
-        android:layout_marginTop="0dp"
-        android:layout_marginRight="0dp"
-        android:layout_marginBottom="0dp"
         android:background="@drawable/bg_rounded_corner"
         android:contentDescription="@string/focus_bracketing_target_distance"
         android:visibility="gone" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/gui_anchor"

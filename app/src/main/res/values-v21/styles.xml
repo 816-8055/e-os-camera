@@ -7,6 +7,7 @@
     -->
     <style name="AppBaseTheme" parent="@style/Theme.AppCompat.NoActionBar">
         <!-- API 21 theme customizations can go here. -->
+        <item name="colorAccent">@color/color_default_accent</item>
         <item name="android:colorAccent">@color/color_default_accent</item>
         <item name="android:imageButtonStyle">@style/image_button</item>
         <item name="android:navigationBarColor">@color/navigation_background</item>
@@ -20,6 +21,7 @@
     </style>
 
     <style name="customAlertDialog" parent="android:Theme.Material.Dialog.Alert">
+        <item name="colorAccent">@color/color_default_accent</item>
         <item name="android:colorAccent">@color/color_default_accent</item>
         <item name="android:textColorPrimary">@color/color_default_primary_text</item>
         <item name="android:textColorSecondary">@color/color_default_secondary_text</item>

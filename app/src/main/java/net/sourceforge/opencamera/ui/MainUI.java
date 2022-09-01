@@ -41,6 +41,11 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -543,11 +548,7 @@ public class MainUI {
                         }
                     }
 
-                    view = main_activity.findViewById(R.id.top_bg);
-                    layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
-                    layoutParams.width = button_size;
-                    view.setLayoutParams(layoutParams);
-                    top_icon = view;
+                    top_icon = setUpTopBarHolderUI(system_orientation_portrait, system_orientation_reversed_landscape, button_size);
                 }
             }
             else {
@@ -571,13 +572,10 @@ public class MainUI {
 
             // end icon panel
 
-            int rightSideMargin = (int) ScaleUtils.convertDpToPx(main_activity, 23.0f);
-            rightSideMargin += navigation_gap;
+            int navigationBarSideMargin = (int) ScaleUtils.convertDpToPx(main_activity, 23.0f);
+            navigationBarSideMargin += navigation_gap;
 
-            view = main_activity.findViewById(R.id.bottom_buttons_holder);
-            int bottomBarLeftPadding = (int) ScaleUtils.convertDpToPx(main_activity, 23.0f);
-            int bottomBarTopBottomPadding = (int) ScaleUtils.convertDpToPx(main_activity, 20.0f);
-            view.setPadding(bottomBarLeftPadding, bottomBarTopBottomPadding, rightSideMargin, bottomBarTopBottomPadding);
+            setUpBottomBarHolderUI(system_orientation_portrait, system_orientation_reversed_landscape, navigationBarSideMargin);
 
             view = main_activity.findViewById(R.id.take_photo);
             setViewRotation(view, ui_rotation);
@@ -585,8 +583,7 @@ public class MainUI {
             view = main_activity.findViewById(R.id.switch_camera);
             setViewRotation(view, ui_rotation);
 
-            view = main_activity.findViewById(R.id.switch_multi_camera);
-            setViewRotation(view, ui_rotation);
+            setupMultiCameraUI(ui_rotation, system_orientation_portrait, system_orientation_reversed_landscape);
 
             view = main_activity.findViewById(R.id.pause_video);
             setViewRotation(view, ui_rotation);
@@ -603,36 +600,12 @@ public class MainUI {
             view = main_activity.findViewById(R.id.take_photo_when_video_recording);
             setViewRotation(view, ui_rotation);
 
-            view = main_activity.findViewById(R.id.zoom);
-            view.setRotation(view.getRotation()+180.0f); // should always match the zoom_seekbar, so that zoom in and out are in the same directions
+            setUpZoomControlUI(ui_rotation, system_orientation_portrait, system_orientation_reversed_landscape);
 
-            view = main_activity.findViewById(R.id.zoom_seekbar);
-            LinearLayout.LayoutParams linearLayoutParams = (LinearLayout.LayoutParams) view.getLayoutParams();
-            int zoomSeekBarMarginRight = (rightSideMargin + 140);
-            linearLayoutParams.setMargins(0, 0, zoomSeekBarMarginRight, 0);
-            view.setLayoutParams(linearLayoutParams);
+            view = main_activity.findViewById(R.id.zoom_seekbar_holder);
+            setViewRotation(view, ui_rotation);
 
-            view = main_activity.findViewById(R.id.focus_seekbar);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(left_of, R.id.zoom_seekbar);
-            layoutParams.addRule(right_of, 0);
-            layoutParams.addRule(above, 0);
-            layoutParams.addRule(below, 0);
-            layoutParams.addRule(align_parent_top, 0);
-            layoutParams.addRule(align_parent_bottom, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_left, 0);
-            layoutParams.addRule(align_parent_right, 0);
-            view.setLayoutParams(layoutParams);
-
-            view = main_activity.findViewById(R.id.focus_bracketing_target_seekbar);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(left_of, R.id.zoom_seekbar);
-            layoutParams.addRule(right_of, 0);
-            layoutParams.addRule(above, R.id.focus_seekbar);
-            layoutParams.addRule(below, 0);
-            view.setLayoutParams(layoutParams);
-
-            setFocusSeekbarsRotation();
+            setupFocusSeekBarUI(ui_rotation, system_orientation_portrait, system_orientation_reversed_landscape);
         }
 
         if( !popup_container_only )
@@ -831,6 +804,298 @@ public class MainUI {
         if( MyDebug.LOG ) {
             Log.d(TAG, "layoutUI: total time: " + (System.currentTimeMillis() - debug_time));
         }
+    }
+
+    private void setupMultiCameraUI(int ui_rotation, boolean orientationPortrait, boolean orientationReverseLandscape) {
+        View multiCamera = main_activity.findViewById(R.id.switch_multi_camera);
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(multiCamera.getLayoutParams().width, multiCamera.getLayoutParams().height);
+
+        int size21dp = (int) ScaleUtils.convertDpToPx(main_activity, 21.0f);
+        int size20dp = (int) ScaleUtils.convertDpToPx(main_activity, 20.0f);
+
+        if (orientationPortrait) {
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_END, RelativeLayout.TRUE);
+            layoutParams.addRule(RelativeLayout.ABOVE, R.id.bottom_buttons_holder);
+            layoutParams.setMargins(0, 0, size21dp, size20dp);
+        } else if (orientationReverseLandscape) {
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            layoutParams.addRule(RelativeLayout.END_OF, R.id.bottom_buttons_holder);
+            layoutParams.setMargins(size20dp, 0, 0, size21dp);
+        } else {
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+            layoutParams.addRule(RelativeLayout.START_OF, R.id.bottom_buttons_holder);
+            layoutParams.setMargins(0, size21dp, size20dp, 0);
+        }
+
+        multiCamera.setLayoutParams(layoutParams);
+        setViewRotation(multiCamera, ui_rotation);
+    }
+
+    private void setupFocusSeekBarUI(int rotation, boolean orientationPortrait, boolean orientationReverseLandscape) {
+        View focusSeekBarHolder = main_activity.findViewById(R.id.focus_seekbar_holder);
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        if (orientationPortrait) {
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_START, RelativeLayout.TRUE);
+            layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
+        } else if (orientationReverseLandscape) {
+            layoutParams.addRule(RelativeLayout.END_OF, R.id.bottom_buttons_holder);
+            layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
+        } else {
+            layoutParams.addRule(RelativeLayout.START_OF, R.id.bottom_buttons_holder);
+            layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
+        }
+
+        focusSeekBarHolder.setLayoutParams(layoutParams);
+        setViewRotation(focusSeekBarHolder, rotation + 90);
+    }
+
+    private void setUpZoomControlUI(int rotation, boolean orientationPortrait, boolean orientationReverseLandscape) {
+        int margin = (int) ScaleUtils.convertDpToPx(main_activity, 60.0f);
+
+        View zoom = main_activity.findViewById(R.id.zoom);
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(zoom.getLayoutParams().width, zoom.getLayoutParams().height);
+
+        if (orientationPortrait) {
+            layoutParams.addRule(RelativeLayout.BELOW, R.id.top_bg);
+            layoutParams.setMargins(0, margin, 0, 0);
+            layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+        } else if (orientationReverseLandscape) {
+            layoutParams.addRule(RelativeLayout.START_OF, R.id.top_bg);
+            layoutParams.setMargins(0, 0, margin, 0);
+            layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
+        } else {
+            layoutParams.addRule(RelativeLayout.END_OF, R.id.top_bg);
+            layoutParams.setMargins(margin, 0, 0, 0);
+            layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
+        }
+
+        zoom.setLayoutParams(layoutParams);
+        setViewRotation(zoom, rotation);
+    }
+
+    private View setUpTopBarHolderUI(boolean orientationPortrait, boolean orientationReverseLandscape, int topButtonSize) {
+        int width = orientationPortrait ? ViewGroup.LayoutParams.MATCH_PARENT : topButtonSize;
+        int height = orientationPortrait ? topButtonSize : ViewGroup.LayoutParams.MATCH_PARENT;
+        int topBarAlignment = orientationPortrait ? RelativeLayout.ALIGN_PARENT_TOP : (orientationReverseLandscape ? RelativeLayout.ALIGN_PARENT_END : RelativeLayout.ALIGN_PARENT_START);
+
+        View topBar = main_activity.findViewById(R.id.top_bg);
+        RelativeLayout.LayoutParams topBarLayoutParams = new RelativeLayout.LayoutParams(width, height);
+        topBarLayoutParams.addRule(topBarAlignment, RelativeLayout.TRUE);
+        topBar.setLayoutParams(topBarLayoutParams);
+        return topBar;
+    }
+
+    private void setUpBottomBarHolderUI(boolean orientationPortrait, boolean orientationReverseLandscape, int navigationBarSideMargin) {
+        ConstraintLayout bottomBar = main_activity.findViewById(R.id.bottom_buttons_holder);
+        // set up layoutParam
+        int bottomBarWidth = orientationPortrait ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT;
+        int bottomBarHeight = orientationPortrait ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.MATCH_PARENT;
+        int bottomBarAlignment = orientationPortrait ? RelativeLayout.ALIGN_PARENT_BOTTOM : (orientationReverseLandscape ? RelativeLayout.ALIGN_PARENT_START : RelativeLayout.ALIGN_PARENT_END);
+        RelativeLayout.LayoutParams bottomBarLayoutParams = new RelativeLayout.LayoutParams(bottomBarWidth, bottomBarHeight);
+        bottomBarLayoutParams.addRule(bottomBarAlignment, RelativeLayout.TRUE);
+        bottomBar.setLayoutParams(bottomBarLayoutParams);
+
+        // set up padding
+        int size20dp = (int) ScaleUtils.convertDpToPx(main_activity, 20.0f);
+        int size23dp = (int) ScaleUtils.convertDpToPx(main_activity, 23.0f);
+
+        int bottomBarLeftPadding = orientationPortrait ? size20dp : (orientationReverseLandscape ? navigationBarSideMargin : size23dp);
+        int bottomBarRightPadding = orientationPortrait ? size20dp : (orientationReverseLandscape ? size23dp : navigationBarSideMargin);
+        int bottomBarTopPadding = orientationPortrait ? size23dp : size20dp;
+        int bottomBarBottomPadding = orientationPortrait ? navigationBarSideMargin : size20dp;
+        bottomBar.setPadding(bottomBarLeftPadding, bottomBarTopPadding, bottomBarRightPadding, bottomBarBottomPadding);
+
+        setUpBottomItemsUI(bottomBar, orientationPortrait, orientationReverseLandscape);
+    }
+
+    private void setUpBottomItemsUI(ConstraintLayout bottomHolder, boolean orientationPortrait, boolean orientationReverseLandscape) {
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(bottomHolder);
+
+        clearAllDynamicBottomBarItemConstraint(constraintSet);
+
+        if (orientationPortrait) {
+            connectPortraitConstraintForBottomItems(constraintSet);
+        } else if (orientationReverseLandscape) {
+            connectReverseLandscapeConstraintForBottomItems(constraintSet);
+        } else {
+            connectLandscapeConstraintForBottomItems(constraintSet);
+        }
+
+        constraintSet.applyTo(bottomHolder);
+    }
+
+    private void clearAllDynamicBottomBarItemConstraint(@NonNull ConstraintSet constraintSet) {
+        clearAllConstraint(constraintSet, R.id.place_holder_view);
+        clearAllConstraint(constraintSet, R.id.gallery);
+        clearAllConstraint(constraintSet, R.id.switch_camera);
+        clearAllConstraint(constraintSet, R.id.pause_video);
+        clearAllConstraint(constraintSet, R.id.switch_video);
+        clearAllConstraint(constraintSet, R.id.take_photo_when_video_recording);
+        clearAllConstraint(constraintSet, R.id.cancel_panorama);
+        clearAllConstraint(constraintSet, R.id.finish_panorama);
+    }
+
+    private void clearAllConstraint(@NonNull ConstraintSet constraintSet, @IdRes int id) {
+        constraintSet.clear(id, ConstraintSet.TOP);
+        constraintSet.clear(id, ConstraintSet.BOTTOM);
+        constraintSet.clear(id, ConstraintSet.START);
+        constraintSet.clear(id, ConstraintSet.END);
+    }
+
+    private void connectConstraintParentTopBottom(@NonNull ConstraintSet constraintSet, @IdRes int id) {
+        constraintSet.connect(id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+    }
+
+    private void connectConstraintParentStartEnd(@NonNull ConstraintSet constraintSet, @IdRes int id) {
+        constraintSet.connect(id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START);
+        constraintSet.connect(id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
+    }
+
+    private void connectPortraitConstraintForBottomItems(@NonNull ConstraintSet constraintSet) {
+        int id;
+
+        //placeHolderView
+        id = R.id.place_holder_view;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START);
+
+        //gallery
+        id = R.id.gallery;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
+
+        //switchCamera
+        id = R.id.switch_camera;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, R.id.gallery, ConstraintSet.START);
+        constraintSet.connect(id, ConstraintSet.START, R.id.take_photo, ConstraintSet.END);
+
+        //pauseVideo
+        id = R.id.pause_video;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, R.id.gallery, ConstraintSet.START);
+        constraintSet.connect(id, ConstraintSet.START, R.id.take_photo, ConstraintSet.END);
+
+        //switchVideo
+        id = R.id.switch_video;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, R.id.take_photo, ConstraintSet.START);
+        constraintSet.connect(id, ConstraintSet.START, R.id.place_holder_view, ConstraintSet.END);
+
+        //takePhotoOnVideo
+        id = R.id.take_photo_when_video_recording;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, R.id.take_photo, ConstraintSet.START);
+        constraintSet.connect(id, ConstraintSet.START, R.id.place_holder_view, ConstraintSet.END);
+
+        //cancelPanorama
+        id = R.id.cancel_panorama;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.START, R.id.place_holder_center_view, ConstraintSet.END);
+
+        //finishPanorama
+        id = R.id.finish_panorama;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, R.id.place_holder_center_view, ConstraintSet.START);
+    }
+
+    private void connectReverseLandscapeConstraintForBottomItems(@NonNull ConstraintSet constraintSet) {
+        int id;
+
+        //placeHolderView
+        id = R.id.place_holder_view;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
+
+        //gallery
+        id = R.id.gallery;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+
+        //switchCamera
+        id = R.id.switch_camera;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.gallery, ConstraintSet.TOP);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.take_photo, ConstraintSet.BOTTOM);
+
+        //pauseVideo
+        id = R.id.pause_video;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.gallery, ConstraintSet.TOP);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.take_photo, ConstraintSet.BOTTOM);
+
+        //switchVideo
+        id = R.id.switch_video;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.take_photo, ConstraintSet.TOP);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.place_holder_view, ConstraintSet.BOTTOM);
+
+        //takePhotoOnVideo
+        id = R.id.take_photo_when_video_recording;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.take_photo, ConstraintSet.TOP);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.place_holder_view, ConstraintSet.BOTTOM);
+
+        //cancelPanorama
+        id = R.id.cancel_panorama;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.place_holder_center_view, ConstraintSet.BOTTOM);
+
+        //finishPanorama
+        id = R.id.finish_panorama;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.place_holder_center_view, ConstraintSet.TOP);
+    }
+
+    private void connectLandscapeConstraintForBottomItems(@NonNull ConstraintSet constraintSet) {
+        int id;
+
+        //placeHolderView
+        id = R.id.place_holder_view;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+
+        //gallery
+        id = R.id.gallery;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
+
+        //switchCamera
+        id = R.id.switch_camera;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.gallery, ConstraintSet.BOTTOM);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.take_photo, ConstraintSet.TOP);
+
+        //pauseVideo
+        id = R.id.pause_video;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.gallery, ConstraintSet.BOTTOM);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.take_photo, ConstraintSet.TOP);
+
+        //switchVideo
+        id = R.id.switch_video;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.take_photo, ConstraintSet.BOTTOM);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.place_holder_view, ConstraintSet.TOP);
+
+        //takePhotoOnVideo
+        id = R.id.take_photo_when_video_recording;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.take_photo, ConstraintSet.BOTTOM);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.place_holder_view, ConstraintSet.TOP);
+
+        //cancelPanorama
+        id = R.id.cancel_panorama;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.place_holder_center_view, ConstraintSet.TOP);
+
+        //finishPanorama
+        id = R.id.finish_panorama;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.place_holder_center_view, ConstraintSet.BOTTOM);
     }
 
     /** Wrapper for layoutParams.setMargins, but where the margins are supplied for landscape orientation,
