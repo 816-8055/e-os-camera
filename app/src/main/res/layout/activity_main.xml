@@ -18,6 +18,7 @@
         android:layout_height="100dp"
         android:padding="10dp"
         android:scaleType="fitCenter"
+        android:soundEffectsEnabled="false"
         android:contentDescription="@string/take_photo"
         app:srcCompat="@drawable/take_photo_selector"
         android:stateListAnimator="@animator/button_animation"
