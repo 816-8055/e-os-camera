@@ -52,6 +52,7 @@
             android:contentDescription="@string/take_photo"
             android:onClick="clickedTakePhoto"
             android:scaleType="fitCenter"
+            android:soundEffectsEnabled="false"
             android:src="@drawable/ic_camera_shutter" />
 
         <net.sourceforge.opencamera.ui.CircleImageView
