@@ -9,15 +9,15 @@
 
     <color name="white">@android:color/white</color>
 
-    <color name="color_default_foreground">#1E1E1E</color>
-    <color name="color_default_accent">@lineageos.platform:color/color_default_accent</color>
+    <color name="color_default_foreground">@color/e_floating_background_dark</color>
+    <color name="color_default_accent">@color/e_accent_dark</color>
     <color name="navigation_background">#4F000000</color>
-    <color name="color_default_background">#121212</color>
+    <color name="color_default_background">@color/e_background_dark</color>
     <color name="color_default_icon">@android:color/white</color>
-    <color name="color_default_primary_text">#CCFFFFFF</color>
-    <color name="color_default_secondary_text">#8CFFFFFF</color>
+    <color name="color_default_primary_text">@color/e_primary_text_color_dark</color>
+    <color name="color_default_secondary_text">@color/e_secondary_text_color_dark</color>
 
-    <color name="color_toast_bg">#61000000</color>
-    <color name="color_popup_title_bg">#61FFFFFF</color>
+    <color name="color_toast_bg">@color/e_disabled_color_light</color>
+    <color name="color_popup_title_bg">@color/e_disabled_color_dark</color>
     <color name="color_popup_bg">#E5000000</color>
 </resources>
