@@ -905,6 +905,14 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             //Log.d(TAG, "is_pixel_phone? " + is_pixel_phone);
             //Log.d(TAG, "is_pixel_xl_phone? " + is_pixel_xl_phone);
         }*/
+        if ( DeviceSettings.deviceUsingFakeFlash() ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "set fake flash for camera2");
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            final SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(PreferenceKeys.Camera2FakeFlashPreferenceKey, true);
+            editor.apply();
+        }
         /*if( is_samsung || is_oneplus ) {
             // The problems we used to have on Samsung Galaxy devices are now fixed, by setting
             // TEMPLATE_PREVIEW for the precaptureBuilder in CameraController2. This also fixes the

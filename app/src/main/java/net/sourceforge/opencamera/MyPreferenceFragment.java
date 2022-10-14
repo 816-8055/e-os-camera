@@ -151,6 +151,18 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
             pg.removePreference(pref);
         }
 
+        if ( DeviceSettings.deviceUsingFakeFlash() ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "set fake flash for camera2");
+            Preference pref = findPreference(PreferenceKeys.Camera2FakeFlashPreferenceKey);
+            pref.setDefaultValue(true);
+            pref.setEnabled(false);
+
+            final SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(PreferenceKeys.Camera2FakeFlashPreferenceKey, true);
+            editor.apply();
+        }
+
         final int preview_width = bundle.getInt("preview_width");
         final int preview_height = bundle.getInt("preview_height");
         final int [] preview_widths = bundle.getIntArray("preview_widths");
