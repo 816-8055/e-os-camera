@@ -2280,9 +2280,13 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
     }
 
-    private int find1xZoom() {
+    public int find1xZoom() {
+        return findNxZoom(1.0f);
+    }
+
+    public int findNxZoom(float zoom) {
         for(int i=0;i<zoom_ratios.size();i++) {
-            if( zoom_ratios.get(i) == 100 ) {
+            if( zoom_ratios.get(i) == zoom * 100 ) {
                 return i;
             }
         }

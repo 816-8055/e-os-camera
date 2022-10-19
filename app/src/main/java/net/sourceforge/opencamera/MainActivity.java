@@ -1,8 +1,12 @@
 package net.sourceforge.opencamera;
 
+import net.sourceforge.opencamera.camera2.CameraFinder;
+import net.sourceforge.opencamera.camera2.CameraIdentifier;
 import net.sourceforge.opencamera.cameracontroller.CameraController;
 import net.sourceforge.opencamera.cameracontroller.CameraControllerManager;
 import net.sourceforge.opencamera.cameracontroller.CameraControllerManager2;
+import net.sourceforge.opencamera.camera2.model.CameraModel;
+import net.sourceforge.opencamera.camera2.model.CameraType;
 import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
 import net.sourceforge.opencamera.remotecontrol.BluetoothRemoteControl;
@@ -43,6 +47,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.display.DisplayManager;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
@@ -125,6 +132,11 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     // components: always non-null (after onCreate())
     private BluetoothRemoteControl bluetoothRemoteControl;
     private PermissionHandler permissionHandler;
+    private CameraManager cameraManager;
+    private CameraFinder camerafinder;
+    private CameraIdentifier cameraIdentifier;
+    private ArrayList<CameraModel> cameraModel;
+    private CameraCharacteristics cameraCharacteristics;
     private SettingsManager settingsManager;
     private MainUI mainUI;
     private ManualSeekbars manualSeekbars;
@@ -156,6 +168,9 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     private TextToSpeech textToSpeech;
     private boolean textToSpeechSuccess;
 
+    private List<Float> frontZoomRatios = new ArrayList<>();
+    private List<Float> backZoomRatios = new ArrayList<>();
+
     private AudioListener audio_listener; // may be null - created when needed
 
     //private boolean ui_placement_right = true;
@@ -176,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     private List<Integer> back_camera_ids;
     private List<Integer> front_camera_ids;
     private List<Integer> other_camera_ids;
+    private List<Integer> logical_camera_ids;
 
     private final ToastBoxer switch_video_toast = new ToastBoxer();
     private final ToastBoxer screen_locked_toast = new ToastBoxer();
@@ -217,6 +233,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     //private boolean has_notification;
     //private final String CHANNEL_ID = "open_camera_channel";
     //private final int image_saving_notification_id = 1;
+
+    private final float defaultLensZoom = 1.0F;
 
     private static final float WATER_DENSITY_FRESHWATER = 1.0f;
     private static final float WATER_DENSITY_SALTWATER = 1.03f;
@@ -411,6 +429,13 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             getWindow().setAttributes(layout);
         }
 
+        cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        camerafinder = new CameraFinder(cameraManager);
+        cameraModel = camerafinder.getCameraModels();
+        cameraIdentifier = new CameraIdentifier(cameraModel);
+        camerafinder.init();
+        cameraIdentifier.init();
+
         // Setup multi-camera buttons (must be done after creating preview so we know which Camera API is being used,
         // and before initialising on-screen visibility).
         // We only allow the separate icon for switching cameras if:
@@ -421,23 +446,47 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         // If there are more than two cameras, but all cameras have the same "facing, we still stick
         // with using the switch camera icon to iterate over all cameras.
         int n_cameras = preview.getCameraControllerManager().getNumberOfCameras();
+        if (getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
+            n_cameras = camerafinder.getAllCameraIdList().size();
+        }
         if( n_cameras > 2 ) {
             this.back_camera_ids = new ArrayList<>();
             this.front_camera_ids = new ArrayList<>();
             this.other_camera_ids = new ArrayList<>();
-            for(int i=0;i<n_cameras;i++) {
-                switch( preview.getCameraControllerManager().getFacing(i) ) {
-                    case FACING_BACK:
-                        back_camera_ids.add(i);
-                        break;
-                    case FACING_FRONT:
-                        front_camera_ids.add(i);
-                        break;
-                    default:
-                        // we assume any unknown cameras are also external
-                        other_camera_ids.add(i);
-                        break;
+            this.logical_camera_ids = new ArrayList<>();
+
+            if (!cameraModel.isEmpty()) {
+                for (CameraModel model : cameraModel) {
+                    if (model.getCameraType() == CameraType.LOGICAL) {
+                        logical_camera_ids.add(model.getId());
+                    }
                 }
+            }
+
+            for(String cameraId: camerafinder.getAllCameraIdList()) {
+                int id = Integer.parseInt(cameraId);
+                cameraCharacteristics = camerafinder.getCameraCharacteristics(id);
+                Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
+                if (!logical_camera_ids.contains(id)
+                        || getResources().getBoolean(R.bool.allow_logical_camera_ids)) {
+                    switch(facing) {
+                        case CameraMetadata.LENS_FACING_BACK:
+                            back_camera_ids.add(id);
+                            break;
+                        case CameraMetadata.LENS_FACING_FRONT:
+                            front_camera_ids.add(id);
+                            break;
+                        case CameraMetadata.LENS_FACING_EXTERNAL:
+                            other_camera_ids.add(id);
+                            break;
+                    }
+                }
+            }
+            if( MyDebug.LOG ) {
+                Log.d(TAG, "back_camera_ids: " + back_camera_ids);
+                Log.d(TAG, "front_camera_ids: " + front_camera_ids);
+                Log.d(TAG, "other_camera_ids: " + other_camera_ids);
+                Log.d(TAG, "logical_camera_ids" + logical_camera_ids);
             }
             boolean multi_same_facing = back_camera_ids.size() >= 2 || front_camera_ids.size() >= 2 || other_camera_ids.size() >= 2;
             int n_facing = 0;
@@ -453,6 +502,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 Log.d(TAG, "multi_same_facing: " + multi_same_facing);
                 Log.d(TAG, "n_facing: " + n_facing);
                 Log.d(TAG, "is_multi_cam: " + is_multi_cam);
+            }
+
+            if (getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
+                initZoomRatios();
             }
 
             if( !is_multi_cam ) {
@@ -860,15 +913,15 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             int cameraId = getActualCameraId();
             switch( preview.getCameraControllerManager().getFacing(cameraId) ) {
                 case FACING_BACK:
-                    if( back_camera_ids.size() > 0 )
+                    if( back_camera_ids.size() > 1 )
                         return true;
                     break;
                 case FACING_FRONT:
-                    if( front_camera_ids.size() > 0 )
+                    if( front_camera_ids.size() > 1 )
                         return true;
                     break;
                 default:
-                    if( other_camera_ids.size() > 0 )
+                    if( other_camera_ids.size() > 1 )
                         return true;
                     break;
             }
@@ -2472,7 +2525,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
-    private void userSwitchToCamera(int cameraId) {
+    private void userSwitchToCamera(int cameraId, boolean is_multi_cam) {
         if( MyDebug.LOG )
             Log.d(TAG, "userSwitchToCamera: " + cameraId);
         View switchCameraButton = findViewById(R.id.switch_camera);
@@ -2482,11 +2535,91 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         switchMultiCameraButton.setEnabled(false);
         applicationInterface.reset(true);
         this.getApplicationInterface().getDrawPreview().setDimPreview(true);
-        this.preview.setCamera(cameraId);
+        if (is_multi_cam && getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
+            changeZoomFactor();
+        } else {
+            this.preview.setCamera(cameraId);
+        }
         switchCameraButton.setEnabled(true);
         switchMultiCameraButton.setEnabled(true);
         // no need to call mainUI.setSwitchCameraContentDescription - this will be called from Preview.cameraSetup when the
         // new camera is opened
+    }
+
+    private void initZoomRatios() {
+        String[] auxZoomRatios = getResources().getStringArray(R.array.config_auxCameraZoomRatios);
+        if (auxZoomRatios.length == 0 && !cameraModel.isEmpty()) {
+            for (CameraModel model : cameraModel) {
+                cameraCharacteristics = camerafinder.getCameraCharacteristics(model.getId());
+                Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
+                CameraType cameraType = model.getCameraType();
+                if (cameraType != CameraType.LOGICAL) {
+                    if (facing == CameraMetadata.LENS_FACING_BACK) {
+                        if (cameraType == CameraType.MAIN || cameraType == CameraType.ULTRAWIDE
+                                || cameraType == CameraType.TELE || cameraType == CameraType.MACRO) {
+                            backZoomRatios.add(model.getZoomFactor());
+                        }
+                    } else if (facing == CameraMetadata.LENS_FACING_FRONT) {
+                        if (cameraType == CameraType.MAIN || cameraType == CameraType.ULTRAWIDE) {
+                            frontZoomRatios.add(model.getZoomFactor());
+                        }
+                    }
+                }
+            }
+        } else {
+            for (String zoom : auxZoomRatios) {
+                String[] separated = zoom.split(":");
+                float id = Integer.parseInt(separated[0]);
+                float zoomRatio = Float.parseFloat(separated[1]);
+                if (id == 1) {
+                    frontZoomRatios.add(zoomRatio);
+                } else {
+                    backZoomRatios.add(zoomRatio);
+                }
+            }
+        }
+
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "frontZoomRatios" + frontZoomRatios);
+            Log.d(TAG, "backZoomRatios" + backZoomRatios);
+        }
+    }
+
+    private void changeZoomFactor() {
+        float zoom = getNextMultiZoomRatio(backZoomRatios);
+        if (preview.getCameraControllerManager().getFacing(getActualCameraId())
+                == CameraController.Facing.FACING_FRONT) {
+            zoom = getNextMultiZoomRatio(frontZoomRatios);
+        }
+
+        preview.zoomTo(preview.findNxZoom(zoom), true);
+        updateMultiPixelIcon(backZoomRatios.indexOf(zoom));
+
+        if( MyDebug.LOG )
+            Log.d(TAG, "changeZoomFactor" + zoom);
+    }
+
+    public float getNextMultiZoomRatio(List<Float> zoomRations) {
+        float currentZoom = preview.getZoomRatio();
+        float zoomRatio;
+        int index = zoomRations.indexOf(currentZoom);
+        if ( index == -1 ) {
+            zoomRatio = zoomRations.get(0);
+        } else {
+            index = (index+1) % zoomRations.size();
+            zoomRatio = zoomRations.get(index);
+        }
+        if( MyDebug.LOG )
+            Log.d(TAG, "next zoom: " + zoomRatio);
+        return zoomRatio;
+    }
+
+    private void updateMultiPixelIcon(int index) {
+        Button multiCameraButton = findViewById(R.id.switch_multi_camera);
+        if (multiCameraButton.getVisibility() != View.GONE) {
+            String text = getString(R.string.switch_multi_camera_lens) + " " + (index + 1);
+            multiCameraButton.setText(text);
+        }
     }
 
     /**
@@ -2517,7 +2650,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 // disappear when the user touches the screen anyway.)
                 preview.clearActiveFakeToast();
             }
-            userSwitchToCamera(cameraId);
+            userSwitchToCamera(cameraId, false);
 
             push_switched_camera = true;
         }
@@ -2539,7 +2672,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( this.preview.canSwitchCamera() ) {
             int cameraId = getNextMultiCameraId();
             pushCameraIdToast(cameraId);
-            userSwitchToCamera(cameraId);
+            userSwitchToCamera(cameraId, true);
         }
     }
 
@@ -2588,7 +2721,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     MainActivity.this.closePopup();
                     if( MainActivity.this.preview.canSwitchCamera() ) {
                         pushCameraIdToast(which);
-                        userSwitchToCamera(which);
+                        userSwitchToCamera(which, true);
                     }
                 }
                 setWindowFlagsForCamera();
@@ -3489,9 +3622,9 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             View button = findViewById(R.id.switch_multi_camera);
             changed = changed || (button.getVisibility() != View.GONE);
             button.setVisibility(View.GONE);
-        } else {
-            updateMultiCameraIcon();
         }
+        updateMultiCameraIcon();
+
         if( MyDebug.LOG )
             Log.d(TAG, "checkDisableGUIIcons: " + changed);
         return changed;
@@ -5678,6 +5811,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                         // if hasSmoothZoom()==true, then the preview already handled zooming to the current value
                         if( !preview.hasSmoothZoom() )
                             preview.zoomTo(progress, false);
+
+                        updateMultiCameraIcon();
                     }
 
                     @Override
