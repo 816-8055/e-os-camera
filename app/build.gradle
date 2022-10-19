@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdk 35
@@ -61,6 +62,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
 
     //implementation 'androidx.activity:activity:1.9.3' // needed for EdgeToEdge.enable(this)
+    implementation 'androidx.core:core-ktx:1.8.0'
 
     // appcompat version must be 1.4.0 or later to satisfy emoji policy!
     implementation 'androidx.appcompat:appcompat:1.7.0'
