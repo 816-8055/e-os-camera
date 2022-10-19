@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdk 34
@@ -6,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "foundation.e.camera"
-        minSdkVersion 21
+        minSdkVersion 25
         targetSdkVersion 34
         //compileSdkVersion 31 // needed to support appcompat:1.4.0 (which we need for emoji policy support, and not yet ready to target SDK 30)
 
@@ -50,6 +51,7 @@ dependencies {
     implementation "org.greenrobot:eventbus:3.3.1"
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    implementation 'androidx.core:core-ktx:1.8.0'
 
     // appcompat version must be 1.4.0 or later to satisfy emoji policy!
     implementation 'androidx.appcompat:appcompat:1.6.1'
