@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdk 34
@@ -59,6 +60,7 @@ android {
 
 dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    implementation 'androidx.core:core-ktx:1.8.0'
 
     // appcompat version must be 1.4.0 or later to satisfy emoji policy!
     implementation 'androidx.appcompat:appcompat:1.6.1'
