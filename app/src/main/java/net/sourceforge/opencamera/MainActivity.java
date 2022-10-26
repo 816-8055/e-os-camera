@@ -5068,6 +5068,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             if( MyDebug.LOG )
                 Log.d(TAG, "launch uri:" + uri);
             final String REVIEW_ACTION = "com.android.camera.action.REVIEW";
+            final String KEY_FROM_SNAPCAM = "from-snapcam";
             boolean done = false;
             if( !is_raw ) {
                 // REVIEW_ACTION means we can view video files without autoplaying.
@@ -5079,6 +5080,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     Log.d(TAG, "try REVIEW_ACTION");
                 try {
                     Intent intent = new Intent(REVIEW_ACTION, uri);
+                    intent.putExtra(KEY_FROM_SNAPCAM, true);
                     this.startActivity(intent);
                     done = true;
                 }
@@ -5091,6 +5093,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     Log.d(TAG, "try ACTION_VIEW");
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    intent.putExtra(KEY_FROM_SNAPCAM, true);
                     this.startActivity(intent);
                 }
                 catch(ActivityNotFoundException e) {
