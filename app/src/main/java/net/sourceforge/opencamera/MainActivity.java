@@ -5011,8 +5011,9 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( MyDebug.LOG )
             Log.d(TAG, "openGallery");
         //Intent intent = new Intent(Intent.ACTION_VIEW, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        Uri uri = applicationInterface.getStorageUtils().getLastMediaScanned();
-        boolean is_raw = uri != null && applicationInterface.getStorageUtils().getLastMediaScannedIsRaw();
+        Uri primaryUri = applicationInterface.getStorageUtils().getLastMediaScanned();
+        Uri uri = null;
+        boolean is_raw = false;
         if( MyDebug.LOG && uri != null ) {
             Log.d(TAG, "found cached most recent uri: " + uri);
             Log.d(TAG, "    is_raw: " + is_raw);
@@ -5063,6 +5064,14 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
             is_raw = false;
         }
+
+        boolean allowEdit = true;
+        if( uri == null ) {
+            uri = primaryUri;
+            is_raw = uri != null && applicationInterface.getStorageUtils().getLastMediaScannedIsRaw();
+            allowEdit = false;
+        }
+
         if( !is_test ) {
             // don't do if testing, as unclear how to exit activity to finish test (for testGallery())
             if( MyDebug.LOG )
@@ -5080,7 +5089,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     Log.d(TAG, "try REVIEW_ACTION");
                 try {
                     Intent intent = new Intent(REVIEW_ACTION, uri);
-                    intent.putExtra(KEY_FROM_SNAPCAM, true);
+                    intent.putExtra(KEY_FROM_SNAPCAM, allowEdit);
                     this.startActivity(intent);
                     done = true;
                 }
@@ -5093,7 +5102,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     Log.d(TAG, "try ACTION_VIEW");
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    intent.putExtra(KEY_FROM_SNAPCAM, true);
+                    intent.putExtra(KEY_FROM_SNAPCAM, allowEdit);
                     this.startActivity(intent);
                 }
                 catch(ActivityNotFoundException e) {
