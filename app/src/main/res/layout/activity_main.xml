@@ -135,15 +135,14 @@
         android:layout_height="wrap_content"
         android:background="@color/navigation_background"/>
 
-    <ImageButton
+    <Button
         android:id="@+id/switch_multi_camera"
-        android:layout_width="@dimen/onscreen_bottom_button_size"
-        android:layout_height="@dimen/onscreen_bottom_button_size"
-        android:background="@null"
+        android:layout_width="65dp"
+        android:layout_height="27dp"
+        android:background="@drawable/ic_lens_background"
         android:contentDescription="@string/switch_multi_camera"
         android:onClick="clickedSwitchMultiCamera"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_switch_multi_camera"
         android:visibility="gone"
 
         />

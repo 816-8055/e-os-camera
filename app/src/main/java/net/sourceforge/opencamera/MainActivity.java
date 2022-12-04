@@ -101,6 +101,7 @@ import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
@@ -2412,20 +2413,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             Log.e(TAG, "getNextMultiCameraId() called but not in multi-cam mode");
             throw new RuntimeException("getNextMultiCameraId() called but not in multi-cam mode");
         }
-        List<Integer> camera_set;
-        // don't use preview.getCameraController(), as it may be null if user quickly switches between cameras
         int currCameraId = getActualCameraId();
-        switch( preview.getCameraControllerManager().getFacing(currCameraId) ) {
-            case FACING_BACK:
-                camera_set = back_camera_ids;
-                break;
-            case FACING_FRONT:
-                camera_set = front_camera_ids;
-                break;
-            default:
-                camera_set = other_camera_ids;
-                break;
-        }
+        List<Integer> camera_set = getCameraSet(currCameraId);
         int cameraId;
         int indx = camera_set.indexOf(currCameraId);
         if( indx == -1 ) {
@@ -2447,6 +2436,24 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( MyDebug.LOG )
             Log.d(TAG, "next multi cameraId: " + cameraId);
         return cameraId;
+    }
+
+    private List<Integer> getCameraSet(int currCameraId) {
+        // don't use preview.getCameraController(), as it may be null if user quickly switches between cameras
+        List<Integer> camera_set;
+        switch( preview.getCameraControllerManager().getFacing(currCameraId) ) {
+            case FACING_BACK:
+                camera_set = back_camera_ids;
+                break;
+            case FACING_FRONT:
+                camera_set = front_camera_ids;
+                break;
+            default:
+                camera_set = other_camera_ids;
+                break;
+        }
+
+        return camera_set;
     }
 
     private void pushCameraIdToast(int cameraId) {
@@ -2597,6 +2604,18 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         });
         setWindowFlagsForSettings(true); // set set_lock_protect to false - no need to protect this dialog with lock screen (fine to run above lock screen if that option is set)
         showAlert(alertDialog.create());
+    }
+
+    private void updateMultiCameraIcon() {
+        Button multiCameraButton = findViewById(R.id.switch_multi_camera);
+
+        if (multiCameraButton.getVisibility() != View.GONE) {
+            int currCameraId = getActualCameraId();
+            List<Integer> camera_set = getCameraSet(currCameraId);
+            int index = camera_set.indexOf(currCameraId);
+            String text = getString(R.string.switch_multi_camera_lens) + " " + (index + 1);
+            multiCameraButton.setText(text);
+        }
     }
 
     /**
@@ -3470,6 +3489,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             View button = findViewById(R.id.switch_multi_camera);
             changed = changed || (button.getVisibility() != View.GONE);
             button.setVisibility(View.GONE);
+        } else {
+            updateMultiCameraIcon();
         }
         if( MyDebug.LOG )
             Log.d(TAG, "checkDisableGUIIcons: " + changed);
