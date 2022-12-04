@@ -13,5 +13,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://gitlab.e.foundation/api/v4/groups/9/-/packages/maven' }
     }
 }

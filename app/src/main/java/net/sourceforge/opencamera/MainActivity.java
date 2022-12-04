@@ -27,6 +27,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -107,6 +108,7 @@ import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
@@ -747,6 +749,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: total time for Activity startup: " + (System.currentTimeMillis() - debug_time));
+
+        updateMultiCameraIcon(0, null);
     }
 
     @Override
@@ -2486,11 +2490,24 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
+    private void updateMultiCameraIcon(int cameraId, String cameraIdSPhysical) {
+        Button switchMultiCameraButton = findViewById(R.id.switch_multi_camera);
+        if (switchMultiCameraButton == null) return;
+
+        String displayId = Objects.requireNonNullElse(
+                cameraIdSPhysical,
+                String.valueOf(cameraId)
+        );
+
+        String text = getString(R.string.switch_multi_camera_lens) + " " + displayId;
+        switchMultiCameraButton.setText(text);
+    }
+
     public void userSwitchToCamera(int cameraId, String cameraIdSPhysical) {
         if( MyDebug.LOG )
             Log.d(TAG, "userSwitchToCamera: " + cameraId + " / " + cameraIdSPhysical);
         View switchCameraButton = findViewById(R.id.switch_camera);
-        View switchMultiCameraButton = findViewById(R.id.switch_multi_camera);
+        Button switchMultiCameraButton = findViewById(R.id.switch_multi_camera);
         // prevent slowdown if user repeatedly clicks:
         switchCameraButton.setEnabled(false);
         switchMultiCameraButton.setEnabled(false);
@@ -2513,6 +2530,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
         this.preview.setCamera(cameraId, cameraIdSPhysical);
         switchCameraButton.setEnabled(true);
+        updateMultiCameraIcon(cameraId, cameraIdSPhysical);
         switchMultiCameraButton.setEnabled(true);
         // no need to call mainUI.setSwitchCameraContentDescription - this will be called from Preview.cameraSetup when the
         // new camera is opened
@@ -3681,7 +3699,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( !showSwitchMultiCamIcon() ) {
             // also handle the multi-cam icon here, as this can change when switching between front/back cameras
             // (e.g., if say a device only has multiple back cameras)
-            View button = findViewById(R.id.switch_multi_camera);
+            Button button = findViewById(R.id.switch_multi_camera);
             changed = changed || (button.getVisibility() != View.GONE);
             button.setVisibility(View.GONE);
         }

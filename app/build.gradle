@@ -64,6 +64,8 @@ dependencies {
 
     implementation "org.greenrobot:eventbus:3.3.1"
 
+    implementation 'foundation.e:elib:0.0.1-alpha11'
+
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
     implementation 'androidx.exifinterface:exifinterface:1.4.1'
