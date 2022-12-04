@@ -1103,4 +1103,6 @@
         - Support for Camera2 API\n
         - Panorama, including for front camera.</string>
     <string name="preferences_service_terms">Terms of service</string>
+
+    <string name="switch_multi_camera_lens">LENS</string>
 </resources>

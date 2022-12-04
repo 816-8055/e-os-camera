@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         applicationId "foundation.e.camera"
-        minSdkVersion 15
+        minSdkVersion 25
         targetSdkVersion 34
         //compileSdkVersion 31 // needed to support appcompat:1.4.0 (which we need for emoji policy support, and not yet ready to target SDK 30)
 
@@ -64,6 +64,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
 
     implementation "org.greenrobot:eventbus:3.3.1"
+
+    implementation 'foundation.e:elib:0.0.1-alpha11'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
