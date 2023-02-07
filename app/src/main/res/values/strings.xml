@@ -240,7 +240,7 @@
     <string name="about_not_available">Not available</string>
     <string name="about_copy_to_clipboard">Copy to clipboard</string>
     
-    <string name="take_photo">Take Photo</string>
+    <string name="take_photo">Take photo</string>
     <string name="gallery">Gallery</string>
     <string name="exposure">Exposure</string>
     <string name="exposure_lock">Lock exposure</string>
