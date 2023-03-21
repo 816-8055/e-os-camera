@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <bool name="zoom_level_switch_supported">false</bool>
-    <bool name="allow_logical_camera_ids">false</bool>
+    <bool name="allow_logical_camera_ids">true</bool>
 
     <!-- An array of (0: back camera / 1: front camera, approximate zoom ratio).
      These values will be added to the lens switcher if one or more cameras uses the
