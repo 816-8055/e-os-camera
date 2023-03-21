@@ -429,12 +429,14 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             getWindow().setAttributes(layout);
         }
 
-        cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        camerafinder = new CameraFinder(cameraManager);
-        cameraModel = camerafinder.getCameraModels();
-        cameraIdentifier = new CameraIdentifier(cameraModel);
-        camerafinder.init();
-        cameraIdentifier.init();
+        if (getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
+            cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+            camerafinder = new CameraFinder(cameraManager);
+            cameraModel = camerafinder.getCameraModels();
+            cameraIdentifier = new CameraIdentifier(cameraModel);
+            camerafinder.init();
+            cameraIdentifier.init();
+        }
 
         // Setup multi-camera buttons (must be done after creating preview so we know which Camera API is being used,
         // and before initialising on-screen visibility).
@@ -448,40 +450,61 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         int n_cameras = preview.getCameraControllerManager().getNumberOfCameras();
         if (getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
             n_cameras = camerafinder.getAllCameraIdList().size();
-        }
-        if( n_cameras > 2 ) {
+            if( n_cameras > 2 ) {
+                this.back_camera_ids = new ArrayList<>();
+                this.front_camera_ids = new ArrayList<>();
+                this.other_camera_ids = new ArrayList<>();
+                this.logical_camera_ids = new ArrayList<>();
+
+                if (!cameraModel.isEmpty()) {
+                    for (CameraModel model : cameraModel) {
+                        if (model.getCameraType() == CameraType.LOGICAL) {
+                            logical_camera_ids.add(model.getId());
+                        }
+                    }
+                }
+
+                for(String cameraId: camerafinder.getAllCameraIdList()) {
+                    int id = Integer.parseInt(cameraId);
+                    cameraCharacteristics = camerafinder.getCameraCharacteristics(id);
+                    Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
+                    if (!logical_camera_ids.contains(id)
+                            || getResources().getBoolean(R.bool.allow_logical_camera_ids)) {
+                        switch(facing) {
+                            case CameraMetadata.LENS_FACING_BACK:
+                                back_camera_ids.add(id);
+                                break;
+                            case CameraMetadata.LENS_FACING_FRONT:
+                                front_camera_ids.add(id);
+                                break;
+                            case CameraMetadata.LENS_FACING_EXTERNAL:
+                                other_camera_ids.add(id);
+                                break;
+                        }
+                    }
+                }
+            }
+        } else if (n_cameras > 2) {
             this.back_camera_ids = new ArrayList<>();
             this.front_camera_ids = new ArrayList<>();
             this.other_camera_ids = new ArrayList<>();
-            this.logical_camera_ids = new ArrayList<>();
-
-            if (!cameraModel.isEmpty()) {
-                for (CameraModel model : cameraModel) {
-                    if (model.getCameraType() == CameraType.LOGICAL) {
-                        logical_camera_ids.add(model.getId());
-                    }
+            for (int i = 0; i < n_cameras; i++) {
+                switch (preview.getCameraControllerManager().getFacing(i)) {
+                    case FACING_BACK:
+                        back_camera_ids.add(i);
+                        break;
+                    case FACING_FRONT:
+                        front_camera_ids.add(i);
+                        break;
+                    default:
+                        // we assume any unknown cameras are also external
+                        other_camera_ids.add(i);
+                        break;
                 }
             }
+        }
 
-            for(String cameraId: camerafinder.getAllCameraIdList()) {
-                int id = Integer.parseInt(cameraId);
-                cameraCharacteristics = camerafinder.getCameraCharacteristics(id);
-                Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
-                if (!logical_camera_ids.contains(id)
-                        || getResources().getBoolean(R.bool.allow_logical_camera_ids)) {
-                    switch(facing) {
-                        case CameraMetadata.LENS_FACING_BACK:
-                            back_camera_ids.add(id);
-                            break;
-                        case CameraMetadata.LENS_FACING_FRONT:
-                            front_camera_ids.add(id);
-                            break;
-                        case CameraMetadata.LENS_FACING_EXTERNAL:
-                            other_camera_ids.add(id);
-                            break;
-                    }
-                }
-            }
+        if (n_cameras > 2) {
             if( MyDebug.LOG ) {
                 Log.d(TAG, "back_camera_ids: " + back_camera_ids);
                 Log.d(TAG, "front_camera_ids: " + front_camera_ids);
