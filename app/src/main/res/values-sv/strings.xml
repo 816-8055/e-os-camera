@@ -546,4 +546,7 @@
     <string name="unknown_device">Okänd enhet</string>
     <string name="preference_stamp_geo_address">Använd adresser</string>
     <string name="anti_banding_auto">Automatiskt</string>
+    <string name="preference_use_camera2">Använd Camera2 API</string>
+    <string name="preference_use_camera2_summary">Möjliggör extra funktioner så som manuella lägen för exponering, fokus och vitbalans tillsammans med RAW (om det stöds av enheten) men kanske inte fungerar korrekt på alla enheter (omstart kommer ske)</string>
+    <string name="preference_about_summary">App- och felsökningsinformation</string>
 </resources>
