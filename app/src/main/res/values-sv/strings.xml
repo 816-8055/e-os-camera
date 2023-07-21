@@ -676,4 +676,55 @@
     <string name="preference_panorama_save_all_plus_debug">Spara originalbilder plus felsöknings-XML</string>
     <string name="preference_stamp_style_background">Text med skuggad bakgrund</string>
     <string name="failed_to_process_panorama">Misslyckades att skapa panoramabild</string>
+    <string name="preference_audio_noise_control_sensitivity_summary">Alternativ för ljudnivåkänslighet för ljud (högt ljud)</string>
+    <string name="failed_to_auto_stabilise">Misslyckades att nivåjustera automatiskt</string>
+    <string name="auto_stabilise_not_supported">Tyvärr, automatisk nivåjustering stöds inte
+\npå denna enhet</string>
+    <string name="preference_auto_stabilise">Automatisk nivå</string>
+    <string name="preference_auto_stabilise_summary">Bilder kommer att roteras så att de är automatiskt i nivå (endast foton) (långsammare att ta foton och kanske misslyckas på enheter med för lite minne)</string>
+    <string name="preference_lock_orientation_summary">Om inställt kommer enhetens orientering att ignoreras och bildens/videons orientering kommer vara i förhållande till angiven orientering
+\n%s</string>
+    <string name="preference_crop_guide_summary">En beskärningsguide där en rektangel visas som anger hur det angivna bildförhållandet ser ut - användbart om du planerar att beskära fotot/videon i efterhand till ett annat bildförhållande. Kräver WYSIWYG-fotoläge eller att vara i videoläge.
+\n%s</string>
+    <string name="preference_video_fps">Videobildhastighet (uppskattning)</string>
+    <string name="preference_force_video_4k_summary">Aktivera upplösningen 3840x2160 för videoinspelning på bakre kamera - detta alternativ är ett hack som kanske tillåter 4K-enheter på 4K-kameror som inte exponerar alternativet till tredjepartskameraappar. Detta är inte garanterat att fungera, testa innan du börjar arbeta.</string>
+    <string name="preference_video_bitrate">Videobithastighet (uppskattad)</string>
+    <string name="preference_video_bitrate_summary">Ställ in den uppskattade bithastigheten för videor (högre betyder bättre kvalitet men tar upp mer lagringsutrymme, kan få videoinspelning att misslyckas om bithastighet inte stöds)
+\n%s</string>
+    <string name="preference_video_fps_summary">Ställ in bildhastigheten (FPS) för videor (kan vara uppskattad, inte garanterat att det uppnås, och kan få videoinspelning att misslyckas om bildhastighet inte stöds. Kontrollera videoresultatet för att se den faktiska bildhastigheten som användes. Observera att denna inställning ignoreras för slow motion-videor.
+\n%s</string>
+    <string name="preference_video_restart_max_filesize">Starta om vid maximal filstorlek</string>
+    <string name="preference_video_restart_max_filesize_summary">Huruvida automatisk omstart ska ske när maximal filstorlek nås (antingen enhetens maximala standardfilstorlek eller angivet av användaren)</string>
+    <string name="preference_video_max_filesize_summary">Videoinspelningen stoppas och/eller startas om (se alternativ nedan) när den (uppskattade) maximala filstorleken är nådd. Observera att många Androidenheter har en maximal filstorlek för videor (vanligen runt 2 GB eller 4 GB), men detta alternativ tillåter att ställa in ett specifikt värde. Observera att detta alternativ inte kan användas för att öka enhetens inbyggda maximala värde.
+\n%s</string>
+    <string name="preference_record_audio_channels_summary">Specificera mono eller stereo för ljudinspelning (på vissa enheter stöds endast stereo)</string>
+    <string name="preference_donate_summary">Om du gillar denna app, vänligen fundera på att göra en donation för att stödja utvecklingen. Du kan göra detta genom att köpa min donationsapp - klicka på detta alternativ för att öppna sidan för min donationsapp. Tack!</string>
+    <string name="saf_cancelled">Storage Access Framework avbruten</string>
+    <string name="preference_show_take_photo">Visa \"Ta foto\"-ikon</string>
+    <string name="preference_show_take_photo_summary">Visa ikonen för att ta foton eller spela in videor. Avmarkera om du hellre tar foton på ett annat sätt (t.ex. om enheten har en fysisk slutarknapp eller använder volymknapparna).</string>
+    <string name="capturing">Tar foto …</string>
+    <string name="white_balance_incandescent">Glödlampa</string>
+    <string name="white_balance_twilight">Skymning</string>
+    <string name="scene_mode_action">Action</string>
+    <string name="scene_mode_steady_photo">Stadigt foto</string>
+    <string name="preference_exif_copyright_summary">Text som lagras i bildens metadata i upphovsrättstaggen (endast JPEG-format). (Lämna tomt för ingen.)</string>
+    <string name="slow_motion_enabled">Slow motion aktiverad</string>
+    <string name="slow_motion_disabled">Slow motion avaktiverades</string>
+    <string name="flash_on">Blixt på</string>
+    <string name="flash_frontscreen_auto">Automatisk skärmblixt</string>
+    <string name="flash_frontscreen_on">Skärmblixt på</string>
+    <string name="preference_camera2_photo_video_recording">Tillåt foton medan inspelning av video</string>
+    <string name="preference_camera2_photo_video_recording_summary">Tillåter att ta foton medan video spelas in. Avaktivera detta om det är problem med videoinspelning med Camera2 API aktiverad på enheten.</string>
+    <string name="preference_video_log">Bildprofiler för video</string>
+    <string name="preference_video_log_summary">Ställ in standard eller platt bildprofil för videoläge
+\n%s</string>
+    <string name="preference_video_log_fine">Log (Fin)</string>
+    <string name="preference_video_log_low">Log (Låg)</string>
+    <string name="preference_video_log_medium">Log (Medium)</string>
+    <string name="preference_video_log_strong">Log (Stark)</string>
+    <string name="preference_video_log_extra_strong">Log (Extra stark)</string>
+    <string name="video_log">Log-profil</string>
+    <string name="preference_record_audio_src_camcorder">Videokamera</string>
+    <string name="preference_record_audio_src_mic">Extern mick (om den finns)</string>
+    <string name="preference_record_audio_src_default">Standardljudkälla</string>
 </resources>
