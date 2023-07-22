@@ -727,4 +727,30 @@
     <string name="preference_record_audio_src_camcorder">Videokamera</string>
     <string name="preference_record_audio_src_mic">Extern mick (om den finns)</string>
     <string name="preference_record_audio_src_default">Standardljudkälla</string>
+    <string name="auto_stabilise_info">Auto-nivå kommer automatiskt rotera foton så att de framstår vara i nivå.
+\n
+\nObservera att detta innebär att bilder kommer få en något lägra upplösning (på grund av den rotation och beskärning som krävs).</string>
+    <string name="hdr_info">HDR-läge är användbart för foton med stor variation i ljushet. Det fungerar genom att ta flera foton med olika exponeringar, och kombinerar dom sedan för att skapa den slutgiltiga bilden.
+\n
+\nObservera att HDR inte är lämpligt för motiv med snabba rörelser, och kan resultera i något sämre färgåtergivning.
+\n
+\nAtt ta foton i HDR-läge är långsammare.</string>
+    <string name="photo_mode_noise_reduction">BR</string>
+    <string name="preference_category_stamp">Fotostämpel</string>
+    <string name="preference_hdr_save_expo">Spara alla bilder för HDR-läge</string>
+    <string name="preference_hdr_save_expo_summary">Om aktiverat, när HDR-fotoläge används, kommer de tre basbilderna sparas precis som det slutgiltiga HDR-fotot. Observera kommer göra det långsammare att spara, speciellt om alternativ som \"Stämpla foton\" eller Auto-nivå också används.</string>
+    <string name="permission_rationale_storage">Läs- och skrivbehörighet till filer och media krävs för att spara filer så som foton och videor</string>
+    <string name="permission_rationale_record_audio">Mikrofonbehörighet krävs för att spela in video med ljud och för att kunna använda \"Ljudkontroll\"-alternativen</string>
+    <string name="permission_rationale_location">Platsbehörighet krävs för geotagging (lagra platsdata i foton och videor, inklusive stämpel och undertexters alternativ). Platsbehörighet krävs också (åtminstone för Android 11 och tidigare) för att ansluta till Bluetooth LE fjärrkontrollsenheter.</string>
+    <string name="preference_calibrate_level">Kalibrera nivåvinkel</string>
+    <string name="preference_calibrate_level_summary">Detta alternativ kalibrerar enhetens accelerometer så att auto-nivå och nivå-/vinkelalternativen på skärmen fungerar korrekt</string>
+    <string name="preference_calibrate_level_dialog">Placera enheten på en platt horisontell yta så att den är i nivå (antingen i porträtt- eller landskapsläge), välj sedan Kalibrera.
+\n
+\nTryck på Återställ för att ta bort kalibreringen från din enhet.
+\n
+\nTryck på bakåtknappen för att avbryta.</string>
+    <string name="preference_calibrate_level_calibrated">Nivå kalibrerad</string>
+    <string name="preference_calibrate_level_calibration_reset">Nivåkalibrering återställd</string>
+    <string name="preference_show_geo_direction_lines">Visa kompassens riktningslinjer</string>
+    <string name="preference_show_geo_direction_lines_summary">Visa kompassriktningslinjer</string>
 </resources>
