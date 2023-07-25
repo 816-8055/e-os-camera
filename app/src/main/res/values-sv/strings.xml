@@ -753,4 +753,30 @@
     <string name="preference_calibrate_level_calibration_reset">Nivåkalibrering återställd</string>
     <string name="preference_show_geo_direction_lines">Visa kompassens riktningslinjer</string>
     <string name="preference_show_geo_direction_lines_summary">Visa kompassriktningslinjer</string>
+    <string name="preference_using_saf_summary">Om Storage Access Framework ska användas för att spara foton och videor. Detta bör aktiveras för att tillåta att spara till externa SD-kort. I Android 10+ måste detta alternativ vara aktiverat om du vill spara i en mapp utanför DCIM.</string>
+    <string name="photo_mode_fast_burst_full">Snabb serie</string>
+    <string name="preference_camera2_fake_flash">Använd alternativ blixtmetod</string>
+    <string name="preference_camera2_fake_flash_summary">Aktivera detta om enheten har programfel i blixtbeteendet med Camera2 API</string>
+    <string name="preference_expo_bracketing_stops">Exponeringsgafflingssteg</string>
+    <string name="preference_expo_bracketing_stops_summary">Hur många steg som ska dras bort/läggas till för den mörkaste/ljusaste bilden
+\n%s</string>
+    <string name="preference_camera2_fast_burst">Aktivera snabb HDR-/exposerie</string>
+    <string name="preference_camera2_fast_burst_summary">Tillåter snabbare fångst av HDR-/expofoton. Avaktivera detta om enheten har problem med att ta foton i HDR- eller Expofotoläge.</string>
+    <string name="preference_front_camera_mirror">Spegla främre kameran</string>
+    <string name="preference_front_camera_mirror_summary">Huruvida bilder tagna med främre kameran ska spegelvändas
+\n%s</string>
+    <string name="photo_mode_dro">DRO</string>
+    <string name="preference_show_pitch_lines">Visa stigningslinjer</string>
+    <string name="preference_show_pitch_lines_summary">Visa horisontella stigningslinjer</string>
+    <string name="preference_video_subtitle_summary">Skapa en fil med undertexter (.SRT) som lagrar datum och tid, och även GPS-info om plats-/riktningsdata är aktiverat. (I Android 11+, detta alternativ kräver att Fler kamerakontroller/Storage Access Framework aktiveras.)
+\n%s</string>
+    <string name="audio_listener_failed">Misslyckades att starta ljudavlyssning</string>
+    <string name="color_effect_aqua">Aqua</string>
+    <string name="color_effect_blackboard">Svart tavla</string>
+    <string name="color_effect_mono">Mono</string>
+    <string name="color_effect_posterize">Affischera</string>
+    <string name="color_effect_sepia">Sepia</string>
+    <string name="color_effect_solarize">Solarisera</string>
+    <string name="color_effect_whiteboard">Whiteboard</string>
+    <string name="high_speed">Hög fart</string>
 </resources>
