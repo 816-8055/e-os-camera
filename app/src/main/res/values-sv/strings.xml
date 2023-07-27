@@ -779,4 +779,21 @@
     <string name="color_effect_solarize">Solarisera</string>
     <string name="color_effect_whiteboard">Whiteboard</string>
     <string name="high_speed">Hög fart</string>
+    <string name="preference_antibanding">Antiränder</string>
+    <string name="preference_antibanding_summary">Algoritmer som hjälper mot ljusflimmer.
+\n%s</string>
+    <string name="preference_ghost_image">Spökbild</string>
+    <string name="preference_ghost_image_summary">Lägg över en bild för att hjälpa med placering.
+\n%s</string>
+    <string name="open_files_saf_exception_ghost">Ingen fildialog hittades på denna enhet, alternativet spökbild stöds ej</string>
+    <string name="no_burst">ingen serie</string>
+    <string name="preference_show_video_max_amp">Visa ljudnivåmätare</string>
+    <string name="preference_show_video_max_amp_summary">Hurruvida ljudnivå ska visas på skärmen när video spelas in</string>
+    <string name="magnetic_accuracy_info">Enhetens kompass behöver kalibreras för att förbättra noggrannheten. Detta kan göras genom att röra din enheten i ett mönster som liknar en 8.
+\n
+\nAktuell noggrannhet:</string>
+    <string name="preference_focus_assist_summary">Huruvida inzoomning ska ske när fokusavstånd justeras manuellt
+\n%s</string>
+    <string name="preference_restore_settings_question">Detta alternativ tillåter att du väljer en av inställningsfilerna som sparats tidigare. Tag varning om att inläsning av vald fil skriver över alla nuvarande inställningar.</string>
+    <string name="open_files_saf_exception_generic">Ingen fildialog hittades på denna enhet, alternativet stöds ej</string>
 </resources>
