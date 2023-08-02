@@ -59,7 +59,25 @@ public class DrawPreview {
     private final MainActivity main_activity;
     private final MyApplicationInterface applicationInterface;
 
+    // In some cases when reopening the camera or pausing preview, we apply a dimming effect (only
+    // supported when using Camera2 API, since we need to know when frames have been received).
+    enum DimPreview {
+        DIM_PREVIEW_OFF, // don't dim the preview
+        DIM_PREVIEW_ON, // do dim the preview
+        DIM_PREVIEW_UNTIL // dim the preview until the camera_controller is non-null and has received frames, then switch to DIM_PREVIEW_OFF
+    }
+    private DimPreview dim_preview = DimPreview.DIM_PREVIEW_OFF;
+
+    // Time for the dimming effect. This should be quick, because we call Preview.setupCamera() on
+    // the UI thread, which will block redraws:
+    // - When reopening the camera, we want the dimming to have occurred whilst reopening the
+    //   camera, before we call setupCamera() on the UI thread.
+    // - When pausing the preview in MainActivity.updateForSettings(), we call setupCamera() after
+    //   this delay - so we don't want to keep the user waiting too long.
+    public final static long dim_effect_time_c = 50;
+
     private boolean cover_preview; // whether to cover the preview for Camera2 API
+    private long camera_inactive_time_ms = -1; // if != -1, the time when the camera became inactive
 
     // store to avoid calling PreferenceManager.getDefaultSharedPreferences() repeatedly
     private final SharedPreferences sharedPreferences;
@@ -239,6 +257,8 @@ public class DrawPreview {
 
     private final static int histogram_width_dp = 100;
     private final static int histogram_height_dp = 60;
+
+    private final static int crop_shading_alpha_c = 160; // alpha to use for shading areas not of interest
 
     public DrawPreview(MainActivity main_activity, MyApplicationInterface applicationInterface) {
         if( MyDebug.LOG )
@@ -470,6 +490,13 @@ public class DrawPreview {
         if( MyDebug.LOG )
             Log.d(TAG, "clearLastImage");
         this.show_last_image = false;
+    }
+
+    public void allowGhostImage() {
+        if( MyDebug.LOG )
+            Log.d(TAG, "allowGhostImage");
+        if( last_thumbnail != null )
+            this.allow_ghost_last_image = true;
     }
 
     public void clearGhostImage() {
@@ -982,9 +1009,6 @@ public class DrawPreview {
         if( preview.isVideo() || preview_size_wysiwyg_pref ) {
             String preference_crop_guide = sharedPreferences.getString(PreferenceKeys.ShowCropGuidePreferenceKey, "crop_guide_none");
             if( camera_controller != null && preview.getTargetRatio() > 0.0 && !preference_crop_guide.equals("crop_guide_none") ) {
-                p.setStyle(Paint.Style.STROKE);
-                p.setStrokeWidth(stroke_width);
-                p.setColor(Color.rgb(255, 235, 59)); // Yellow 500
                 double crop_ratio = -1.0;
                 switch(preference_crop_guide) {
                     case "crop_guide_1":
@@ -1040,23 +1064,36 @@ public class DrawPreview {
                             Log.d(TAG, "canvas width: " + canvas.getWidth());
                             Log.d(TAG, "canvas height: " + canvas.getHeight());
                         }*/
+                        p.setStyle(Paint.Style.FILL);
+                        p.setColor(Color.rgb(0, 0, 0));
+                        p.setAlpha(crop_shading_alpha_c);
                         int left = 1, top = 1, right = canvas.getWidth()-1, bottom = canvas.getHeight()-1;
                         if( crop_ratio > preview_aspect_ratio ) {
                             // crop ratio is wider, so we have to crop top/bottom
                             double new_hheight = ((double)canvas.getWidth()) / (2.0f*crop_ratio);
                             top = (canvas.getHeight()/2 - (int)new_hheight);
                             bottom = (canvas.getHeight()/2 + (int)new_hheight);
+                            // draw shaded area
+                            canvas.drawRect(0, 0, canvas.getWidth(), top, p);
+                            canvas.drawRect(0, bottom, canvas.getWidth(), canvas.getHeight(), p);
                         }
                         else {
                             // crop ratio is taller, so we have to crop left/right
                             double new_hwidth = (((double)canvas.getHeight()) * crop_ratio) / 2.0f;
                             left = (canvas.getWidth()/2 - (int)new_hwidth);
                             right = (canvas.getWidth()/2 + (int)new_hwidth);
+                            // draw shaded area
+                            canvas.drawRect(0, 0, left, canvas.getHeight(), p);
+                            canvas.drawRect(right, 0, canvas.getWidth(), canvas.getHeight(), p);
                         }
+                        p.setStyle(Paint.Style.STROKE);
+                        p.setStrokeWidth(stroke_width);
+                        p.setColor(Color.rgb(255, 235, 59)); // Yellow 500
                         canvas.drawRect(left, top, right, bottom, p);
+                        p.setStyle(Paint.Style.FILL); // reset
+                        p.setAlpha(255); // reset
                     }
                 }
-                p.setStyle(Paint.Style.FILL); // reset
             }
         }
     }
@@ -2133,6 +2170,19 @@ public class DrawPreview {
         return "·    " + zoom_ratio + "X" + "    ·";
     }
 
+    private int getAngleStep() {
+        Preview preview = main_activity.getPreview();
+        int angle_step = 10;
+        float zoom_ratio = preview.getZoomRatio();
+        if( zoom_ratio >= 10.0f )
+            angle_step = 1;
+        else if( zoom_ratio >= 5.0f )
+            angle_step = 2;
+        else if( zoom_ratio >= 2.0f )
+            angle_step = 5;
+        return angle_step;
+    }
+
     private void drawAngleLines(Canvas canvas, int device_ui_rotation, long time_ms) {
         Preview preview = main_activity.getPreview();
         CameraController camera_controller = preview.getCameraController();
@@ -2159,6 +2209,7 @@ public class DrawPreview {
             // lines should be shorter in portrait
             int radius_dps = (device_ui_rotation == 90 || device_ui_rotation == 270) ? 60 : 80;
             int radius = (int) (radius_dps * scale + 0.5f); // convert dps to pixels
+            int o_radius = (int) (10 * scale + 0.5f); // convert dps to pixels
             double angle = - preview.getOrigLevelAngle();
             // see http://android-developers.blogspot.co.uk/2010/09/one-screen-turn-deserves-another.html
             int rotation = main_activity.getDisplayRotation();
@@ -2192,28 +2243,41 @@ public class DrawPreview {
                 is_level = true;
             }
 
-            if( is_level ) {
-                radius = (int)(radius * 1.2);
+            final int line_alpha = 160;
+            float hthickness = (0.5f * scale + 0.5f); // convert dps to pixels
+            float shadow_radius = hthickness;
+            shadow_radius = Math.max(shadow_radius, 1.0f);
+            p.setStyle(Paint.Style.FILL);
+
+            if( actual_show_angle_line_pref && preview.hasLevelAngleStable() ) {
+                // draw the non-rotated part of the level
+                // only show the angle line if level angle "stable" (i.e., not pointing near vertically up or down)
+
+                p.setShadowLayer(shadow_radius, 0.0f, 0.0f, Color.BLACK);
+
+                if( is_level ) {
+                    p.setColor(angle_highlight_color_pref);
+                }
+                else {
+                    p.setColor(Color.WHITE);
+                }
+                p.setAlpha(line_alpha);
+                draw_rect.set(cx - radius - o_radius, cy - hthickness, cx - radius, cy + hthickness);
+                canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
+                draw_rect.set(cx + radius, cy - hthickness, cx + radius + o_radius, cy + hthickness);
+                canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
+
+                p.clearShadowLayer();
             }
 
             canvas.save();
             canvas.rotate((float)angle, cx, cy);
 
-            final int line_alpha = 160;
-            float hthickness = (0.5f * scale + 0.5f); // convert dps to pixels
-            p.setStyle(Paint.Style.FILL);
             if( actual_show_angle_line_pref && preview.hasLevelAngleStable() ) {
                 // only show the angle line if level angle "stable" (i.e., not pointing near vertically up or down)
-                // draw outline
-                p.setColor(Color.BLACK);
-                p.setAlpha(64);
-                // can't use drawRoundRect(left, top, right, bottom, ...) as that requires API 21
-                draw_rect.set(cx - radius - hthickness, cy - 2 * hthickness, cx + radius + hthickness, cy + 2 * hthickness);
-                canvas.drawRoundRect(draw_rect, 2 * hthickness, 2 * hthickness, p);
-                // draw the vertical crossbar
-                draw_rect.set(cx - 2 * hthickness, cy - radius / 2.0f - hthickness, cx + 2 * hthickness, cy + radius / 2.0f + hthickness);
-                canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
-                // draw inner portion
+
+                p.setShadowLayer(shadow_radius, 0.0f, 0.0f, Color.BLACK);
+
                 if( is_level ) {
                     p.setColor(angle_highlight_color_pref);
                 }
@@ -2231,16 +2295,13 @@ public class DrawPreview {
                 if( is_level ) {
                     // draw a second line
 
-                    p.setColor(Color.BLACK);
-                    p.setAlpha(64);
-                    draw_rect.set(cx - radius - hthickness, cy - 7 * hthickness, cx + radius + hthickness, cy - 3 * hthickness);
-                    canvas.drawRoundRect(draw_rect, 2 * hthickness, 2 * hthickness, p);
-
                     p.setColor(angle_highlight_color_pref);
                     p.setAlpha(line_alpha);
                     draw_rect.set(cx - radius, cy - 6 * hthickness, cx + radius, cy - 4 * hthickness);
                     canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
                 }
+
+                p.clearShadowLayer();
             }
             updateCachedViewAngles(time_ms); // ensure view_angle_x_preview, view_angle_y_preview are computed and up to date
             float camera_angle_x, camera_angle_y;
@@ -2272,9 +2333,7 @@ public class DrawPreview {
                 // lines should be shorter in portrait
                 int pitch_radius_dps = (device_ui_rotation == 90 || device_ui_rotation == 270) ? 80 : 100;
                 int pitch_radius = (int) (pitch_radius_dps * scale + 0.5f); // convert dps to pixels
-                int angle_step = 10;
-                if( preview.getZoomRatio() >= 2.0f )
-                    angle_step = 5;
+                int angle_step = getAngleStep();
                 for(int latitude_angle=-90;latitude_angle<=90;latitude_angle+=angle_step) {
                     double this_angle = pitch_angle - latitude_angle;
                     if( Math.abs(this_angle) < 90.0 ) {
@@ -2283,13 +2342,6 @@ public class DrawPreview {
 							Log.d(TAG, "pitch_angle: " + pitch_angle);
 							Log.d(TAG, "pitch_distance_dp: " + pitch_distance_dp);
 						}*/
-                        // draw outline
-                        p.setColor(Color.BLACK);
-                        p.setAlpha(64);
-                        // can't use drawRoundRect(left, top, right, bottom, ...) as that requires API 21
-                        draw_rect.set(cx - pitch_radius - hthickness, cy + pitch_distance - 2*hthickness, cx + pitch_radius + hthickness, cy + pitch_distance + 2*hthickness);
-                        canvas.drawRoundRect(draw_rect, 2*hthickness, 2*hthickness, p);
-                        // draw inner portion
                         p.setColor(Color.WHITE);
                         p.setTextAlign(Paint.Align.LEFT);
                         if( latitude_angle == 0 && Math.abs(pitch_angle) < 1.0 ) {
@@ -2304,8 +2356,11 @@ public class DrawPreview {
                         else {
                             p.setAlpha(line_alpha);
                         }
+                        p.setShadowLayer(shadow_radius, 0.0f, 0.0f, Color.BLACK);
+                        // can't use drawRoundRect(left, top, right, bottom, ...) as that requires API 21
                         draw_rect.set(cx - pitch_radius, cy + pitch_distance - hthickness, cx + pitch_radius, cy + pitch_distance + hthickness);
                         canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
+                        p.clearShadowLayer();
                         // draw pitch angle indicator
                         applicationInterface.drawTextWithBackground(canvas, p, "" + latitude_angle + "\u00B0", p.getColor(), Color.BLACK, (int)(cx + pitch_radius + 4*hthickness), (int)(cy + pitch_distance - 2*hthickness), MyApplicationInterface.Alignment.ALIGNMENT_CENTRE);
                     }
@@ -2317,9 +2372,7 @@ public class DrawPreview {
                 int geo_radius_dps = (device_ui_rotation == 90 || device_ui_rotation == 270) ? 100 : 80;
                 int geo_radius = (int) (geo_radius_dps * scale + 0.5f); // convert dps to pixels
                 float geo_angle = (float)Math.toDegrees(geo_direction);
-                int angle_step = 10;
-                if( preview.getZoomRatio() >= 2.0f )
-                    angle_step = 5;
+                int angle_step = getAngleStep();
                 for(int longitude_angle=0;longitude_angle<360;longitude_angle+=angle_step) {
                     double this_angle = longitude_angle - geo_angle;
 					/*if( MyDebug.LOG ) {
@@ -2340,18 +2393,14 @@ public class DrawPreview {
 							Log.d(TAG, "this_angle is now: " + this_angle);
 						}*/
                         float geo_distance = angle_scale * (float)Math.tan( Math.toRadians(this_angle) ); // angle_scale is already in pixels rather than dps
-                        // draw outline
-                        p.setColor(Color.BLACK);
-                        p.setAlpha(64);
-                        // can't use drawRoundRect(left, top, right, bottom, ...) as that requires API 21
-                        draw_rect.set(cx + geo_distance - 2*hthickness, cy - geo_radius - hthickness, cx + geo_distance + 2*hthickness, cy + geo_radius + hthickness);
-                        canvas.drawRoundRect(draw_rect, 2*hthickness, 2*hthickness, p);
-                        // draw inner portion
                         p.setColor(Color.WHITE);
                         p.setTextAlign(Paint.Align.CENTER);
                         p.setAlpha(line_alpha);
+                        p.setShadowLayer(shadow_radius, 0.0f, 0.0f, Color.BLACK);
+                        // can't use drawRoundRect(left, top, right, bottom, ...) as that requires API 21
                         draw_rect.set(cx + geo_distance - hthickness, cy - geo_radius, cx + geo_distance + hthickness, cy + geo_radius);
                         canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
+                        p.clearShadowLayer();
                         // draw geo direction angle indicator
                         applicationInterface.drawTextWithBackground(canvas, p, "" + longitude_angle + "\u00B0", p.getColor(), Color.BLACK, (int)(cx + geo_distance), (int)(cy - geo_radius - 4*hthickness), MyApplicationInterface.Alignment.ALIGNMENT_BOTTOM);
                     }
@@ -2387,8 +2436,27 @@ public class DrawPreview {
                 int cx = canvas.getWidth()/2;
                 int cy = canvas.getHeight()/2;
 
+                float left = (canvas.getWidth() - w2)/2.0f;
+                float top = (canvas.getHeight() - h2)/2.0f;
+                float right = (canvas.getWidth() + w2)/2.0f;
+                float bottom = (canvas.getHeight() + h2)/2.0f;
+
                 canvas.save();
                 canvas.rotate((float)-level_angle, cx, cy);
+
+                // draw shaded area
+                float o_dist = (float)Math.sqrt(canvas.getWidth()*canvas.getWidth() + canvas.getHeight()*canvas.getHeight());
+                float o_left = (canvas.getWidth() - o_dist)/2.0f;
+                float o_top = (canvas.getHeight() - o_dist)/2.0f;
+                float o_right = (canvas.getWidth() + o_dist)/2.0f;
+                float o_bottom = (canvas.getHeight() + o_dist)/2.0f;
+                p.setStyle(Paint.Style.FILL);
+                p.setColor(Color.rgb(0, 0, 0));
+                p.setAlpha(crop_shading_alpha_c);
+                canvas.drawRect(o_left, o_top, left, o_bottom, p);
+                canvas.drawRect(right, o_top, o_right, o_bottom, p);
+                canvas.drawRect(left, o_top, right, top, p); // top
+                canvas.drawRect(left, bottom, right, o_bottom, p); // bottom
 
                 if( has_level_angle && Math.abs(level_angle) <= close_level_angle ) { // n.b., use level_angle, not angle or orig_level_angle
                     p.setColor(angle_highlight_color_pref);
@@ -2399,11 +2467,12 @@ public class DrawPreview {
                 p.setStyle(Paint.Style.STROKE);
                 p.setStrokeWidth(stroke_width);
 
-                canvas.drawRect((canvas.getWidth() - w2)/2.0f, (canvas.getHeight() - h2)/2.0f, (canvas.getWidth() + w2)/2.0f, (canvas.getHeight() + h2)/2.0f, p);
+                canvas.drawRect(left, top, right, bottom, p);
 
                 canvas.restore();
 
                 p.setStyle(Paint.Style.FILL); // reset
+                p.setAlpha(255); // reset
             }
         }
     }
@@ -2564,6 +2633,21 @@ public class DrawPreview {
         this.cover_preview = cover_preview;
     }
 
+    public void setDimPreview(boolean on) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "setDimPreview: " + on);
+        if( on ) {
+            this.dim_preview = DimPreview.DIM_PREVIEW_ON;
+        }
+        else if( this.dim_preview == DimPreview.DIM_PREVIEW_ON ) {
+            this.dim_preview = DimPreview.DIM_PREVIEW_UNTIL;
+        }
+    }
+
+    public void clearDimPreview() {
+        this.dim_preview = DimPreview.DIM_PREVIEW_OFF;
+    }
+
     public void onDrawPreview(Canvas canvas) {
 		/*if( MyDebug.LOG )
 			Log.d(TAG, "onDrawPreview");*/
@@ -2611,18 +2695,44 @@ public class DrawPreview {
         // cover up the camera when the application is pausing, and to keep it covered up until
         // after we've resumed, and the camera has been reopened and we've received frames.
         if( preview.usingCamera2API() ) {
+            boolean camera_is_active = camera_controller != null && !camera_controller.shouldCoverPreview();
             if( cover_preview ) {
                 // see if we have received a frame yet
-                if( camera_controller != null && !camera_controller.shouldCoverPreview() ) {
+                if( camera_is_active ) {
                     if( MyDebug.LOG )
                         Log.d(TAG, "no longer need to cover preview");
                     cover_preview = false;
                 }
             }
             if( cover_preview ) {
+                // camera has never been active since last resuming
                 p.setColor(Color.BLACK);
                 //p.setColor(Color.RED); // test
                 canvas.drawRect(0.0f, 0.0f, canvas.getWidth(), canvas.getHeight(), p);
+            }
+            else if( dim_preview == DimPreview.DIM_PREVIEW_ON || ( !camera_is_active && dim_preview == DimPreview.DIM_PREVIEW_UNTIL ) ) {
+                long time_now = System.currentTimeMillis();
+                if( camera_inactive_time_ms == -1 ) {
+                    camera_inactive_time_ms = time_now;
+                }
+                float frac = ((time_now - camera_inactive_time_ms) / (float)dim_effect_time_c);
+                frac = Math.min(frac, 1.0f);
+                int alpha = (int)(frac * 127);
+                if( MyDebug.LOG ) {
+                    Log.d(TAG, "time diff: " + (time_now - camera_inactive_time_ms));
+                    Log.d(TAG, "    frac: " + frac);
+                    Log.d(TAG, "    alpha: " + alpha);
+                }
+                p.setColor(Color.BLACK);
+                p.setAlpha(alpha);
+                canvas.drawRect(0.0f, 0.0f, canvas.getWidth(), canvas.getHeight(), p);
+                p.setAlpha(255);
+            }
+            else {
+                camera_inactive_time_ms = -1;
+                if( dim_preview == DimPreview.DIM_PREVIEW_UNTIL && camera_is_active ) {
+                    dim_preview = DimPreview.DIM_PREVIEW_OFF;
+                }
             }
         }
 

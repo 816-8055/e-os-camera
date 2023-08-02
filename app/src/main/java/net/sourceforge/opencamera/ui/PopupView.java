@@ -411,7 +411,7 @@ public class PopupView extends LinearLayout {
                         public void run() {
                             if (MyDebug.LOG)
                                 Log.d(TAG, "update settings due to resolution change");
-                            main_activity.updateForSettings(true, "", true); // keep the popupview open
+                            main_activity.updateForSettings(true, "", true, false); // keep the popupview open
                         }
                     };
 
@@ -495,7 +495,7 @@ public class PopupView extends LinearLayout {
                         public void run() {
                             if( MyDebug.LOG )
                                 Log.d(TAG, "update settings due to video resolution change");
-                            main_activity.updateForSettings(true, "", true); // keep the popupview open
+                            main_activity.updateForSettings(true, "", true, false); // keep the popupview open
                         }
                     };
 
@@ -579,7 +579,7 @@ public class PopupView extends LinearLayout {
                             float new_aperture = apertures.get(index);
                             if( MyDebug.LOG )
                                 Log.d(TAG, "new_aperture: " + new_aperture);
-                            preview.showToast(null, getResources().getString(R.string.aperture) + ": " + option);
+                            preview.showToast(null, getResources().getString(R.string.aperture) + ": " + option, true);
                             main_activity.getApplicationInterface().setAperture(new_aperture);
                             if( preview.getCameraController() != null ) {
                                 preview.getCameraController().setAperture(new_aperture);
@@ -807,7 +807,7 @@ public class PopupView extends LinearLayout {
                             public void run() {
                                 if (MyDebug.LOG)
                                     Log.d(TAG, "update settings due to video capture rate change");
-                                main_activity.updateForSettings(true, "", true); // keep the popupview open
+                                main_activity.updateForSettings(true, "", true, false); // keep the popupview open
                             }
                         };
 
@@ -852,7 +852,7 @@ public class PopupView extends LinearLayout {
                                 handler.postDelayed(update_runnable, 400);
                             }
                             else {
-                                main_activity.updateForSettings(true, toast_message, keep_popup);
+                                main_activity.updateForSettings(true, toast_message, keep_popup, false);
                             }
                         }
                         @Override
@@ -1226,7 +1226,7 @@ public class PopupView extends LinearLayout {
             }
 
             main_activity.getApplicationInterface().getDrawPreview().updateSettings(); // because we cache the photomode
-            main_activity.updateForSettings(true, toast_message); // need to setup the camera again, as options may change (e.g., required burst mode, or whether RAW is allowed in this mode)
+            main_activity.updateForSettings(true, toast_message, false, true); // need to setup the camera again, as options may change (e.g., required burst mode, or whether RAW is allowed in this mode)
             main_activity.getMainUI().destroyPopup(); // need to recreate popup for new selection
         }
     }

@@ -55,9 +55,10 @@ public class HDRProcessor {
         TONEMAPALGORITHM_CLAMP,
         TONEMAPALGORITHM_EXPONENTIAL,
         TONEMAPALGORITHM_REINHARD,
-        TONEMAPALGORITHM_FILMIC,
+        TONEMAPALGORITHM_FU2,
         TONEMAPALGORITHM_ACES
     }
+    public static final TonemappingAlgorithm default_tonemapping_algorithm_c = TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD;
     public enum DROTonemappingAlgorithm {
         DROALGORITHM_NONE,
         DROALGORITHM_GAINGAMMA
@@ -481,18 +482,14 @@ public class HDRProcessor {
             for(int i=0;i<x_samples.size();i++) {
                 double value = x_samples.get(i);
                 double value_y = y_samples.get(i);
+                double weight = (value <= med_value) ? value - min_value : max_value - value;
                 if( is_dark_exposure ) {
                     // for dark exposure, also need to worry about the y values (which will be brighter than x) being overexposed
-                    double weight = (value <= med_value) ? value - min_value : max_value - value;
                     double weight_y = (value_y <= med_value_y) ? value_y - min_value_y : max_value_y - value_y;
                     if( weight_y < weight )
                         weight = weight_y;
-                    weights.add(weight);
                 }
-                else {
-                    double weight = (value <= med_value) ? value - min_value : max_value - value;
-                    weights.add(weight);
-                }
+                weights.add(weight);
             }
         }
 
@@ -730,10 +727,10 @@ public class HDRProcessor {
                     Log.d(TAG, "tonemapping algorithm: reinhard");
                 processHDRScript.set_tonemap_algorithm( processHDRScript.get_tonemap_algorithm_reinhard_c() );
                 break;
-            case TONEMAPALGORITHM_FILMIC:
+            case TONEMAPALGORITHM_FU2:
                 if( MyDebug.LOG )
-                    Log.d(TAG, "tonemapping algorithm: filmic");
-                processHDRScript.set_tonemap_algorithm( processHDRScript.get_tonemap_algorithm_filmic_c() );
+                    Log.d(TAG, "tonemapping algorithm: fu2");
+                processHDRScript.set_tonemap_algorithm( processHDRScript.get_tonemap_algorithm_fu2_c() );
                 break;
             case TONEMAPALGORITHM_ACES:
                 if( MyDebug.LOG )
@@ -855,14 +852,14 @@ public class HDRProcessor {
                 processHDRScript.set_linear_scale(linear_scale);
                 break;
             }
-            case TONEMAPALGORITHM_FILMIC:
+            case TONEMAPALGORITHM_FU2:
             {
-                // For filmic, we have f(V) = U(EV) / U(W), where V is the HDR value, U is a function.
+                // For FU2, we have f(V) = U(EV) / U(W), where V is the HDR value, U is a function.
                 // We want f(Vmax) = 1, so EVmax = W
-                float E = processHDRScript.get_filmic_exposure_bias();
+                float E = processHDRScript.get_fu2_exposure_bias();
                 float W = E * max_possible_value;
                 if( MyDebug.LOG )
-                    Log.d(TAG, "filmic W: " + W);
+                    Log.d(TAG, "fu2 W: " + W);
                 processHDRScript.set_W(W);
                 break;
             }
@@ -1019,14 +1016,12 @@ public class HDRProcessor {
 
         if( release_bitmaps ) {
             allocation.copyTo(bitmaps.get(0));
-            if( MyDebug.LOG )
-                Log.d(TAG, "time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
         }
         else {
             output_allocation.copyTo(output_bitmap);
-            if( MyDebug.LOG )
-                Log.d(TAG, "time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
         }
+        if( MyDebug.LOG )
+            Log.d(TAG, "time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
 
         if( free_output_allocation )
             allocation.destroy();
@@ -2597,11 +2592,11 @@ public class HDRProcessor {
                         // * Lastly, we only modify a given histogram value if pixels of that brightness
                         //   would be made darker by the CLAHE algorithm. We can do this by looking at
                         //   the cumulative histogram (as computed before modifying any values).
-                        if( MyDebug.LOG ) {
+                        /*if( MyDebug.LOG ) {
                             for(int x=0;x<256;x++) {
                                 Log.d(TAG, "pre-brighten histogram[" + x + "] = " + histogram[x]);
                             }
-                        }
+                        }*/
 
                         temp_c_histogram[0] = histogram[0];
                         for(int x=1;x<256;x++) {

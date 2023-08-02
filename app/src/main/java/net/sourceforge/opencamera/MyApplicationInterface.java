@@ -1208,6 +1208,17 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         return timer_delay;
     }
 
+    private ImageSaver.Request.RemoveDeviceExif getRemoveDeviceExifPref() {
+        switch( sharedPreferences.getString(PreferenceKeys.RemoveDeviceExifPreferenceKey, "preference_remove_device_exif_off") ) {
+            case "preference_remove_device_exif_on":
+                return ImageSaver.Request.RemoveDeviceExif.ON;
+            case "preference_remove_device_exif_keep_datetime":
+                return ImageSaver.Request.RemoveDeviceExif.KEEP_DATETIME;
+            default:
+                return ImageSaver.Request.RemoveDeviceExif.OFF;
+        }
+    }
+
     @Override
     public boolean getGeotaggingPref() {
         return sharedPreferences.getBoolean(PreferenceKeys.LocationPreferenceKey, false);
@@ -1710,12 +1721,6 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         return PhotoMode.Standard;
     }
 
-    @Override
-    public boolean getOptimiseAEForDROPref() {
-        PhotoMode photo_mode = getPhotoMode();
-        return( photo_mode == PhotoMode.DRO );
-    }
-
     private ImageSaver.Request.ImageFormat getImageFormatPref() {
         switch( sharedPreferences.getString(PreferenceKeys.ImageFormatPreferenceKey, "preference_image_format_jpeg") ) {
             case "preference_image_format_webp":
@@ -1985,7 +1990,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     Log.d(TAG, "TargetCallback.onTooFar");
 
                 if( !main_activity.is_test ) {
-                    main_activity.getPreview().showToast(null, R.string.panorama_cancelled);
+                    main_activity.getPreview().showToast(null, R.string.panorama_cancelled, true);
                     MyApplicationInterface.this.stopPanorama(true);
                 }
             }
@@ -2530,7 +2535,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                 storageUtils.announceUri(uri, false, true);
 
                 // we also want to save the uri - we can use the media uri directly, rather than having to scan it
-                storageUtils.setLastMediaScanned(uri, false);
+                storageUtils.setLastMediaScanned(uri, false, false, null);
 
                 done = true;
             }
@@ -2538,14 +2543,14 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         else if( video_method == VideoMethod.FILE ) {
             if( filename != null ) {
                 File file = new File(filename);
-                storageUtils.broadcastFile(file, false, true, true);
+                storageUtils.broadcastFile(file, false, true, true, false, null);
                 done = true;
             }
         }
         else {
             if( uri != null ) {
                 // see note in onPictureTaken() for where we call broadcastFile for SAF photos
-                storageUtils.broadcastUri(uri, false, true, true, false);
+                storageUtils.broadcastUri(uri, false, true, true, false, false);
                 done = true;
             }
         }
@@ -2600,13 +2605,13 @@ public class MyApplicationInterface extends BasicApplicationInterface {
             if( MyDebug.LOG )
                 Log.d(TAG, "next output file started");
             int message_id = R.string.video_max_filesize;
-            main_activity.getPreview().showToast(null, message_id);
+            main_activity.getPreview().showToast(null, message_id, true);
         }
         else if( what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "max filesize reached");
             int message_id = R.string.video_max_filesize;
-            main_activity.getPreview().showToast(null, message_id);
+            main_activity.getPreview().showToast(null, message_id, true);
         }
         // in versions 1.24 and 1.24, there was a bug where we had "info_" for onVideoError and "error_" for onVideoInfo!
         // fixed in 1.25; also was correct for 1.23 and earlier
@@ -2736,6 +2741,10 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         n_capture_images = 0;
         n_capture_images_raw = 0;
         drawPreview.onCaptureStarted();
+
+        if( getPhotoMode() == PhotoMode.X_Night ) {
+            main_activity.getPreview().showToast(null, R.string.preference_nr_mode_low_light_message, true);
+        }
     }
 
     @Override
@@ -3288,13 +3297,13 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         //String preference_stamp_geo_address = this.getStampGeoAddressPref();
         String preference_units_distance = this.getUnitsDistancePref();
         boolean panorama_crop = sharedPreferences.getString(PreferenceKeys.PanoramaCropPreferenceKey, "preference_panorama_crop_on").equals("preference_panorama_crop_on");
+        ImageSaver.Request.RemoveDeviceExif remove_device_exif = getRemoveDeviceExifPref();
         boolean store_location = getGeotaggingPref() && getLocation() != null;
         Location location = store_location ? getLocation() : null;
         boolean store_geo_direction = main_activity.getPreview().hasGeoDirection() && getGeodirectionPref();
         double geo_direction = main_activity.getPreview().hasGeoDirection() ? main_activity.getPreview().getGeoDirection() : 0.0;
         String custom_tag_artist = sharedPreferences.getString(PreferenceKeys.ExifArtistPreferenceKey, "");
         String custom_tag_copyright = sharedPreferences.getString(PreferenceKeys.ExifCopyrightPreferenceKey, "");
-        String preference_hdr_contrast_enhancement = sharedPreferences.getString(PreferenceKeys.HDRContrastEnhancementPreferenceKey, "preference_hdr_contrast_enhancement_smart");
 
         int iso = 800; // default value if we can't get ISO
         long exposure_time = 1000000000L/30; // default value if we can't get shutter speed
@@ -3400,6 +3409,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                         //preference_stamp_geo_address,
                         preference_units_distance,
                         panorama_crop,
+                        remove_device_exif,
                         store_location, location, store_geo_direction, geo_direction,
                         pitch_angle, store_ypr,
                         custom_tag_artist, custom_tag_copyright,
@@ -3421,9 +3431,39 @@ public class MyApplicationInterface extends BasicApplicationInterface {
             success = true;
         }
         else {
-            boolean is_hdr = photo_mode == PhotoMode.DRO || photo_mode == PhotoMode.HDR;
+            ImageSaver.Request.ProcessType processType;
+            if( photo_mode == PhotoMode.DRO || photo_mode == PhotoMode.HDR )
+                processType = ImageSaver.Request.ProcessType.HDR;
+            else if( photo_mode == PhotoMode.X_Night )
+                processType = ImageSaver.Request.ProcessType.X_NIGHT;
+            else
+                processType = ImageSaver.Request.ProcessType.NORMAL;
             boolean force_suffix = forceSuffix(photo_mode);
-            success = imageSaver.saveImageJpeg(do_in_background, is_hdr,
+
+            HDRProcessor.TonemappingAlgorithm preference_hdr_tonemapping_algorithm = HDRProcessor.default_tonemapping_algorithm_c;
+            {
+                String tonemapping_algorithm_pref = sharedPreferences.getString(PreferenceKeys.HDRTonemappingPreferenceKey, "preference_hdr_tonemapping_default");
+                switch( tonemapping_algorithm_pref ) {
+                    case "preference_hdr_tonemapping_clamp":
+                        preference_hdr_tonemapping_algorithm = HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_CLAMP;
+                        break;
+                    case "preference_hdr_tonemapping_exponential":
+                        preference_hdr_tonemapping_algorithm = HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_EXPONENTIAL;
+                        break;
+                    case "preference_hdr_tonemapping_default": // reinhard
+                        preference_hdr_tonemapping_algorithm = HDRProcessor.default_tonemapping_algorithm_c;
+                        break;
+                    case "preference_hdr_tonemapping_aces":
+                        preference_hdr_tonemapping_algorithm = HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_ACES;
+                        break;
+                    default:
+                        Log.e(TAG, "unhandled case for tonemapping: " + tonemapping_algorithm_pref);
+                        break;
+                }
+            }
+            String preference_hdr_contrast_enhancement = sharedPreferences.getString(PreferenceKeys.HDRContrastEnhancementPreferenceKey, "preference_hdr_contrast_enhancement_smart");
+
+            success = imageSaver.saveImageJpeg(do_in_background, processType,
                     force_suffix,
                     // N.B., n_capture_images will be 1 for first image, not 0, so subtract 1 so we start off from _0.
                     // (It wouldn't be a huge problem if we did start from _1, but it would be inconsistent with the naming
@@ -3437,6 +3477,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     is_front_facing,
                     mirror,
                     current_date,
+                    preference_hdr_tonemapping_algorithm,
                     preference_hdr_contrast_enhancement,
                     iso,
                     exposure_time,
@@ -3445,6 +3486,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     //preference_stamp_geo_address,
                     preference_units_distance,
                     false, // panorama doesn't use this codepath
+                    remove_device_exif,
                     store_location, location, store_geo_direction, geo_direction,
                     pitch_angle, store_ypr,
                     custom_tag_artist, custom_tag_copyright,
@@ -3655,10 +3697,10 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     if( MyDebug.LOG )
                         Log.d(TAG, "successfully deleted " + image_uri);
                     if( from_user )
-                        preview.showToast(null, R.string.photo_deleted);
+                        preview.showToast(null, R.string.photo_deleted, true);
                     if( file != null ) {
                         // SAF doesn't broadcast when deleting them
-                        storageUtils.broadcastFile(file, false, false, true);
+                        storageUtils.broadcastFile(file, false, false, false, false, null);
                     }
                 }
             }
@@ -3673,7 +3715,10 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         else if( image_type == LastImagesType.MEDIASTORE && image_uri != null ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "Delete MediaStore: " + image_uri);
-            main_activity.getContentResolver().delete(image_uri, null, null);
+            if( main_activity.getContentResolver().delete(image_uri, null, null) > 0 ) {
+                if( from_user )
+                    preview.showToast(photo_delete_toast, R.string.photo_deleted, true);
+            }
         }
         else if( image_name != null ) {
             if( MyDebug.LOG )
@@ -3687,8 +3732,8 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                 if( MyDebug.LOG )
                     Log.d(TAG, "successfully deleted " + image_name);
                 if( from_user )
-                    preview.showToast(photo_delete_toast, R.string.photo_deleted);
-                storageUtils.broadcastFile(file, false, false, true);
+                    preview.showToast(photo_delete_toast, R.string.photo_deleted, true);
+                storageUtils.broadcastFile(file, false, false, false, false, null);
             }
         }
     }
@@ -3708,6 +3753,8 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         }
         // Calling updateGalleryIcon() immediately has problem that it still returns the latest image that we've just deleted!
         // But works okay if we call after a delay. 100ms works fine on Nexus 7 and Galaxy Nexus, but set to 500 just to be safe.
+        // Also note that if using option to strip all exif tags, we won't be able to find the previous most recent image - but not
+        // much we can do here when the user is using that option.
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override

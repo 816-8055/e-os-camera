@@ -1113,7 +1113,7 @@ public class MainUI {
             int diff = (layoutParams.width-layoutParams.height)/2;
             if( MyDebug.LOG )
                 Log.d(TAG, "diff: " + diff);
-            setMarginsForSystemUI(layoutParams, +diff+left, -diff+top, +diff+right, -diff+bottom);
+            setMarginsForSystemUI(layoutParams, diff+left, -diff+top, diff+right, -diff+bottom);
         }
         else {
             setMarginsForSystemUI(layoutParams, left, top, right, bottom);
@@ -1450,6 +1450,10 @@ public class MainUI {
     public boolean showFaceDetectionIcon() {
         if (!main_activity.getPreview().supportsFaceDetection())
             return false;
+        if( main_activity.getApplicationInterface().isCameraExtensionPref() ) {
+            // not supported for camera extensions
+            return false;
+        }
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(main_activity);
         return sharedPreferences.getBoolean(PreferenceKeys.ShowFaceDetectionPreferenceKey, false);
     }
@@ -2262,7 +2266,7 @@ public class MainUI {
                         // also reset exposure time when changing from manual to auto from the popup menu:
                         editor.putLong(PreferenceKeys.ExposureTimePreferenceKey, CameraController.EXPOSURE_TIME_DEFAULT);
                         editor.apply();
-                        preview.showToast("ISO: " + toast_option, 0, true); // supply offset_y_dp to be consistent with preview.setExposure(), preview.setISO()
+                        preview.showToast(null, "ISO: " + toast_option, 0, true); // supply offset_y_dp to be consistent with preview.setExposure(), preview.setISO()
                         main_activity.updateForSettings(true, ""); // already showed the toast, so block from showing again
                     }
                     else if( old_iso.equals(CameraController.ISO_DEFAULT) ) {
@@ -2298,7 +2302,7 @@ public class MainUI {
                         }
 
                         editor.apply();
-                        preview.showToast("ISO: " + toast_option, 0, true); // supply offset_y_dp to be consistent with preview.setExposure(), preview.setISO()
+                        preview.showToast(null, "ISO: " + toast_option, 0, true); // supply offset_y_dp to be consistent with preview.setExposure(), preview.setISO()
                         main_activity.updateForSettings(true, ""); // already showed the toast, so block from showing again
                     }
                     else {
@@ -2924,7 +2928,14 @@ public class MainUI {
 
                 switch (volume_keys) {
                     case "volume_take_photo":
-                        main_activity.takePicture(false);
+                        boolean done = false;
+                        if( keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && main_activity.getPreview().isVideoRecording() ) {
+                            done = true;
+                            main_activity.pauseVideo();
+                        }
+                        if( !done ) {
+                            main_activity.takePicture(false);
+                        }
                         return true;
                     case "volume_focus":
                         if (keydown_volume_up && keydown_volume_down) {
@@ -2980,10 +2991,12 @@ public class MainUI {
                             editor.putBoolean(PreferenceKeys.AutoStabilisePreferenceKey, auto_stabilise);
                             editor.apply();
                             String message = main_activity.getResources().getString(R.string.preference_auto_stabilise) + ": " + main_activity.getResources().getString(auto_stabilise ? R.string.on : R.string.off);
-                            main_activity.getPreview().showToast(main_activity.getChangedAutoStabiliseToastBoxer(), message);
+                            main_activity.getPreview().showToast(main_activity.getChangedAutoStabiliseToastBoxer(), message, true);
                             main_activity.getApplicationInterface().getDrawPreview().updateSettings(); // because we cache the auto-stabilise setting
                             this.destroyPopup(); // need to recreate popup in order to update the auto-level checkbox
-                        } else {
+                        }
+                        else if( !main_activity.deviceSupportsAutoStabilise() ) {
+                            // n.b., need to check deviceSupportsAutoStabilise() - if we're in e.g. Panorama mode, we shouldn't display a toast (as then supportsAutoStabilise() returns false even if auto-level is supported on the device)
                             main_activity.getPreview().showToast(main_activity.getChangedAutoStabiliseToastBoxer(), R.string.auto_stabilise_not_supported);
                         }
                         return true;
