@@ -794,7 +794,7 @@
 \nAktuell noggrannhet:</string>
     <string name="preference_focus_assist_summary">Huruvida inzoomning ska ske när fokusavstånd justeras manuellt
 \n%s</string>
-    <string name="preference_restore_settings_question">Detta alternativ tillåter att du väljer en av inställningsfilerna som sparats tidigare. Tag varning om att inläsning av vald fil skriver över alla nuvarande inställningar.</string>
+    <string name="preference_restore_settings_question">Detta alternativ tillåter att du väljer en av inställningsfilerna som sparats tidigare. Tag varning om att inläsning av vald fil skriver över alla nuvarande inställningar!</string>
     <string name="open_files_saf_exception_generic">Ingen fildialog hittades på denna enhet, alternativet stöds ej</string>
     <string name="preference_edge_mode">Algoritmer för kantläge</string>
     <string name="preference_edge_mode_summary">Algoritm som kameradrivrutinen bör använda för att applicera kantförbättring. Kantförbättring förbättrar skärpan och detaljerna i den tagna bilden. (Denna inställning ignoreras i BR-fotoläge.)
@@ -881,7 +881,7 @@
 \n%s</string>
     <string name="intro_text">Tryck för att fokusera och tryck på den vita kameraknappen för att ta foto.
 \n
-\nFör att avaktivera maximal skärmljusstyrka, se Inställningar/On screen GUI/\"Tvinga maximal ljusstyrka\". För att spara till SD-kort i Android 5+, se Inställningar/Mer kamerakontroller/\"storage Access Framework\". För mer hjälp, tryck på \"Onlinehjälp\" i inställningarna.</string>
+\nFör att avaktivera maximal skärmljusstyrka, se Inställningar/På skärmens användargränssnitt/\"Tvinga maximal ljusstyrka\". För att spara till SD-kort i Android 5+, se Inställningar/Mer kamerakontroller/\"storage Access Framework\". För mer hjälp, tryck på \"Onlinehjälp\" i inställningarna.</string>
     <string name="preference_immersive_mode_low_profile">Dämpa endast de virtuella navigationsknapparna på skärmen</string>
     <string name="ultrawide">Ultrabred</string>
     <string name="preference_multi_cam_button">Flera kameraikoner</string>
@@ -907,4 +907,11 @@
     <string name="preference_licence_google_icons_text">Kamera använder ikoner från Googles Material Design-ikoner (https://developer.android.com/design/downloads/index.html , https://design.google.com/icons/ , https://github.com/google/material-design-icons/ , https://google.github.io/material-design-icons/) med Apache-licens version 2.0. Vissa ikoner har modifieringar inkluderade. Tryck här för att se licenstexten i sin helhet.</string>
     <string name="preference_image_format_summary">Välj filformat som ska användas när foton sparas. Detta påverkar \"standard\"-foton (inte RAW). Endast JPEG stödjer att Exif-metadata sparas. Observera att formatet PNG inte är helt förlustlöst, istället konverteras det från en JPEG med kvaliteten 100%%.
 \n%s</string>
+    <string name="preference_exif_artist">Artist</string>
+    <string name="preference_exif_artist_summary">Text att lagra i bildens metadata i artisttaggen (endast JPEG-format). (Lämna tomt för att ange ingen.)</string>
+    <string name="focus_bracketing_source_distance">Fokusgafflings källavstånd</string>
+    <string name="focus_bracketing_target_distance">Fokusgafflings målavstånd</string>
+    <string name="preference_stamp_geo_address_summary">Om möjligt, hämta adress från GPS-plats (för fotostämpel eller videoundertexter). Observera att om detta är aktiverat kräver detta att enheten skickar platsdata över internet till en tredje part för att konvertera GPS-koordinater till en adress. Se https://developer.android.com/reference/android/location/Geocoder . Denna funktion ger inga garantier på tillgänglighet eller noggrannhet. Resultatet är en bästa gissning och garanterar inte att den kommer vara meningsfull eller korrekt.
+\n%s</string>
+    <string name="preference_camera2_dummy_capture_hack_summary">Försök att aktivera detta om din enhet har problem vid tagning av foto med HDR- eller exponeringsfotoläge (om exponeringsbilder genererar samma exponeringar). Endast relevant om snabb HDR-/exponeringsalternativet nedan också är aktiverat.</string>
 </resources>
