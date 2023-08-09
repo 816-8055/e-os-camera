@@ -517,21 +517,6 @@ public class UnitTest {
         }
     }
 
-    @Test
-    public void testScaleForExposureTime() {
-        Log.d(TAG, "testScaleForExposureTime");
-        final double delta = 1.0e-6;
-        final double full_exposure_time_scale = 0.5f;
-        final long fixed_exposure_time = 1000000000L/60; // we only scale the exposure time at all if it's less than this value
-        final long scaled_exposure_time = 1000000000L/120; // we only scale the exposure time by the full_exposure_time_scale if the exposure time is less than this value
-        assertEquals( 1.0, CameraController2.getScaleForExposureTime(1000000000L/12, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-        assertEquals( 1.0, CameraController2.getScaleForExposureTime(1000000000L/60, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-        assertEquals( 1.0, CameraController2.getScaleForExposureTime(1000000000L/60, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-        assertEquals( 2.0/3.0, CameraController2.getScaleForExposureTime(1000000000L/90, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-        assertEquals( 0.5, CameraController2.getScaleForExposureTime(1000000000L/120, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-        assertEquals( 0.5, CameraController2.getScaleForExposureTime(1000000000L/240, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-    }
-
 	/*@Test
 	public void testExponentialScaling() {
 		Log.d(TAG, "testExponentialScaling");
@@ -1041,5 +1026,44 @@ public class UnitTest {
                 assertEquals(i==index, MainUI.ISOTextEquals(button_text, ""+current_iso));
             }
         }
+    }
+
+    private void checkCameraController2ZoomRatios(float min_zoom, float max_zoom) {
+        List<Integer> ratios = new ArrayList<>();
+
+        int zoom_value_1x = CameraController2.computeZoomRatios(ratios, min_zoom, max_zoom);
+        assertEquals(100, (int)ratios.get(zoom_value_1x));
+        if( min_zoom == 1.0f ) {
+            assertEquals(0, zoom_value_1x);
+        }
+        else {
+            assertTrue(zoom_value_1x > 0);
+        }
+
+        int zoom_ratio = 100;
+        while( zoom_ratio <= (int)(100*max_zoom + 0.5) ) {
+            assertTrue(ratios.contains(zoom_ratio));
+            zoom_ratio *= 2;
+        }
+    }
+
+    @Test
+    public void testCameraController2ZoomRatios() {
+        Log.d(TAG, "testCameraController2ZoomRatios");
+
+        checkCameraController2ZoomRatios(1.0f, 1.0f);
+
+        checkCameraController2ZoomRatios(1.0f, 2.0f);
+        checkCameraController2ZoomRatios(1.0f, 4.0f);
+        checkCameraController2ZoomRatios(1.0f, 8.0f);
+        checkCameraController2ZoomRatios(1.0f, 10.0f);
+        checkCameraController2ZoomRatios(1.0f, 16.0f);
+        checkCameraController2ZoomRatios(1.0f, 20.0f);
+
+        checkCameraController2ZoomRatios(0.7f, 4.0f);
+        checkCameraController2ZoomRatios(0.7f, 8.0f);
+        checkCameraController2ZoomRatios(0.7f, 10.0f);
+        checkCameraController2ZoomRatios(0.7f, 16.0f);
+        checkCameraController2ZoomRatios(0.7f, 20.0f);
     }
 }

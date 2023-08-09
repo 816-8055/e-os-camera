@@ -119,6 +119,10 @@ public abstract class CameraController {
             return false;
         }
 
+        /**
+         * @param return_closest If true, return a match for the width/height, even if the fps doesn't
+         *                       match.
+         */
         public static Size findSize(List<Size> sizes, Size size, double fps, boolean return_closest) {
             Size last_s = null;
             for(Size s : sizes) {
@@ -190,12 +194,32 @@ public abstract class CameraController {
             return supported_extensions != null && supported_extensions.contains(extension);
         }
 
-        boolean supportsFrameRate(double fps) {
+        public boolean supportsFrameRate(double fps) {
             for (int[] f : this.fps_ranges) {
                 if (f[0] <= fps && fps <= f[1])
                     return true;
             }
             return false;
+        }
+
+        public int closestFrameRate(double fps) {
+            int closest_fps = -1;
+            int closest_dist = -1;
+            for (int[] f : this.fps_ranges) {
+                if (f[0] <= fps && fps <= f[1])
+                    return (int)fps;
+                int this_fps;
+                if( fps < f[0] )
+                    this_fps = f[0];
+                else
+                    this_fps = f[1];
+                int dist = Math.abs(this_fps - (int)fps);
+                if( closest_dist == -1 || dist < closest_dist ) {
+                    closest_fps = this_fps;
+                    closest_dist = dist;
+                }
+            }
+            return closest_fps;
         }
 
         @Override
@@ -325,13 +349,19 @@ public abstract class CameraController {
         return cameraId;
     }
 
-    /** For CameraController2 only. Applications should cover the preview textureview if either camera_controller==null, or if this
-     *  method returns true. Otherwise there is a risk when opening the camera that the textureview still shows an image from when
+    /** For CameraController2 only. Applications should cover the preview textureview if since last resuming, camera_controller
+     *  has never been non-null or this method has never returned false.
+     *  Otherwise there is a risk when opening the camera that the textureview still shows an image from when
      *  the camera was previously opened (e.g., from pausing and resuming the application). This returns false (for CameraController2)
      *  when the camera has received its first frame.
      */
     public boolean shouldCoverPreview() {
         return false;
+    }
+    /** For CameraController2 only. After calling this, shouldCoverPreview() will return true, until a new
+     *  frame from the camera has been received.
+     */
+    public void resetCoverPreview() {
     }
     public abstract SupportedValues setSceneMode(String value);
     /**
@@ -437,10 +467,6 @@ public abstract class CameraController {
      *  burst if known. If not known (e.g., for continuous burst mode), returns 0.
      */
     public abstract int getBurstTotal();
-    /** If optimise_ae_for_dro is true, then this is a hint that if in auto-exposure mode and flash/torch
-     *  is not on, the CameraController should try to optimise for a DRO (dynamic range optimisation) mode.
-     */
-    public abstract void setOptimiseAEForDRO(boolean optimise_ae_for_dro);
 
     /**
      * @param want_raw       Whether to enable taking photos in RAW (DNG) format.

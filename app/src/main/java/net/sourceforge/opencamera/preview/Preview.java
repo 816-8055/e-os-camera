@@ -40,7 +40,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
 import android.view.GestureDetector;
-import android.view.Gravity;
+//import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
@@ -417,6 +417,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
     // for testing; must be volatile for test project reading the state
     private boolean is_test; // whether called from OpenCamera.test testing
+    private boolean is_test_junit4;
     public volatile int count_cameraStartPreview;
     public volatile int count_cameraAutoFocus;
     public volatile int count_cameraTakePicture;
@@ -442,8 +443,11 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if (activity.getIntent() != null && activity.getIntent().getExtras() != null) {
             // whether called from testing
             is_test = activity.getIntent().getExtras().getBoolean("test_project");
-            if (MyDebug.LOG)
-                Log.d(TAG, "is_test: " + is_test);
+            is_test_junit4 = activity.getIntent().getExtras().getBoolean("test_project_junit4");
+        }
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "is_test: " + is_test);
+            Log.d(TAG, "is_test_junit4: " + is_test_junit4);
         }
 
         this.using_android_l = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && applicationInterface.useCamera2();
@@ -1160,7 +1164,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             // MEDIA_RECORDER_INFO_NEXT_OUTPUT_FILE_STARTED, so it is the application responsibility to create the zero-size
             // video file that will have been created
             if( MyDebug.LOG )
-                Log.d(TAG, "delete ununused next video file");
+                Log.d(TAG, "delete unused next video file");
             nextVideoFileInfo.close();
             applicationInterface.deleteUnusedVideo(nextVideoFileInfo.video_method, nextVideoFileInfo.video_uri, nextVideoFileInfo.video_filename);
         }
@@ -1216,8 +1220,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     if (!due_to_max_filesize)
                         toast = remaining_restart_video + " " + getContext().getResources().getString(R.string.repeats_to_go);
                     takePicture(due_to_max_filesize, false, false);
-                    if (!due_to_max_filesize) {
-                        showToast(null, toast); // show the toast afterwards, as we're hogging the UI thread here, and media recorder takes time to start up
+                    if( !due_to_max_filesize ) {
+                        showToast(null, toast, true); // show the toast afterwards, as we're hogging the UI thread here, and media recorder takes time to start up
                         // must decrement after calling takePicture(), so that takePicture() doesn't reset the value of remaining_restart_video
                         remaining_restart_video--;
                     }
@@ -2128,8 +2132,6 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             }
         }
 
-        camera_controller.setOptimiseAEForDRO(applicationInterface.getOptimiseAEForDROPref());
-
         // Must set preview size before starting camera preview
         // and must do it after setting photo vs video mode
         // and after setting what camera extension we're using (if any)
@@ -3001,11 +3003,15 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 VideoProfile profile = getVideoProfile();
                 if (MyDebug.LOG)
                     Log.d(TAG, "check if we need high speed video for " + profile.videoFrameWidth + " x " + profile.videoFrameHeight + " at fps " + profile.videoCaptureRate);
-                CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, profile.videoCaptureRate);
+                CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, profile.videoCaptureRate, false);
+                    // n.b., we should pass videoCaptureRate and not videoFrameRate (as for slow motion, it's videoCaptureRate that will be high, not videoFrameRate)
 
-                if (best_video_size == null && video_quality_handler.getSupportedVideoSizesHighSpeed() != null) {
+                if( best_video_size == null && fpsIsHighSpeed("" + profile.videoFrameRate) && video_quality_handler.getSupportedVideoSizesHighSpeed() != null ) {
                     Log.e(TAG, "can't find match for capture rate: " + profile.videoCaptureRate + " and video size: " + profile.videoFrameWidth + " x " + profile.videoFrameHeight + " at fps " + profile.videoCaptureRate);
-                    // try falling back to one of the supported high speed resolutions
+                    // If fpsIsHighSpeed() returns true for profile.videoFrameRate, then it means an fps is one that isn't
+                    // supported by any standard video sizes, but it is supported by a high speed video size. If
+                    // best_video_size==null, then we must have an incompatible size for this fps.
+                    // So try falling back to one of the supported high speed resolutions.
                     CameraController.Size requested_size = video_quality_handler.getMaxSupportedVideoSizeHighSpeed();
                     profile.videoFrameWidth = requested_size.width;
                     profile.videoFrameHeight = requested_size.height;
@@ -3084,10 +3090,13 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     // whilst devices with flash should support flash_auto, we'll also be in this codepath for front cameras with
                     // no flash, as instead the available options will be flash_off, flash_frontscreen_auto, flash_frontscreen_on
                     // see testTakePhotoFrontCameraScreenFlash
-                    if (supported_flash_values.contains("flash_auto"))
+                    /*if( supported_flash_values.contains("flash_auto") )
                         updateFlash("flash_auto", true);
                     else
-                        updateFlash("flash_off", true);
+                        updateFlash("flash_off", true);*/
+                    // update, we now default to flash off - flash is increasingly less useful on modern cameras,
+                    // plus reduces problems from risk of buggy flash on Camera2 API...
+                    updateFlash("flash_off", true);
                 }
             } else {
                 if (MyDebug.LOG)
@@ -3411,7 +3420,32 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         //video_profile.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
         //video_profile.videoCodec = MediaRecorder.VideoEncoder.H264;
 
-        if (!fps_value.equals("default")) {
+        if( fps_value.equals("default") ) {
+            if( supports_video_high_speed && video_profile.videoFrameWidth != 0 && video_profile.videoFrameHeight != 0 ) {
+                // Check videoFrameRate is actually supported by requested video resolution.
+                // We need this as sometimes the CamcorderProfile we use may store a frame rate not actually
+                // supported for the resolution (e.g., on Pixel 6 Pro, 1920x1080 and 3840x2160 support 60fps,
+                // and the CamcorderProfiles set 60fps, but the intermediate resolutions such as 1920x1440 only
+                // support 30fps).
+                // Limited to supports_video_high_speed - at the least, we don't want this code for old camera API where
+                // supported frame rates aren't available.
+                // N.B., we should pass videoCaptureRate and not videoFrameRate (as for slow motion, it's videoCaptureRate
+                // that will be high, not videoFrameRate).
+                CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(video_profile.videoFrameWidth, video_profile.videoFrameHeight, video_profile.videoCaptureRate, true);
+                if( best_video_size != null && !best_video_size.supportsFrameRate(video_profile.videoCaptureRate) ) {
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "video resolution " + video_profile.videoFrameWidth + " x " + video_profile.videoFrameHeight + " doesn't support requested fps " + video_profile.videoFrameRate);
+                    int closest_fps = best_video_size.closestFrameRate(video_profile.videoFrameRate);
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "    instead choose valid fps: " + closest_fps);
+                    if( closest_fps != -1 ) { // just in case?
+                        video_profile.videoFrameRate = closest_fps;
+                        video_profile.videoCaptureRate = closest_fps;
+                    }
+                }
+            }
+        }
+        else {
             try {
                 int fps = Integer.parseInt(fps_value);
                 if (MyDebug.LOG)
@@ -4234,7 +4268,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if (camera_controller.setExposureCompensation(new_exposure)) {
                 // now save
                 applicationInterface.setExposureCompensationPref(new_exposure);
-                showToast(getExposureCompensationString(new_exposure), 0, true);
+                showToast(null, getExposureCompensationString(new_exposure), 0, true);
             }
         }
     }
@@ -4250,7 +4284,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if (camera_controller.setWhiteBalanceTemperature(new_temperature)) {
                 // now save
                 applicationInterface.setWhiteBalanceTemperaturePref(new_temperature);
-                showToast(getResources().getString(R.string.white_balance) + " " + new_temperature, 0, true);
+                showToast(null, getResources().getString(R.string.white_balance) + " " + new_temperature, 0, true);
             }
         }
     }
@@ -4287,7 +4321,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if (camera_controller.setISO(new_iso)) {
                 // now save
                 applicationInterface.setISOPref("" + new_iso);
-                showToast(getISOString(new_iso), 0, true);
+                showToast(null, getISOString(new_iso), 0, true);
             }
         }
     }
@@ -4303,7 +4337,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if (camera_controller.setExposureTime(new_exposure_time)) {
                 // now save
                 applicationInterface.setExposureTimePref(new_exposure_time);
-                showToast(getExposureTimeString(new_exposure_time), 0, true);
+                showToast(null, getExposureTimeString(new_exposure_time), 0, true);
             }
         }
     }
@@ -4886,8 +4920,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 if (flash_value.equals(flash_values[i])) {
                     if (MyDebug.LOG)
                         Log.d(TAG, "    found entry: " + i);
-                    if (!initial) {
-                        showToast(focus_flash_toast, flash_entries[i]);
+                    if( !initial ) {
+                        showToast(focus_flash_toast, flash_entries[i], true);
                     }
                     break;
                 }
@@ -5001,8 +5035,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "    focus_value: " + focus_value);
             if (!quiet) {
                 String focus_entry = findFocusEntryForValue(focus_value);
-                if (focus_entry != null) {
-                    showToast(focus_flash_toast, focus_entry);
+                if( focus_entry != null ) {
+                    showToast(focus_flash_toast, focus_entry, true);
                 }
             }
             this.setFocusValue(focus_value, auto_focus);
@@ -5151,7 +5185,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
         if (this.isOnTimer()) {
             cancelTimer();
-            showToast(take_photo_toast, R.string.cancelled_timer);
+            showToast(take_photo_toast, R.string.cancelled_timer, true);
             return;
         }
         //if( !photo_snapshot && this.phase == PHASE_TAKING_PHOTO ) {
@@ -5174,10 +5208,11 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "already taking a photo");
             if (remaining_repeat_photos != 0) {
                 cancelRepeat();
-                showToast(take_photo_toast, R.string.cancelled_repeat_mode);
-            } else if (!is_video && camera_controller.getBurstType() == CameraController.BurstType.BURSTTYPE_FOCUS && camera_controller.isCapturingBurst()) {
+                showToast(take_photo_toast, R.string.cancelled_repeat_mode, true);
+            }
+            else if( !is_video && camera_controller.getBurstType() == CameraController.BurstType.BURSTTYPE_FOCUS && camera_controller.isCapturingBurst() ) {
                 camera_controller.stopFocusBracketingBurst();
-                showToast(take_photo_toast, R.string.cancelled_focus_bracketing);
+                showToast(take_photo_toast, R.string.cancelled_focus_bracketing, true);
             }
             return;
         }
@@ -5314,8 +5349,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     private void onVideoInfo(int what, int extra) {
         if (MyDebug.LOG)
             Log.d(TAG, "onVideoInfo: " + what + " extra: " + extra);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING && video_restart_on_max_filesize) {
-            if (MyDebug.LOG)
+        // n.b., we shouldn't refactor "Build.VERSION.SDK_INT >= Build.VERSION_CODES.O" to a single variable, as it means we'll then get the Android
+        // warnings of "Call requires API level 26"
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING && video_restart_on_max_filesize ) {
+            if( MyDebug.LOG )
                 Log.d(TAG, "seamless restart due to max filesize approaching - try setNextOutputFile");
             if (video_recorder == null) {
                 // just in case?
@@ -5491,8 +5528,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 } else {
                     if (MyDebug.LOG)
                         Log.d(TAG, "location data required, but not available");
-                    showToast(null, R.string.location_not_available);
-                    if (!is_video || photo_snapshot)
+                    showToast(null, R.string.location_not_available, true);
+                    if( !is_video || photo_snapshot )
                         this.phase = PHASE_NORMAL;
                     applicationInterface.cameraInOperation(false, false);
                     if (is_video)
@@ -5639,8 +5676,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             });
 
             camera_controller.initVideoRecorderPrePrepare(local_video_recorder);
-            if (profile.no_audio_permission) {
-                showToast(null, R.string.permission_record_audio_not_available);
+            if( profile.no_audio_permission ) {
+                showToast(null, R.string.permission_record_audio_not_available, true);
             }
 
             boolean store_location = applicationInterface.getGeotaggingPref();
@@ -5965,9 +6002,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 video_recorder.resume();
                 video_recorder_is_paused = false;
                 video_start_time = System.currentTimeMillis();
-                this.showToast(pause_video_toast, R.string.video_resume);
-            } else {
-                if (MyDebug.LOG)
+                this.showToast(pause_video_toast, R.string.video_resume, true);
+            }
+            else {
+                if( MyDebug.LOG )
                     Log.d(TAG, "pausing...");
                 video_recorder.pause();
                 video_recorder_is_paused = true;
@@ -5977,7 +6015,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     Log.d(TAG, "last_time: " + last_time);
                     Log.d(TAG, "video_accumulated_time is now: " + video_accumulated_time);
                 }
-                this.showToast(pause_video_toast, R.string.video_pause);
+                this.showToast(pause_video_toast, R.string.video_pause, true);
             }
         } else {
             Log.e(TAG, "pauseVideo called but not video recording");
@@ -6171,9 +6209,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 if (MyDebug.LOG)
                     Log.d(TAG, "onStarted");
                 applicationInterface.onCaptureStarted();
-                if (applicationInterface.getBurstForNoiseReduction() && applicationInterface.getNRModePref() == ApplicationInterface.NRModePref.NRMODE_LOW_LIGHT) {
-                    if (camera_controller.getBurstTotal() >= CameraController.N_IMAGES_NR_DARK_LOW_LIGHT) {
-                        showToast(null, R.string.preference_nr_mode_low_light_message);
+                if( applicationInterface.getBurstForNoiseReduction() && applicationInterface.getNRModePref() == ApplicationInterface.NRModePref.NRMODE_LOW_LIGHT ) {
+                    if( camera_controller.getBurstTotal() >= CameraController.N_IMAGES_NR_DARK_LOW_LIGHT ) {
+                        showToast(null, R.string.preference_nr_mode_low_light_message, true);
                     }
                 }
             }
@@ -7335,9 +7373,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                         Log.d(TAG, "    width: " + profile.videoFrameWidth);
                         Log.d(TAG, "    height: " + profile.videoFrameHeight);
                     }
-                    CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, fps);
-                    if (best_video_size != null) {
-                        if (MyDebug.LOG)
+                    CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, fps, false);
+                    if( best_video_size != null ) {
+                        if( MyDebug.LOG )
                             Log.d(TAG, "    requested frame rate is supported");
                         filtered_video_quality.add(quality);
                     } else {
@@ -7579,6 +7617,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         showToast(clear_toast, getResources().getString(message_id), false);
     }
 
+    public void showToast(final ToastBoxer clear_toast, final int message_id, final boolean use_fake_toast) {
+        showToast(clear_toast, getResources().getString(message_id), use_fake_toast);
+    }
+
     public void showToast(final ToastBoxer clear_toast, final String message) {
         showToast(clear_toast, message, false);
     }
@@ -7592,9 +7634,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         showToast(clear_toast, message, 32, use_fake_toast);
     }
 
-    public void showToast(final String message, final int offset_y_dp, final boolean use_fake_toast) {
+    /*public void showToast(final String message, final int offset_y_dp, final boolean use_fake_toast) {
         showToast(null, message, offset_y_dp, use_fake_toast);
-    }
+    }*/
 
     /**
      * Displays a "toast", but has several advantages over calling Android's Toast API directly.
@@ -7605,15 +7647,27 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
      *                       with the same clear_toast value will overwrite the previous ones rather than
      *                       being queued. Note that toasts no longer seem to be queued anyway on
      *                       Android 9+.
+     *                       (N.B., some callers with use_fake_toast==true still supply a use_fake_toast
+     *                       for historical reasons, from when previously those calls weren't using a fake
+     *                       toast.)
      * @param message        The message to display.
-     * @param offset_y_dp    The y-offset from the centre of the screen.
-     * @param use_fake_toast If true, don't use Android's Toast system at all. This is due to problems on
-     *                       Android 9+ where rapidly displaying toasts (e.g., to display values from a
-     *                       seekbar being modified) cause problems where toast sometimes disappear (this
-     *                       happens whether using clear_toast or not). Note that using use_fake_toast
-     *                       means that the toasts don't have the fade out effect.
+     * @param offset_y_dp    The y-offset from the centre of the screen. Only relevant if use_fake_toast is
+     *                       true.
+     * @param use_fake_toast If true, don't use Android's Toast system at all, and instead display a message
+     *                       on the Preview.
+     *                       This is due to problems on Android 9+ where rapidly displaying toasts (e.g., to
+     *                       display values from a seekbar being modified) cause problems where toast sometimes
+     *                       disappear (this happens whether using clear_toast or not). Note that using
+     *                       use_fake_toast means that the toasts don't have the fade out effect.
+     *                       Update: Toasts with custom views (Toast.setView()) are now deprecated. So
+     *                       use_fake_toast==false no longer uses a custom view. So we should now only set
+     *                       use_fake_toast==false for when we really want to use the system toast (e.g.,
+     *                       anything that isn't when the Preview is showing such as from Settings, or when
+     *                       we want the Android toast look such as for an error message).
+     *                       Usages where we want to display info on the Preview should always set
+     *                       use_fake_toast==true for a consistent look.
      */
-    private void showToast(final ToastBoxer clear_toast, final String message, final int offset_y_dp, final boolean use_fake_toast) {
+    public void showToast(final ToastBoxer clear_toast, final String message, final int offset_y_dp, final boolean use_fake_toast) {
         //final boolean use_fake_toast = true;
         //final boolean use_fake_toast = old_use_fake_toast;
         if (!applicationInterface.getShowToastsPref()) {
@@ -7707,6 +7761,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 // However should only do this if the previous toast was the most recent toast (to avoid messing up ordering)
                 Toast toast;
                 long time_now = System.currentTimeMillis();
+                /*
                 // We recreate a toast every 2s, to workaround Android toast bug that calling show() no longer seems to extend the toast duration!
                 // (E.g., see bug where toasts for sliders disappear after a while if continually moving the slider.)
                 if (clear_toast != null && clear_toast.toast != null && clear_toast.toast == last_toast && time_now < last_toast_time_ms + 2000) {
@@ -7719,29 +7774,31 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     view.setPadding(0, offset_y, 0, 0);
                     view.invalidate(); // make sure the toast is redrawn
                     toast.setView(view);
-                } else {
-                    if (clear_toast != null && clear_toast.toast != null) {
-                        if (MyDebug.LOG)
+                }
+                else*/ {
+                    if( clear_toast != null && clear_toast.toast != null ) {
+                        if( MyDebug.LOG )
                             Log.d(TAG, "cancel last toast: " + clear_toast.toast);
                         clear_toast.toast.cancel();
                     }
-                    toast = new Toast(activity);
-                    if (MyDebug.LOG)
+                    //toast = new Toast(activity);
+                    toast = Toast.makeText(activity, message, Toast.LENGTH_SHORT);
+                    if( MyDebug.LOG )
                         Log.d(TAG, "created new toast: " + toast);
                     if (clear_toast != null)
                         clear_toast.toast = toast;
-                    @SuppressLint("InflateParams") // we add the view to the toast
+                    /*@SuppressLint("InflateParams") // we add the view to the toast
                     final View view = LayoutInflater.from(activity).inflate(R.layout.toast_textview, null);
                     TextView text = view.findViewById(R.id.text_view);
                     text.setShadowLayer(shadow_radius, 0.0f, 0.0f, Color.BLACK);
                     text.setText(message);
                     view.setPadding(0, offset_y, 0, 0);
                     toast.setView(text);
-                    toast.setGravity(Gravity.CENTER, 0, 0);
+                    toast.setGravity(Gravity.CENTER, 0, 0);*/
                     last_toast_time_ms = time_now;
                 }
-                toast.setDuration(Toast.LENGTH_SHORT);
-                if (!((Activity) getContext()).isFinishing()) {
+                //toast.setDuration(Toast.LENGTH_SHORT);
+                if( !((Activity)getContext()).isFinishing() ) {
                     // Workaround for crash due to bug in Android 7.1 when activity is closing whilst toast shows.
                     // This was fixed in Android 8, but still good to fix the crash on Android 7.1! See
                     // https://stackoverflow.com/questions/47548317/what-belong-is-badtokenexception-at-classes-of-project and
@@ -8466,10 +8523,19 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     	   Camera2 API. Testing suggests this does not seem to adversely affect battery life.
     	   This is limited to Android 7+, to avoid causing problems on older devices (which don't
     	   contribute to Google Analytics anyway).
+    	   If we ever are able to use lower frame rates in future, remember we'll still need a high
+    	   frame rate when applying the dimming effect when reopening or updating the camera (see
+    	   DrawPreview.setDimPreview()) (especially for MainActivity.updateForSettings() when we
+    	   pause/unpause the preview instead of reopening the camera).
     	 */
         //
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ) {
+            if( is_test_junit4 ) {
+                // see https://stackoverflow.com/questions/29550508/espresso-freezing-on-view-with-looping-animation
+                return 32;
+            }
             return 16;
+        }
         // old behaviour: avoid overloading ui thread when taking photo
         return this.isTakingPhoto() ? 500 : 100;
     }

@@ -80,6 +80,8 @@
 <li><a href="#contact">Contacting me (bugs etc)</a></li>
 </ul>
 
+<!-- Remember that ad must not be more than 30% of total page content height (i.e., total page, not just what's
+on screen in the viewport. -->
 <!-- start adsense code -->
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- help_top_1 -->
@@ -368,8 +370,6 @@ regions will have their brightness boosted to bring out the detail. This mode is
 of brightness (e.g., on a bright sunny day) as well as being useful to automatically optimise photos in low light scenes. Also
 see <a href="#dro_vs_hdr">DRO vs HDR</a>.</p>
 
-<p>Note that if Camera2 API is used, DRO will give improved quality in bright scenes.</p>
-
 <p><a name="hdr"><b>HDR</b></a></p>
 
 <p>High Dynamic Range Imaging (HDR) is a technique where the camera takes multiple shots at different exposures, and combines them
@@ -515,7 +515,7 @@ recording.</p>
 delay (see below).</p>
 
 <p><b>Volume keys</b> - You can set what happens when your device's volume keys are pressed:</p><ul>
-<li>Take photo or start/stop video (depending on photo/video mode).</li>
+<li>Take photo or start/stop video (depending on photo/video mode). On Android 7+, volume down will instead pause/resume video when recording video.</li>
 <li>Trigger an autofocus - or if in manual mode, change the focus distance in/out. In this mode, holding down both volume keys
 will take a photo (or start/stop video). This makes your volume keys behave more like a physical camera button - hold down one
 key to focus, then both to take a photo.</li>
@@ -888,6 +888,10 @@ create the final HDR image (although if you don't want Open Camera's HDR mode at
 Exposure Bracketing Photo Mode). Note this will make saving slower, especially if options like "Stamp photos" or
 <a href="#auto_stabilise">Auto-level</a> are also used.</p>
 
+<p><b>HDR tonemapping</b> - When using <a href="#hdr">HDR</a> mode, the high dynamic range image needs to be converted
+back to a regular image, using a process called tonemapping. This option allows you to choose some different
+tonemapping algorithms.</p>
+
 <p><b>HDR contrast enhancement</b> - When using <a href="#hdr">HDR</a> mode, in some (bright) scenes a local contrast
 enhancement algorithm is applied to improve the look of the image. It also gives such images a look that is stereotypically
 associated with "HDR". If you prefer not to apply this at all, you can change this option from "Smart" to "Off". Or you can
@@ -914,6 +918,11 @@ a third party File Explorer application to see and delete XML files.</p>
 <p><b>Front camera mirror</b> - Normally for front cameras, the preview will behave like a mirror, but resultant
 photos will still be as the camera (or other people) view the scene. This option can be used to mirror the
 resultant photo, so the resultant photo matches the mirrored image you see on the screen.</p>
+
+<p><b>Remove device EXIF data</b> - Whether to remove device EXIF metadata from JPEG photos. Note that
+    this will not remove exif tags applied by other Open Camera settings that apply EXIF metadata (e.g.
+    location/geotagging, artist, copyright etc). Those other options are independent and will override this
+    setting. Also note that RAW/DNG and videos are not affected.</p>
 
 <p><b>Artist</b> - If text is entered in this setting, then the text will be stored in the image's Exif metadata as the
     "Artist" tag. Only supported for JPEG format. Not supported for RAW photos (DNG format).</p>

@@ -88,6 +88,7 @@ import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
 import net.sourceforge.opencamera.remotecontrol.BluetoothRemoteControl;
 import net.sourceforge.opencamera.ui.CircleImageView;
+import net.sourceforge.opencamera.ui.DrawPreview;
 import net.sourceforge.opencamera.ui.FolderChooserDialog;
 import net.sourceforge.opencamera.ui.MainUI;
 import net.sourceforge.opencamera.ui.ManualSeekbars;
@@ -104,6 +105,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -337,7 +339,18 @@ public class MainActivity extends AppCompatActivity {
         //speechControl = new SpeechControl(this);
 
         // determine whether we support Camera2 API
+        // must be done before setDeviceDefaults()
         initCamera2Support();
+
+        // set some per-device defaults
+        // must be done before creating the Preview (as setDeviceDefaults() may set Camera2 API)
+        boolean has_done_first_time = sharedPreferences.contains(PreferenceKeys.FirstTimePreferenceKey);
+        if( MyDebug.LOG )
+            Log.d(TAG, "has_done_first_time: " + has_done_first_time);
+        if( !has_done_first_time ) {
+            // must be done after initCamera2Support()
+            setDeviceDefaults();
+        }
 
         // set up window flags for normal operation
         setWindowFlagsForCamera();
@@ -659,7 +672,6 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "onCreate: time after setting system ui visibility listener: " + (System.currentTimeMillis() - debug_time));
 
         // show "about" dialog for first time use; also set some per-device defaults
-        boolean has_done_first_time = sharedPreferences.contains(PreferenceKeys.FirstTimePreferenceKey);
         if( MyDebug.LOG )
             Log.d(TAG, "has_done_first_time: " + has_done_first_time);
         if (!has_done_first_time) {
@@ -693,7 +705,7 @@ public class MainActivity extends AppCompatActivity {
                     // E.g., we have a "What's New" for 1.44 (64), but then push out a quick fix for 1.44.1 (65). We don't want to
                     // show the dialog again to people who already received 1.44 (64), but we still want to show the dialog to people
                     // upgrading from earlier versions.
-                    int whats_new_version = 84; // 1.50
+                    int whats_new_version = 86; // 1.51
                     whats_new_version = Math.min(whats_new_version, version_code); // whats_new_version should always be <= version_code, but just in case!
                     if( MyDebug.LOG ) {
                         Log.d(TAG, "whats_new_version: " + whats_new_version);
@@ -939,6 +951,40 @@ public class MainActivity extends AppCompatActivity {
 			editor.putBoolean(PreferenceKeys.getCamera2FastBurstPreferenceKey(), false);
 			editor.apply();
 		}*/
+        if( supports_camera2 && !is_test ) {
+            // n.b., when testing, we explicitly decide whether to run with Camera2 API or not
+            CameraControllerManager2 manager2 = new CameraControllerManager2(this);
+            int n_cameras = manager2.getNumberOfCameras();
+            boolean all_supports_camera2 = true; // whether all cameras have at least LIMITED support for Camera2 (risky to default to Camera2 if any cameras are LEGACY, as not easy to test such devices)
+            for(int i=0;i<n_cameras && all_supports_camera2;i++) {
+                if( !manager2.allowCamera2Support(i) ) {
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "camera " + i + " doesn't have at least LIMITED support for Camera2 API");
+                    all_supports_camera2 = false;
+                }
+            }
+
+            if( all_supports_camera2 ) {
+                boolean default_to_camera2 = false;
+                boolean is_google = Build.MANUFACTURER.toLowerCase(Locale.US).contains("google");
+                boolean is_nokia = Build.MANUFACTURER.toLowerCase(Locale.US).contains("hmd global");
+                boolean is_samsung = Build.MANUFACTURER.toLowerCase(Locale.US).contains("samsung");
+                if( is_google && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S )
+                    default_to_camera2 = true;
+                else if( is_nokia && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P )
+                    default_to_camera2 = true;
+                else if( is_samsung && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S )
+                    default_to_camera2 = true;
+
+                if( default_to_camera2 ) {
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "default to camera2 API");
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(PreferenceKeys.CameraAPIPreferenceKey, "preference_camera_api_camera2");
+                    editor.apply();
+                }
+            }
+        }
     }
 
     /** Switches modes if required, if called from a relevant intent/tile.
@@ -1360,6 +1406,8 @@ public class MainActivity extends AppCompatActivity {
         if (MyDebug.LOG)
             Log.d(TAG, "getOnlineHelpUrl: " + append);
         // if we change this, remember that any page linked to must abide by Google Play developer policies!
+        // also if we change this method name or where it's located, remember to update the mention in
+        // opencamera_source.txt
         //return "https://opencamera.sourceforge.io/" + append;
         return "https://opencamera.org.uk/" + append;
     }
@@ -1535,6 +1583,8 @@ public class MainActivity extends AppCompatActivity {
         // (this should already have been set from the call in onPause(), but we set it here again just in case)
         applicationInterface.getDrawPreview().setCoverPreview(true);
 
+        applicationInterface.getDrawPreview().clearDimPreview(); // shouldn't be needed, but just in case the dim preview flag got set somewhere
+
         cancelImageSavingNotification();
 
         // Set black window background; also needed if we hide the virtual buttons in immersive mode
@@ -1561,7 +1611,53 @@ public class MainActivity extends AppCompatActivity {
         resetCachedSystemOrientation(); // just in case?
         mainUI.layoutUI();
 
-        updateGalleryIcon(); // update in case images deleted whilst idle
+        // If the cached last media has exif datetime info, it's fine to just call updateGalleryIcon(),
+        // which will find the most recent media (and takes care of if the cached last image may have
+        // been deleted).
+        // If it doesn't have exif datetime tags, updateGalleryIcon() may not be able to find the most
+        // recent media, so we stick with the cached uri if we can test that it's still accessible.
+        if( !getStorageUtils().getLastMediaScannedHasNoExifDateTime() ) {
+            updateGalleryIcon();
+        }
+        else {
+            if( MyDebug.LOG )
+                Log.d(TAG, "last media has no exif datetime, so check it still exists");
+            boolean uri_exists = false;
+            InputStream inputStream = null;
+            Uri check_uri = getStorageUtils().getLastMediaScannedCheckUri();
+            if( MyDebug.LOG )
+                Log.d(TAG, "check_uri: " + check_uri);
+            try {
+                inputStream = this.getContentResolver().openInputStream(check_uri);
+                if( inputStream != null )
+                    uri_exists = true;
+            }
+            catch(Exception ignored) {
+            }
+            finally {
+                if( inputStream != null ) {
+                    try {
+                        inputStream.close();
+                    }
+                    catch(IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            if( uri_exists ) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "    most recent uri exists");
+                // also re-allow ghost image again in case that option is set (since we won't be
+                // doing this via updateGalleryIcon())
+                applicationInterface.getDrawPreview().allowGhostImage();
+            }
+            else {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "    most recent uri no longer valid");
+                updateGalleryIcon();
+            }
+        }
 
         applicationInterface.reset(false); // should be called before opening the camera in preview.onResume()
 
@@ -1956,6 +2052,12 @@ public class MainActivity extends AppCompatActivity {
     public void clickedPauseVideo(View view) {
         if( MyDebug.LOG )
             Log.d(TAG, "clickedPauseVideo");
+        pauseVideo();
+    }
+
+    public void pauseVideo() {
+        if( MyDebug.LOG )
+            Log.d(TAG, "pauseVideo");
         if( preview.isVideoRecording() ) { // just in case
             preview.pauseVideo();
             mainUI.setPauseVideoContentDescription();
@@ -2023,7 +2125,7 @@ public class MainActivity extends AppCompatActivity {
         this.closePopup();
 
         String message = getResources().getString(R.string.preference_location) + ": " + getResources().getString(value ? R.string.on : R.string.off);
-        preview.showToast(store_location_toast, message);
+        preview.showToast(store_location_toast, message, true);
     }
 
     public void clickedTextStamp(View view) {
@@ -2103,7 +2205,7 @@ public class MainActivity extends AppCompatActivity {
 
         mainUI.updateStampIcon();
         applicationInterface.getDrawPreview().updateSettings();
-        preview.showToast(stamp_toast, value ? R.string.stamp_enabled : R.string.stamp_disabled);
+        preview.showToast(stamp_toast, value ? R.string.stamp_enabled : R.string.stamp_disabled, true);
     }
 
     public void clickedAutoLevel(View view) {
@@ -2132,7 +2234,7 @@ public class MainActivity extends AppCompatActivity {
 
         if( !done_dialog ) {
             String message = getResources().getString(R.string.preference_auto_stabilise) + ": " + getResources().getString(value ? R.string.on : R.string.off);
-            preview.showToast(this.getChangedAutoStabiliseToastBoxer(), message);
+            preview.showToast(this.getChangedAutoStabiliseToastBoxer(), message, true);
         }
 
         mainUI.updateAutoLevelIcon();
@@ -2162,7 +2264,7 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
 
         mainUI.updateFaceDetectionIcon();
-        preview.showToast(stamp_toast, value ? R.string.face_detection_enabled : R.string.face_detection_disabled);
+        preview.showToast(stamp_toast, value ? R.string.face_detection_enabled : R.string.face_detection_disabled, true);
         block_startup_toast = true; // so the toast from reopening camera is suppressed, otherwise it conflicts with the face detection toast
         preview.reopenCamera();
     }
@@ -2328,6 +2430,7 @@ public class MainActivity extends AppCompatActivity {
         switchCameraButton.setEnabled(false);
         switchMultiCameraButton.setEnabled(false);
         applicationInterface.reset(true);
+        this.getApplicationInterface().getDrawPreview().setDimPreview(true);
         if (is_multi_cam && getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
             changeZoomFactor();
         } else {
@@ -2497,6 +2600,7 @@ public class MainActivity extends AppCompatActivity {
 
         switchVideoButton.setEnabled(false); // prevent slowdown if user repeatedly clicks
         applicationInterface.reset(false);
+        this.getApplicationInterface().getDrawPreview().setDimPreview(true);
         this.preview.switchVideo(false, true);
         switchVideoButton.setEnabled(true);
 
@@ -2517,7 +2621,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "clickedWhiteBalanceLock");
         this.preview.toggleWhiteBalanceLock();
         mainUI.updateWhiteBalanceLockIcon();
-        preview.showToast(white_balance_lock_toast, preview.isWhiteBalanceLocked() ? R.string.white_balance_locked : R.string.white_balance_unlocked);
+        preview.showToast(white_balance_lock_toast, preview.isWhiteBalanceLocked() ? R.string.white_balance_locked : R.string.white_balance_unlocked, true);
     }
 
     public void clickedExposureLock(View view) {
@@ -2525,7 +2629,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "clickedExposureLock");
         this.preview.toggleExposureLock();
         mainUI.updateExposureLockIcon();
-        preview.showToast(exposure_lock_toast, preview.isExposureLocked() ? R.string.exposure_locked : R.string.exposure_unlocked);
+        preview.showToast(exposure_lock_toast, preview.isExposureLocked() ? R.string.exposure_locked : R.string.exposure_unlocked, true);
     }
 
     public void clickedExposure(View view) {
@@ -2686,6 +2790,7 @@ public class MainActivity extends AppCompatActivity {
                     //case "preference_raw_focus_bracketing": // as above
                     //case "preference_nr_save": // we could probably whitelist this, but have not done so in case in future we allow RAW to be saved for the base image
                     //case "preference_hdr_save_expo": // we need to update if this is changed, as it affects whether we request RAW or not in HDR mode when RAW is enabled
+                case "preference_hdr_tonemapping":
                 case "preference_hdr_contrast_enhancement":
                     //case "preference_expo_bracketing_n_images": // need to set up camera controller
                     //case "preference_expo_bracketing_stops": // need to set up camera controller
@@ -3022,11 +3127,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateForSettings(boolean update_camera) {
-        updateForSettings(update_camera, null, false);
+        updateForSettings(update_camera, null);
     }
 
     public void updateForSettings(boolean update_camera, String toast_message) {
-        updateForSettings(update_camera, toast_message, false);
+        updateForSettings(update_camera, toast_message, false, false);
     }
 
     /** Must be called when an settings (as stored in SharedPreferences) are made, so we can update the
@@ -3036,10 +3141,12 @@ public class MainActivity extends AppCompatActivity {
      * @param toast_message If non-null, display this toast instead of the usual camera "startup" toast
      *                      that's shown in showPhotoVideoToast(). If non-null but an empty string, then
      *                      this means no toast is shown at all.
-     * @param keep_popup If false, the popup will be closed and destroyed. Set to true if you're sure
-     *                   that the changed setting isn't one that requires the PopupView to be recreated
+     * @param keep_popup    If false, the popup will be closed and destroyed. Set to true if you're sure
+     *                      that the changed setting isn't one that requires the PopupView to be recreated
+     * @param allow_dim     If true, for Camera2 API a dimming effect will be applied if updating the
+     *                      camera.
      */
-    public void updateForSettings(boolean update_camera, String toast_message, boolean keep_popup) {
+    public void updateForSettings(boolean update_camera, String toast_message, boolean keep_popup, boolean allow_dim) {
         if( MyDebug.LOG ) {
             Log.d(TAG, "updateForSettings()");
             if( toast_message != null ) {
@@ -3185,6 +3292,8 @@ public class MainActivity extends AppCompatActivity {
             // don't try to update camera
         }
         else if( need_reopen || preview.getCameraController() == null ) { // if camera couldn't be opened before, might as well try again
+            if( allow_dim )
+                applicationInterface.getDrawPreview().setDimPreview(true);
             preview.reopenCamera();
             if( MyDebug.LOG ) {
                 Log.d(TAG, "updateForSettings: time after reopen: " + (System.currentTimeMillis() - debug_time));
@@ -3195,18 +3304,25 @@ public class MainActivity extends AppCompatActivity {
             if( MyDebug.LOG ) {
                 Log.d(TAG, "updateForSettings: time after set display orientation: " + (System.currentTimeMillis() - debug_time));
             }
+            if( allow_dim )
+                applicationInterface.getDrawPreview().setDimPreview(true);
             preview.pausePreview(true);
             if( MyDebug.LOG ) {
                 Log.d(TAG, "updateForSettings: time after pause: " + (System.currentTimeMillis() - debug_time));
             }
-            preview.setupCamera(false);
-            if( MyDebug.LOG ) {
-                Log.d(TAG, "updateForSettings: time after setup: " + (System.currentTimeMillis() - debug_time));
-            }
+
+            Handler handler = new Handler();
+            // We run setupCamera on the UI thread, but we do it on a post-delayed so that the dimming effect (for Camera2 API) has a chance to run.
+            // Even if allow_dim==false, still run as a postDelayed (a) for consistency, (b) to allow UI to run for a bit (to avoid risk of slow frames).
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    preview.setupCamera(false);
+                }
+            }, DrawPreview.dim_effect_time_c+16); // +16 to allow time for a frame update to run
         }
         // don't set block_startup_toast to false yet, as camera might be closing/opening on background thread
         if( toast_message != null && toast_message.length() > 0 )
-            preview.showToast(null, toast_message);
+            preview.showToast(null, toast_message, true);
 
         // don't need to reset to saved_focus_value, as we'll have done this when setting up the camera (or will do so when the camera is reopened, if need_reopen)
     	/*if( saved_focus_value != null ) {
@@ -3320,6 +3436,11 @@ public class MainActivity extends AppCompatActivity {
         // However, DrawPreview.updateSettings() should be a quick function (the main point is
         // to avoid reading the preferences in every single frame).
         applicationInterface.getDrawPreview().updateSettings();
+
+        // Set the flag to cover the preview until the camera is open and receiving frames again
+        // (for Camera2 API) - avoids showing a flash of the preview from before the user went to
+        // the settings.
+        applicationInterface.getDrawPreview().setCoverPreview(true);
 
         if( preferencesListener.anyChange() ) {
             mainUI.updateOnScreenIcons();
@@ -3895,9 +4016,9 @@ public class MainActivity extends AppCompatActivity {
      *  MediaStore uris, as well as allowing control over the resolution of the thumbnail.
      *  If sample_factor is 1, this returns a bitmap scaled to match the display resolution. If
      *  sample_factor is greater than 1, it will be scaled down to a lower resolution.
-     * @param mediastore Whether the uri is for a mediastore uri or not.
+     * @param exif_rotate Whether the rotate the bitmap due to exif orientation.
      */
-    private Bitmap loadThumbnailFromUri(Uri uri, int sample_factor, boolean mediastore) {
+    private Bitmap loadThumbnailFromUri(Uri uri, int sample_factor, boolean exif_rotate) {
         Bitmap thumbnail = null;
         try {
             //thumbnail = MediaStore.Images.Media.getBitmap(getContentResolver(), media.uri);
@@ -3954,10 +4075,7 @@ public class MainActivity extends AppCompatActivity {
             }
             is.close();
 
-            if( !mediastore ) {
-                // When loading from a mediastore, the bitmap already seems to have the correct orientation.
-                // But when loading from a saf uri, we need to apply the rotation.
-                // E.g., test on Galaxy S10e with ghost image last image option, when using SAF, in portrait orientation, after pause/resume.
+            if( exif_rotate ) {
                 thumbnail = rotateForExif(thumbnail, uri);
             }
         }
@@ -4042,6 +4160,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "doInBackground");
                 StorageUtils.Media media = applicationInterface.getStorageUtils().getLatestMedia();
                 Bitmap thumbnail = null;
+                boolean rotate_for_orientation = true; // whether we should apply the media.orientation rotation
                 KeyguardManager keyguard_manager = (KeyguardManager)MainActivity.this.getSystemService(Context.KEYGUARD_SERVICE);
                 boolean is_locked = keyguard_manager != null && keyguard_manager.inKeyguardRestrictedInputMode();
                 if( MyDebug.LOG )
@@ -4056,7 +4175,8 @@ public class MainActivity extends AppCompatActivity {
                     if( ghost_image_last && !media.video ) {
                         if( MyDebug.LOG )
                             Log.d(TAG, "load full size bitmap for ghost image last photo");
-                        thumbnail = loadThumbnailFromUri(media.uri, 1, media.mediastore);
+                        // if media.mediastore, we'll rotate below using the media.orientation
+                        thumbnail = loadThumbnailFromUri(media.uri, 1, !media.mediastore);
                     }
                     if( thumbnail == null ) {
                         try {
@@ -4095,7 +4215,7 @@ public class MainActivity extends AppCompatActivity {
                                 else {
                                     if( MyDebug.LOG )
                                         Log.d(TAG, "load thumbnail for photo from SAF uri");
-                                    thumbnail = loadThumbnailFromUri(media.uri, 4, media.mediastore);
+                                    thumbnail = loadThumbnailFromUri(media.uri, 4, true);
                                 }
                             }
                             else if( media.video ) {
@@ -4107,6 +4227,10 @@ public class MainActivity extends AppCompatActivity {
                                 if( MyDebug.LOG )
                                     Log.d(TAG, "load thumbnail for photo");
                                 thumbnail = MediaStore.Images.Thumbnails.getThumbnail(getContentResolver(), media.id, MediaStore.Images.Thumbnails.MINI_KIND, null);
+                                if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
+                                    // MediaStore.Images.Thumbnails.getThumbnail() is documented that as of Android Q, we no longer need to apply the orientation
+                                    rotate_for_orientation = false;
+                                }
                             }
                         }
                         catch(Throwable exception) {
@@ -4117,7 +4241,7 @@ public class MainActivity extends AppCompatActivity {
                             exception.printStackTrace();
                         }
                     }
-                    if( thumbnail != null ) {
+                    if( thumbnail != null && rotate_for_orientation ) {
                         if( MyDebug.LOG )
                             Log.d(TAG, "thumbnail orientation is " + media.orientation);
                         if( media.orientation != 0 ) {
@@ -4169,7 +4293,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "found media uri: " + uri);
                         Log.d(TAG, "    is_raw?: " + is_raw);
                     }
-                    applicationInterface.getStorageUtils().setLastMediaScanned(uri, is_raw);
+                    applicationInterface.getStorageUtils().setLastMediaScanned(uri, is_raw, false, null);
                 }
                 if( thumbnail != null ) {
                     if( MyDebug.LOG )
@@ -5143,6 +5267,11 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "cameraSetup");
             debug_time = System.currentTimeMillis();
         }
+        if( preview.getCameraController() == null ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "camera controller is null");
+            return;
+        }
 
         boolean old_want_no_limits = want_no_limits;
         this.want_no_limits = false;
@@ -5449,6 +5578,8 @@ public class MainActivity extends AppCompatActivity {
         block_startup_toast = false;
         if( MyDebug.LOG )
             Log.d(TAG, "cameraSetup: total time for cameraSetup: " + (System.currentTimeMillis() - debug_time));
+
+        this.getApplicationInterface().getDrawPreview().setDimPreview(false);
     }
 
     private void setManualFocusSeekbar(final boolean is_target_distance) {
@@ -5562,6 +5693,13 @@ public class MainActivity extends AppCompatActivity {
             return false; // if not saving JPEGs, no point having auto-stabilise mode, as it won't affect the RAW images
         if( applicationInterface.getPhotoMode() == MyApplicationInterface.PhotoMode.Panorama )
             return false; // not supported in panorama mode
+        return this.supports_auto_stabilise;
+    }
+
+    /** Returns whether the device supports auto-level at all. Most callers probably want to use
+     *  supportsAutoStabilise() which also checks whether auto-level is allowed with current options.
+     */
+    public boolean deviceSupportsAutoStabilise() {
         return this.supports_auto_stabilise;
     }
 
@@ -5913,7 +6051,8 @@ public class MainActivity extends AppCompatActivity {
             String photo_mode_string = getPhotoModeString(photo_mode, false);
             if( photo_mode_string != null ) {
                 toast_string += (toast_string.length()==0 ? "" : "\n") + getResources().getString(R.string.photo_mode) + ": " + photo_mode_string;
-                simple = false;
+                if( photo_mode != MyApplicationInterface.PhotoMode.DRO && photo_mode != MyApplicationInterface.PhotoMode.HDR && photo_mode != MyApplicationInterface.PhotoMode.NoiseReduction )
+                    simple = false;
             }
 
             if( preview.supportsFocus() && preview.getSupportedFocusValues().size() > 1 && photo_mode != MyApplicationInterface.PhotoMode.FocusBracketing ) {
@@ -6062,7 +6201,7 @@ public class MainActivity extends AppCompatActivity {
         MyAudioTriggerListenerCallback callback = new MyAudioTriggerListenerCallback(this);
         audio_listener = new AudioListener(callback);
         if( audio_listener.status() ) {
-            preview.showToast(audio_control_toast, R.string.audio_listener_started);
+            preview.showToast(audio_control_toast, R.string.audio_listener_started, true);
 
             audio_listener.start();
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);

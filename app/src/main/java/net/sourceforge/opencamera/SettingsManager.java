@@ -263,7 +263,7 @@ public class SettingsManager {
                 storageUtils.broadcastUri(uri, false, false, false);
             }
             else*/ {
-                storageUtils.broadcastFile(file, false, false, false);
+                storageUtils.broadcastFile(file, false, false, false, false, null);
             }
         }
         catch(IOException e) {

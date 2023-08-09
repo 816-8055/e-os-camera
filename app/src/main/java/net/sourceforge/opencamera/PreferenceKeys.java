@@ -118,6 +118,8 @@ public class PreferenceKeys {
 
     public static final String HDRSaveExpoPreferenceKey = "preference_hdr_save_expo";
 
+    public static final String HDRTonemappingPreferenceKey = "preference_hdr_tonemapping";
+
     public static final String HDRContrastEnhancementPreferenceKey = "preference_hdr_contrast_enhancement";
 
     public static final String NRSaveExpoPreferenceKey = "preference_nr_save";
@@ -125,6 +127,8 @@ public class PreferenceKeys {
     public static final String FastBurstNImagesPreferenceKey = "preference_fast_burst_n_images";
 
     public static final String LocationPreferenceKey = "preference_location";
+
+    public static final String RemoveDeviceExifPreferenceKey = "preference_remove_device_exif";
 
     public static final String GPSDirectionPreferenceKey = "preference_gps_direction";
 

@@ -7,10 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -18,7 +16,7 @@ import java.util.Set;
 
 import net.sourceforge.opencamera.LocationSupplier;
 import net.sourceforge.opencamera.MyPreferenceFragment;
-import net.sourceforge.opencamera.PanoramaProcessorException;
+import net.sourceforge.opencamera.TestUtils;
 import net.sourceforge.opencamera.cameracontroller.CameraController2;
 import net.sourceforge.opencamera.HDRProcessor;
 import net.sourceforge.opencamera.HDRProcessorException;
@@ -31,22 +29,18 @@ import net.sourceforge.opencamera.preview.VideoProfile;
 import net.sourceforge.opencamera.SaveLocationHistory;
 import net.sourceforge.opencamera.cameracontroller.CameraController;
 import net.sourceforge.opencamera.preview.Preview;
+import net.sourceforge.opencamera.ui.DrawPreview;
 import net.sourceforge.opencamera.ui.FolderChooserDialog;
 import net.sourceforge.opencamera.ui.MainUI;
 import net.sourceforge.opencamera.ui.PopupView;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 //import android.content.res.AssetManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.hardware.camera2.CameraMetadata;
@@ -54,17 +48,11 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.TonemapCurve;
 import android.location.Location;
 import android.media.CamcorderProfile;
-import androidx.exifinterface.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
-import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.renderscript.Allocation;
-import androidx.annotation.RequiresApi;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.TouchUtils;
 import android.util.Log;
@@ -90,13 +78,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         super("net.sourceforge.opencamera", MainActivity.class);
     }
 
-    static boolean isEmulator() {
-        return Build.MODEL.contains("Android SDK built for x86");
-    }
-
-    private Intent createDefaultIntent() {
+    private static Intent createDefaultIntent() {
         Intent intent = new Intent();
-        intent.putExtra("test_project", true);
+        TestUtils.setDefaultIntent(intent);
         return intent;
     }
 
@@ -106,24 +90,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         super.setUp();
 
         setActivityInitialTouchMode(false);
-        Log.d(TAG, "setUp: 1");
-
-        // initialise test statics (to avoid the persisting between tests in a test suite run!)
-        MainActivity.test_preview_want_no_limits = false;
-        MainActivity.test_preview_want_no_limits_value = false;
-        ImageSaver.test_small_queue_size = false;
 
         // use getTargetContext() as we haven't started the activity yet (and don't want to, as we want to set prefs before starting)
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this.getInstrumentation().getTargetContext());
-        SharedPreferences.Editor editor = settings.edit();
-        editor.clear();
-        if( test_camera2 ) {
-            MainActivity.test_force_supports_camera2 = true;
-            //editor.putBoolean(PreferenceKeys.UseCamera2PreferenceKey, true);
-            editor.putString(PreferenceKeys.CameraAPIPreferenceKey, "preference_camera_api_camera2");
-        }
-        editor.apply();
-        Log.d(TAG, "setUp: 2");
+        TestUtils.initTest(this.getInstrumentation().getTargetContext(), test_camera2);
 
         Intent intent = createDefaultIntent();
         setActivityIntent(intent);
@@ -155,7 +124,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         //assertTrue( mPreview.getCameraController() == null || mPreview.getCameraController().count_camera_parameters_exception == 0 );
         //assertTrue( mPreview.getCameraController() == null || mPreview.getCameraController().count_precapture_timeout == 0 );
 
-        // reset back to defaults
+        // reset back to defaults (whilst each test will reset the settings anyway via before()->TestUtils.initTest(), it's useful
+        // to leave the application in a default state after running tests)
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
         SharedPreferences.Editor editor = settings.edit();
         editor.clear();
@@ -251,6 +221,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // need to wait for UI code to finish before leaving
         this.getInstrumentation().waitForIdleSync();
         waitUntilCameraOpened(); // may need to wait if camera is reopened, e.g., when changing scene mode - see testSceneMode()
+        // but we also need to wait for the delay if instead we've stopped and restarted the preview, the latter now only happens after dim_effect_time_c
+        try {
+            Thread.sleep(DrawPreview.dim_effect_time_c+50); // wait for updateForSettings
+        }
+        catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+        this.getInstrumentation().waitForIdleSync();
+
     }
 
     private void clickView(final View view) {
@@ -283,19 +262,35 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
     }
 
+    private void openPopupMenu() {
+        Log.d(TAG, "openPopupMenu");
+        assertFalse( mActivity.popupIsOpen() );
+        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
+        clickView(popupButton);
+        Log.d(TAG, "wait for popup to open");
+        while( !mActivity.popupIsOpen() ) {
+        }
+        Log.d(TAG, "popup is now open");
+    }
+
+    private void closePopupMenu() {
+        Log.d(TAG, "closePopupMenu");
+        assertTrue( mActivity.popupIsOpen() );
+        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
+        clickView(popupButton);
+        Log.d(TAG, "wait for popup to close");
+        while( mActivity.popupIsOpen() ) {
+        }
+        Log.d(TAG, "popup is now closed");
+    }
+
     private void switchToFlashValue(String required_flash_value) {
+        Log.d(TAG, "switchToFlashValue: "+ required_flash_value);
         if( mPreview.supportsFlash() ) {
             String flash_value = mPreview.getCurrentFlashValue();
             Log.d(TAG, "start flash_value: "+ flash_value);
-            Log.d(TAG, "required_flash_value: "+ required_flash_value);
             if( !flash_value.equals(required_flash_value) ) {
-                assertFalse( mActivity.popupIsOpen() );
-                View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-                clickView(popupButton);
-                Log.d(TAG, "wait for popup to open");
-                while( !mActivity.popupIsOpen() ) {
-                }
-                Log.d(TAG, "popup is now open");
+                openPopupMenu();
                 View currentFlashButton = mActivity.getUIButton("TEST_FLASH_" + flash_value);
                 assertNotNull(currentFlashButton);
                 assertEquals(currentFlashButton.getAlpha(), PopupView.ALPHA_BUTTON_SELECTED);
@@ -326,11 +321,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             String focus_value = mPreview.getCurrentFocusValue();
             Log.d(TAG, "start focus_value: "+ focus_value);
             if( !focus_value.equals(required_focus_value) ) {
-                assertFalse( mActivity.popupIsOpen() );
-                View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-                clickView(popupButton);
-                while( !mActivity.popupIsOpen() ) {
-                }
+                openPopupMenu();
                 View focusButton = mActivity.getUIButton("TEST_FOCUS_" + required_focus_value);
                 assertNotNull(focusButton);
                 clickView(focusButton);
@@ -338,14 +329,14 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
                 Log.d(TAG, "changed focus_value to: "+ focus_value);
             }
             assertEquals(focus_value, required_focus_value);
-            String actual_focus_value = mPreview.getCameraController().getFocusValue();
-            Log.d(TAG, "actual_focus_value: "+ actual_focus_value);
+            String controller_focus_value = mPreview.getCameraController().getFocusValue();
+            Log.d(TAG, "controller_focus_value: "+ controller_focus_value);
             String compare_focus_value = focus_value;
             if( compare_focus_value.equals("focus_mode_locked") )
                 compare_focus_value = "focus_mode_auto";
             else if( compare_focus_value.equals("focus_mode_infinity") && mPreview.usingCamera2API() )
                 compare_focus_value = "focus_mode_manual2";
-            assertEquals(compare_focus_value, actual_focus_value);
+            assertEquals(compare_focus_value, controller_focus_value);
         }
     }
 
@@ -354,11 +345,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         int iso = mPreview.getCameraController().getISO();
         Log.d(TAG, "start iso: "+ iso);
         if( iso != required_iso ) {
-            /*assertFalse( mActivity.popupIsOpen() );
-            View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-            clickView(popupButton);
-            while( !mActivity.popupIsOpen() ) {
-            }
+            /*openPopupMenu();
             View isoButton = mActivity.getUIButton("TEST_ISO_" + required_iso);
             assertTrue(isoButton != null);
             clickView(isoButton);
@@ -372,6 +359,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             View isoButton = mActivity.getUIButton("TEST_ISO_" + required_iso);
             assertNotNull(isoButton);
             clickView(isoButton);
+            try {
+                Thread.sleep(DrawPreview.dim_effect_time_c+50); // wait for updateForSettings
+                this.getInstrumentation().waitForIdleSync();
+            }
+            catch(InterruptedException e) {
+                e.printStackTrace();
+            }
             iso = mPreview.getCameraController().getISO();
             Log.d(TAG, "changed iso to: "+ iso);
             clickView(exposureButton);
@@ -404,6 +398,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         switchToFlashValue("flash_off");
         switchToFocusValue("focus_mode_continuous_picture");
+
         // pause for safety - needed for Nokia 8 at least otherwise some tests like testContinuousPictureFocusRepeat,
         // testLocationOff result in hang whilst waiting for photo to be taken, and hit the timeout in waitForTakePhoto()
         try {
@@ -904,7 +899,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
     /* Ensures that preview resolution is set as expected in non-WYSIWYG mode
      */
-    public void testPreviewSize() {
+    public void testPreviewSize() throws InterruptedException {
         Log.d(TAG, "testPreviewSize");
 
         setToDefault();
@@ -972,8 +967,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         double targetRatio = mPreview.getTargetRatio();
         double expTargetRatio = ((double)picture_size.width) / (double)picture_size.height;
         double previewRatio = ((double)preview_size.width) / (double)preview_size.height;
+        Log.d(TAG, "picture_size: " + picture_size.width + " x " + picture_size.height);
+        Log.d(TAG, "preview_size: " + preview_size.width + " x " + preview_size.height);
+        Log.d(TAG, "expTargetRatio: " + expTargetRatio);
+        Log.d(TAG, "targetRatio: " + targetRatio);
+        Log.d(TAG, "previewRatio: " + previewRatio);
+        // need larger tolerance for Pixel 6 Pro, as default resolution 4080x3072 has aspect ratio 1.328125,
+        // but closet preview aspect ratio is 4:3
         assertTrue( Math.abs(targetRatio - expTargetRatio) <= 1.0e-5 );
-        assertTrue( Math.abs(previewRatio - expTargetRatio) <= 1.0e-5 );
+        assertTrue( Math.abs(previewRatio - expTargetRatio) <= 0.01 );
         checkOptimalPreviewSize();
         checkSquareAspectRatio();
 
@@ -989,7 +991,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         expTargetRatio = ((double)profile.videoFrameWidth) / (double)profile.videoFrameHeight;
         previewRatio = ((double)video_preview_size.width) / (double)video_preview_size.height;
         assertTrue( Math.abs(targetRatio - expTargetRatio) <= 1.0e-5 );
-        assertTrue( Math.abs(previewRatio - expTargetRatio) <= 1.0e-5 );
+        assertTrue( Math.abs(previewRatio - expTargetRatio) <= 0.01 );
         checkOptimalPreviewSize();
         checkSquareAspectRatio();
         checkOptimalVideoPictureSize(expTargetRatio);
@@ -1019,7 +1021,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             expTargetRatio = ((double)picture_size.width) / (double)picture_size.height;
             previewRatio = ((double)preview_size.width) / (double)preview_size.height;
             assertTrue( Math.abs(targetRatio - expTargetRatio) <= 1.0e-5 );
-            assertTrue( Math.abs(previewRatio - expTargetRatio) <= 1.0e-5 );
+            assertTrue( Math.abs(previewRatio - expTargetRatio) <= 0.01 );
             checkOptimalPreviewSize();
             checkSquareAspectRatio();
 
@@ -1034,7 +1036,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             expTargetRatio = ((double)profile.videoFrameWidth) / (double)profile.videoFrameHeight;
             previewRatio = ((double)video_preview_size.width) / (double)video_preview_size.height;
             assertTrue( Math.abs(targetRatio - expTargetRatio) <= 1.0e-5 );
-            assertTrue( Math.abs(previewRatio - expTargetRatio) <= 1.0e-5 );
+            assertTrue( Math.abs(previewRatio - expTargetRatio) <= 0.01 );
             checkOptimalPreviewSize();
             checkSquareAspectRatio();
             checkOptimalVideoPictureSize(expTargetRatio);
@@ -1782,9 +1784,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertEquals(has_exposure_lock, exposure_lock_visible);
         assertTrue(popup_visible);
 
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
         subTestPopupButtonAvailability();
     }
 
@@ -1852,12 +1852,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         String photo_focus_value = mPreview.getCameraController().getFocusValue();
         Log.d(TAG, "picture photo_focus_value: "+ photo_focus_value);
 
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        clickView(popupButton);
-        Log.d(TAG, "wait for popup to open");
-        while( !mActivity.popupIsOpen() ) {
-        }
-        Log.d(TAG, "popup is now open");
+        openPopupMenu();
 
         // test popup buttons for photo mode:
         subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.preference_resolution, "PHOTO_RESOLUTIONS", false, true);
@@ -1880,11 +1875,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
 
         // test popup buttons for video mode:
-        clickView(popupButton);
-        Log.d(TAG, "wait for popup to open");
-        while( !mActivity.popupIsOpen() ) {
-        }
-        Log.d(TAG, "popup is now open");
+        openPopupMenu();
         subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.video_quality, "VIDEO_RESOLUTIONS", false, true);
         subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.video_quality, "VIDEO_RESOLUTIONS", true, false);
         if( mActivity.getApplicationInterface().getSupportedVideoCaptureRates().size() > 1 ) {
@@ -1925,11 +1916,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             Log.d(TAG, "front picture photo_focus_value: "+ photo_focus_value);
 
             // test popup buttons for photo mode:
-            clickView(popupButton);
-            Log.d(TAG, "wait for popup to open");
-            while( !mActivity.popupIsOpen() ) {
-            }
-            Log.d(TAG, "popup is now open");
+            openPopupMenu();
             subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.preference_resolution, "PHOTO_RESOLUTIONS", false, true);
             subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.preference_resolution, "PHOTO_RESOLUTIONS", true, false);
             subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.preference_timer, "TIMER", false, false);
@@ -1949,11 +1936,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             }
 
             // test popup buttons for video mode:
-            clickView(popupButton);
-            Log.d(TAG, "wait for popup to open");
-            while( !mActivity.popupIsOpen() ) {
-            }
-            Log.d(TAG, "popup is now open");
+            openPopupMenu();
             subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.video_quality, "VIDEO_RESOLUTIONS", false, true);
             subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.video_quality, "VIDEO_RESOLUTIONS", true, false);
             if( mActivity.getApplicationInterface().getSupportedVideoCaptureRates().size() > 1 ) {
@@ -2084,10 +2067,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         Thread.sleep(1000);
 
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         Thread.sleep(1000);
 
@@ -2707,7 +2687,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
         else if( mPreview.supportsISORange() ) {
             subTestPopupButtonAvailability("TEST_ISO", "auto", true);
-            int [] test_isos = {0, 50, 100, 200, 400, 800, 1600, 3200, 6400, 10000};
+            int [] test_isos = {0, 50, 100, 200, 400, 800, 1600, 3200, 6400};
             int min_iso = mPreview.getMinimumISO();
             int max_iso = mPreview.getMaximumISO();
             for(int test_iso : test_isos) {
@@ -2744,7 +2724,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         long [] delays = {20, 50, 100, 1000};
         int [] n_iters = {50, 30, 30, 3};
-        if( isEmulator() ) {
+        if( TestUtils.isEmulator() ) {
             // this takes much longer to run on emulator, due to taking ~15s for the first waitForIdleSync() in the loop
             n_iters = new int[]{1, 1, 1, 1};
         }
@@ -3110,12 +3090,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         updateForSettings();*/
 
         // simulate having changed this through popup view:
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        clickView(popupButton);
-        Log.d(TAG, "wait for popup to open");
-        while( !mActivity.popupIsOpen() ) {
-        }
-        Log.d(TAG, "popup is now open");
+        openPopupMenu();
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(PreferenceKeys.WhiteBalancePreferenceKey, "manual");
         editor.apply();
@@ -3126,12 +3101,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         });
         this.getInstrumentation().waitForIdleSync();
 
-        /*View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        clickView(popupButton);
-        Log.d(TAG, "wait for popup to open");
-        while( !mActivity.popupIsOpen() ) {
-        }
-        Log.d(TAG, "popup is now open");
+        /*openPopupMenu();
         // first need to open the white balance sub-menu
         View wbButton = mActivity.getUIButton("TEST_WHITE_BALANCE");
         assertTrue(wbButton != null);
@@ -3289,40 +3259,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     }
 
     private void waitForTakePhoto() {
-        View switchCameraButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_camera);
-        View switchMultiCameraButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_multi_camera);
-        View switchVideoButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_video);
-        //View flashButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.flash);
-        //View focusButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.focus_mode);
-        View exposureButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.exposure);
-        View exposureLockButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.exposure_lock);
-        View audioControlButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.audio_control);
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        View trashButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.trash);
-        View shareButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.share);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
-        boolean is_focus_bracketing = mActivity.supportsFocusBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_focus_bracketing");
-        boolean is_panorama = mActivity.supportsPanorama() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_panorama");
-
         Log.d(TAG, "wait until finished taking photo");
         long time_s = System.currentTimeMillis();
         while( mPreview.isTakingPhoto() || !mActivity.getApplicationInterface().canTakeNewPhoto() ) {
-            // make sure the test fails rather than hanging, if for some reason we get stuck (note that testTakePhotoManualISOExposure takes over 10s on Nexus 6)
-            // also see note at end of setToDefault for Nokia 8, need to sleep briefly to avoid hanging here
-            if( !is_focus_bracketing ) {
-                assertTrue(System.currentTimeMillis() - time_s < (is_panorama ? 50000 : 20000)); // need longer for panorama on Nexus 7 for testTakePhotoPanoramaMax
-            }
-            assertTrue(!mPreview.isTakingPhoto() || switchCameraButton.getVisibility() == View.GONE);
-            assertTrue(!mPreview.isTakingPhoto() || switchMultiCameraButton.getVisibility() == View.GONE);
-            assertTrue(!mPreview.isTakingPhoto() || switchVideoButton.getVisibility() == View.GONE);
-            //assertTrue(!mPreview.isTakingPhoto() || flashButton.getVisibility() == View.GONE);
-            //assertTrue(!mPreview.isTakingPhoto() || focusButton.getVisibility() == View.GONE);
-            assertTrue(!mPreview.isTakingPhoto() || exposureButton.getVisibility() == View.GONE);
-            assertTrue(!mPreview.isTakingPhoto() || exposureLockButton.getVisibility() == View.GONE);
-            assertTrue(!mPreview.isTakingPhoto() || audioControlButton.getVisibility() == View.GONE);
-            assertTrue(!mPreview.isTakingPhoto() || popupButton.getVisibility() == View.GONE);
-            assertTrue(!mPreview.isTakingPhoto() || trashButton.getVisibility() == View.GONE);
-            assertTrue(!mPreview.isTakingPhoto() || shareButton.getVisibility() == View.GONE);
+            TestUtils.waitForTakePhotoChecks(mActivity, time_s);
         }
         Log.d(TAG, "done taking photo");
     }
@@ -3335,48 +3275,19 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         int saved_count = mPreview.count_cameraAutoFocus;
         Log.d(TAG, "saved count_cameraAutoFocus: " + saved_count);
         Log.d(TAG, "has focus area?: " + mPreview.hasFocusArea());
-        Log.d(TAG, "about to click preview for autofocus");
+        Log.d(TAG, "### about to click preview for autofocus");
         if( double_tap_photo ) {
             TouchUtils.tapView(MainActivityTest.this, mPreview.getView());
         }
         else {
             TouchUtils.clickView(MainActivityTest.this, mPreview.getView());
         }
+        Log.d(TAG, "### done click preview for autofocus");
         this.getInstrumentation().waitForIdleSync();
-        Log.d(TAG, "1 count_cameraAutoFocus: " + mPreview.count_cameraAutoFocus);
-        assertEquals((manual_can_auto_focus ? saved_count + 1 : saved_count), mPreview.count_cameraAutoFocus);
-        Log.d(TAG, "has focus area?: " + mPreview.hasFocusArea());
-        if( single_tap_photo || double_tap_photo ) {
-            assertFalse(mPreview.hasFocusArea());
-            assertNull(mPreview.getCameraController().getFocusAreas());
-            assertNull(mPreview.getCameraController().getMeteringAreas());
-        }
-        else if( can_focus_area ) {
-            assertTrue(mPreview.hasFocusArea());
-            assertNotNull(mPreview.getCameraController().getFocusAreas());
-            assertEquals(1, mPreview.getCameraController().getFocusAreas().size());
-            assertNotNull(mPreview.getCameraController().getMeteringAreas());
-            assertEquals(1, mPreview.getCameraController().getMeteringAreas().size());
-        }
-        else {
-            assertFalse(mPreview.hasFocusArea());
-            assertNull(mPreview.getCameraController().getFocusAreas());
-            if( mPreview.getCameraController().supportsMetering() ) {
-                // we still set metering areas
-                assertNotNull(mPreview.getCameraController().getMeteringAreas());
-                assertEquals(1, mPreview.getCameraController().getMeteringAreas().size());
-            }
-            else {
-                assertNull(mPreview.getCameraController().getMeteringAreas());
-            }
-        }
-        String new_focus_value_ui = mPreview.getCurrentFocusValue();
-        //noinspection StringEquality
-        assertTrue(new_focus_value_ui == focus_value_ui || new_focus_value_ui.equals(focus_value_ui)); // also need to do == check, as strings may be null if focus not supported
-        if( focus_value.equals("focus_mode_continuous_picture") && !single_tap_photo && !double_tap_photo && mPreview.supportsFocus() && mPreview.getSupportedFocusValues().contains("focus_mode_auto") )
-            assertEquals("focus_mode_auto", mPreview.getCameraController().getFocusValue()); // continuous focus mode switches to auto focus on touch (unless single_tap_photo, or auto focus not supported)
-        else
-            assertEquals(mPreview.getCameraController().getFocusValue(), focus_value);
+        Log.d(TAG, "done wait for idle sync");
+
+        TestUtils.touchToFocusChecks(mActivity, single_tap_photo, double_tap_photo, manual_can_auto_focus, can_focus_area, focus_value, focus_value_ui, saved_count);
+
         if( double_tap_photo ) {
             Thread.sleep(100);
             Log.d(TAG, "about to click preview again for double tap");
@@ -3391,429 +3302,30 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
     }
 
-    private void checkFocusInitial(final String focus_value, final String focus_value_ui) {
-        String new_focus_value_ui = mPreview.getCurrentFocusValue();
-        //noinspection StringEquality
-        assertTrue(new_focus_value_ui == focus_value_ui || new_focus_value_ui.equals(focus_value_ui)); // also need to do == check, as strings may be null if focus not supported
-        assertEquals(mPreview.getCameraController().getFocusValue(), focus_value);
-    }
-
-    private void checkFocusAfterTakePhoto(final String focus_value, final String focus_value_ui) {
-        // focus should be back to normal now:
-        String new_focus_value_ui = mPreview.getCurrentFocusValue();
-        Log.d(TAG, "focus_value_ui: " + focus_value_ui);
-        Log.d(TAG, "new new_focus_value_ui: " + new_focus_value_ui);
-        //noinspection StringEquality
-        assertTrue(new_focus_value_ui == focus_value_ui || new_focus_value_ui.equals(focus_value_ui)); // also need to do == check, as strings may be null if focus not supported
-        String new_focus_value = mPreview.getCameraController().getFocusValue();
-        Log.d(TAG, "focus_value: " + focus_value);
-        Log.d(TAG, "new focus_value: " + new_focus_value);
-        if( new_focus_value_ui != null && new_focus_value_ui.equals("focus_mode_continuous_picture") && focus_value.equals("focus_mode_auto") && new_focus_value.equals("focus_mode_continuous_picture") ) {
-            // this is fine, it just means we were temporarily in touch-to-focus mode
-        }
-        else {
-            assertEquals(new_focus_value, focus_value);
-        }
-    }
-
-    private void checkFocusAfterTakePhoto2(final boolean touch_to_focus, final boolean single_tap_photo, final boolean double_tap_photo, final boolean test_wait_capture_result, final boolean locked_focus, final boolean can_auto_focus, final boolean can_focus_area, final int saved_count) {
-        // in locked focus mode, taking photo should never redo an auto-focus
-        // if photo mode, we may do a refocus if the previous auto-focus failed, but not if it succeeded
-        Log.d(TAG, "2 count_cameraAutoFocus: " + mPreview.count_cameraAutoFocus);
-        if( locked_focus ) {
-            assertEquals(mPreview.count_cameraAutoFocus, (can_auto_focus ? saved_count + 1 : saved_count));
-        }
-        if( test_wait_capture_result ) {
-            // if test_wait_capture_result, then we'll have waited too long, so focus settings may have changed
-        }
-        else if( touch_to_focus ) {
-            Log.d(TAG, "can_focus_area?: " + can_focus_area);
-            Log.d(TAG, "hasFocusArea?: " + mPreview.hasFocusArea());
-            if( single_tap_photo || double_tap_photo ) {
-                assertFalse(mPreview.hasFocusArea());
-                assertNull(mPreview.getCameraController().getFocusAreas());
-                assertNull(mPreview.getCameraController().getMeteringAreas());
-            }
-            else if( can_focus_area ) {
-                assertTrue(mPreview.hasFocusArea());
-                assertNotNull(mPreview.getCameraController().getFocusAreas());
-                assertEquals(1, mPreview.getCameraController().getFocusAreas().size());
-                assertNotNull(mPreview.getCameraController().getMeteringAreas());
-                assertEquals(1, mPreview.getCameraController().getMeteringAreas().size());
-            }
-            else {
-                assertFalse(mPreview.hasFocusArea());
-                assertNull(mPreview.getCameraController().getFocusAreas());
-
-                if( mPreview.getCameraController().supportsMetering() ) {
-                    // we still set metering areas
-                    assertNotNull(mPreview.getCameraController().getMeteringAreas());
-                    assertEquals(1, mPreview.getCameraController().getMeteringAreas().size());
-                }
-                else {
-                    assertNull(mPreview.getCameraController().getMeteringAreas());
-                }
-            }
-        }
-        else {
-            assertFalse(mPreview.hasFocusArea());
-            assertNull(mPreview.getCameraController().getFocusAreas());
-            assertNull(mPreview.getCameraController().getMeteringAreas());
-        }
-    }
-
-    private int getExpNNewFiles(final boolean is_raw) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
-        boolean hdr_save_expo =  sharedPreferences.getBoolean(PreferenceKeys.HDRSaveExpoPreferenceKey, false);
-        boolean is_hdr = mActivity.supportsHDR() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_hdr");
-        boolean is_expo = mActivity.supportsExpoBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_expo_bracketing");
-        boolean is_focus_bracketing = mActivity.supportsFocusBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_focus_bracketing");
-        boolean is_fast_burst = mActivity.supportsFastBurst() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_fast_burst");
-        String n_expo_images_s = sharedPreferences.getString(PreferenceKeys.ExpoBracketingNImagesPreferenceKey, "3");
-        int n_expo_images = Integer.parseInt(n_expo_images_s);
-        String n_focus_bracketing_images_s = sharedPreferences.getString(PreferenceKeys.FocusBracketingNImagesPreferenceKey, "3");
-        int n_focus_bracketing_images = Integer.parseInt(n_focus_bracketing_images_s);
-        String n_fast_burst_images_s = sharedPreferences.getString(PreferenceKeys.FastBurstNImagesPreferenceKey, "5");
-        int n_fast_burst_images = Integer.parseInt(n_fast_burst_images_s);
-
-        int exp_n_new_files;
-        if( is_hdr && hdr_save_expo ) {
-            exp_n_new_files = 4;
-            if( is_raw && !mActivity.getApplicationInterface().isRawOnly() ) {
-                exp_n_new_files += 3;
-            }
-        }
-        else if( is_expo ) {
-            exp_n_new_files = n_expo_images;
-            if( is_raw && !mActivity.getApplicationInterface().isRawOnly() ) {
-                exp_n_new_files *= 2;
-            }
-        }
-        else if( is_focus_bracketing ) {
-            exp_n_new_files = n_focus_bracketing_images;
-            if( is_raw && !mActivity.getApplicationInterface().isRawOnly() ) {
-                exp_n_new_files *= 2;
-            }
-        }
-        else if( is_fast_burst )
-            exp_n_new_files = n_fast_burst_images;
-        else {
-            exp_n_new_files = 1;
-            if( is_raw && !mActivity.getApplicationInterface().isRawOnly() ) {
-                exp_n_new_files *= 2;
-            }
-        }
-        Log.d(TAG, "exp_n_new_files: " + exp_n_new_files);
-        return exp_n_new_files;
-    }
-
-    private void checkFilenames(final boolean is_raw, final String [] files, final String [] files2) {
-        Log.d(TAG, "checkFilenames");
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
-        boolean hdr_save_expo =  sharedPreferences.getBoolean(PreferenceKeys.HDRSaveExpoPreferenceKey, false);
-        boolean is_hdr = mActivity.supportsHDR() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_hdr");
-        boolean is_fast_burst = mActivity.supportsFastBurst() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_fast_burst");
-        boolean is_expo = mActivity.supportsExpoBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_expo_bracketing");
-        boolean is_focus_bracketing = mActivity.supportsFocusBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_focus_bracketing");
-
-        // check files have names as expected
-        String filename_jpeg = null;
-        String filename_dng = null;
-        int n_files = files == null ? 0 : files.length;
-        for(String file : files2) {
-            Log.d(TAG, "check file: " + file);
-            boolean is_new = true;
-            for(int j=0;j<n_files && is_new;j++) {
-                if( file.equals( files[j] ) ) {
-                    is_new = false;
-                    break;
-                }
-            }
-            if( is_new ) {
-                Log.d(TAG, "file is new");
-                //String filename = file.getName();
-                //noinspection UnnecessaryLocalVariable
-                String filename = file;
-                assertTrue(filename.startsWith("IMG_"));
-                if( filename.endsWith(".jpg") ) {
-                    assertTrue(hdr_save_expo || is_expo || is_focus_bracketing || is_fast_burst || filename_jpeg == null);
-                    if( is_hdr && hdr_save_expo ) {
-                        // only look for the "_HDR" image
-                        if( filename.contains("_HDR") )
-                            filename_jpeg = filename;
-                    }
-                    else if( is_expo || is_focus_bracketing ) {
-                        if( filename_jpeg != null ) {
-                            // check same root
-                            int last_underscore_jpeg = filename_jpeg.lastIndexOf('_');
-                            assertTrue(last_underscore_jpeg != -1);
-                            String filename_base_jpeg = filename_jpeg.substring(0, last_underscore_jpeg+1);
-
-                            int last_underscore = filename.lastIndexOf('_');
-                            assertTrue(last_underscore != -1);
-                            String filename_base = filename.substring(0, last_underscore+1);
-                            Log.d(TAG, "filename_base: " + filename_base);
-
-                            assertEquals(filename_base_jpeg, filename_base);
-                        }
-                        filename_jpeg = filename; // store the last name, to match mActivity.test_last_saved_image
-                    }
-                    else {
-                        filename_jpeg = filename;
-                    }
-                }
-                else if( filename.endsWith(".dng") ) {
-                    assertTrue(is_raw);
-                    assertTrue(hdr_save_expo || is_expo || is_focus_bracketing || filename_dng == null);
-                    filename_dng = filename;
-                }
-                else {
-                    fail();
-                }
-            }
-        }
-        assertEquals((filename_jpeg == null), (is_raw && mActivity.getApplicationInterface().isRawOnly() && !is_hdr));
-        assertEquals((filename_dng != null), is_raw);
-        if( is_raw && !mActivity.getApplicationInterface().isRawOnly() ) {
-            // check we have same filenames (ignoring extensions)
-            // if HDR, then we should exclude the "_HDR" vs "_x" of the base filenames
-            // if expo, then exclude the "_x" as values may be different due to different order of JPEG vs DNG files in the files2 array (at least on Galaxy S10e)
-            String filename_base_jpeg;
-            String filename_base_dng;
-            if( is_hdr ) {
-                filename_base_jpeg = filename_jpeg.substring(0, filename_jpeg.length()-7);
-                filename_base_dng = filename_dng.substring(0, filename_dng.length()-5);
-            }
-            else if( is_expo ) {
-                filename_base_jpeg = filename_jpeg.substring(0, filename_jpeg.length()-5);
-                filename_base_dng = filename_dng.substring(0, filename_dng.length()-5);
-            }
-            else {
-                filename_base_jpeg = filename_jpeg.substring(0, filename_jpeg.length()-4);
-                filename_base_dng = filename_dng.substring(0, filename_dng.length()-4);
-            }
-            Log.d(TAG, "filename_base_jpeg: " + filename_base_jpeg);
-            Log.d(TAG, "filename_base_dng: " + filename_base_dng);
-            assertEquals(filename_base_jpeg, filename_base_dng);
-        }
-    }
-
-    private enum UriType {
-        MEDIASTORE_IMAGES,
-        MEDIASTORE_VIDEOS,
-        STORAGE_ACCESS_FRAMEWORK
-    }
-
-    /** Returns an array of filenames (not including full path)  of images or videos in the current
-     *  save folder, by querying the media store; or by using storage access framework on the
-     *  supplied uri.
-     */
-    private List<String> mediaFilesinSaveFolder(Uri baseUri, String bucket_id, UriType uri_type) {
-        List<String> files = new ArrayList<>();
-        final int column_name_c = 0; // filename (without path), including extension
-
-        String [] projection;
-        switch( uri_type ) {
-            case MEDIASTORE_IMAGES:
-                projection = new String[] {MediaStore.Images.ImageColumns.DISPLAY_NAME};
-                break;
-            case MEDIASTORE_VIDEOS:
-                projection = new String[] {MediaStore.Video.VideoColumns.DISPLAY_NAME};
-                break;
-            case STORAGE_ACCESS_FRAMEWORK:
-                projection = new String[] {DocumentsContract.Document.COLUMN_DISPLAY_NAME};
-                break;
-            default:
-                throw new RuntimeException("unknown uri_type: " + uri_type);
-        }
-
-        String selection = "";
-        switch( uri_type ) {
-            case MEDIASTORE_IMAGES:
-                selection = MediaStore.Images.ImageColumns.BUCKET_ID + " = " + bucket_id;
-                break;
-            case MEDIASTORE_VIDEOS:
-                selection = MediaStore.Video.VideoColumns.BUCKET_ID + " = " + bucket_id;
-                break;
-            case STORAGE_ACCESS_FRAMEWORK:
-                break;
-            default:
-                throw new RuntimeException("unknown uri_type: " + uri_type);
-        }
-        Log.d(TAG, "selection: " + selection);
-
-        Cursor cursor = mActivity.getContentResolver().query(baseUri, projection, selection, null, null);
-        if( cursor != null && cursor.moveToFirst() ) {
-            Log.d(TAG, "found: " + cursor.getCount());
-
-            do {
-                String name = cursor.getString(column_name_c);
-                files.add(name);
-            }
-            while( cursor.moveToNext() );
-        }
-
-        if( cursor != null ) {
-            cursor.close();
-        }
-
-        return files;
-    }
-
     /** Returns an array of filenames (not including full path) in the current save folder.
      */
     private String [] filesInSaveFolder() {
-        Log.d(TAG, "filesInSaveFolder");
-        if( MainActivity.useScopedStorage() ) {
-            List<String> files = new ArrayList<>();
-            if( mActivity.getStorageUtils().isUsingSAF() ) {
-                // See documentation for StorageUtils.getLatestMediaSAF() - for some reason with scoped storage when not having READ_EXTERNAL_STORAGE,
-                // we can't query the mediastore for files saved via SAF!
-                Uri treeUri = mActivity.getStorageUtils().getTreeUriSAF();
-                Uri baseUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri));
-                files.addAll( mediaFilesinSaveFolder(baseUri, null, UriType.STORAGE_ACCESS_FRAMEWORK) );
-            }
-            else {
-                String save_folder = mActivity.getStorageUtils().getImageFolderPath();
-                String bucket_id = String.valueOf(save_folder.toLowerCase().hashCode());
-                files.addAll( mediaFilesinSaveFolder(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, bucket_id, UriType.MEDIASTORE_IMAGES) );
-                files.addAll( mediaFilesinSaveFolder(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, bucket_id, UriType.MEDIASTORE_VIDEOS) );
-            }
-
-            if( files.size() == 0 ) {
-                return null;
-            }
-            else {
-                return files.toArray(new String[0]);
-            }
-        }
-        else {
-            File folder = mActivity.getImageFolder();
-            File [] files = folder.listFiles();
-            if( files == null )
-                return null;
-            String [] filenames = new String[files.length];
-            for(int i=0;i<files.length;i++) {
-                filenames[i] = files[i].getName();
-            }
-            return filenames;
-        }
-    }
-
-    private void checkFilesAfterTakePhoto(final boolean is_raw, final boolean test_wait_capture_result, final String [] files, final String suffix, final int max_time_s, final Date date) throws InterruptedException {
-        int n_files = files == null ? 0 : files.length;
-        String [] files2 = filesInSaveFolder();
-        int n_new_files = (files2 == null ? 0 : files2.length) - n_files;
-        Log.d(TAG, "n_new_files: " + n_new_files);
-        int exp_n_new_files = getExpNNewFiles(is_raw);
-        assertEquals(n_new_files, exp_n_new_files);
-        checkFilenames(is_raw, files, files2);
-        Thread.sleep(1500); // wait until we've scanned
-        if( test_wait_capture_result ) {
-            // if test_wait_capture_result, then it may take longer before we've scanned
-        }
-        else {
-            Log.d(TAG, "failed to scan: " + mActivity.getStorageUtils().failed_to_scan);
-            assertFalse(mActivity.getStorageUtils().failed_to_scan);
-        }
-
-        if( !mActivity.getApplicationInterface().isRawOnly() ) {
-            String saved_image_filename;
-            if( MainActivity.useScopedStorage() || mActivity.getStorageUtils().isUsingSAF() ) {
-                /*assertNotNull(mActivity.test_last_saved_imagename);
-                saved_image_filename = mActivity.test_last_saved_imagename;*/
-                assertNotNull(mActivity.test_last_saved_imageuri);
-                saved_image_filename = mActivity.getStorageUtils().getFileName(mActivity.test_last_saved_imageuri);
-            }
-            else {
-                assertNotNull(mActivity.test_last_saved_image);
-                File saved_image_file = new File(mActivity.test_last_saved_image);
-                saved_image_filename = saved_image_file.getName();
-            }
-            Log.d(TAG, "saved name: " + saved_image_filename);
-            /*Log.d(TAG, "expected name: " + expected_filename);
-            Log.d(TAG, "expected name1: " + expected_filename1);
-            assertTrue(expected_filename.equals(saved_image_file.getName()) || expected_filename1.equals(saved_image_file.getName()));*/
-            // allow for possibility that the time has passed since taking the photo
-            boolean matched = false;
-            for(int i=0;i<=max_time_s && !matched;i++) {
-                Date test_date = new Date(date.getTime() - 1000L *i);
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(test_date);
-                String expected_filename = "IMG_" + timeStamp + suffix + ".jpg";
-                Log.d(TAG, "expected name: " + expected_filename);
-                if( expected_filename.equals(saved_image_filename) )
-                    matched = true;
-            }
-            assertTrue(matched);
-        }
-    }
-
-    private void postTakePhotoChecks(final boolean immersive_mode, final int exposureVisibility, final int exposureLockVisibility) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
-        boolean has_audio_control_button = !sharedPreferences.getString(PreferenceKeys.AudioControlPreferenceKey, "none").equals("none");
-
-        View switchCameraButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_camera);
-        View switchMultiCameraButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_multi_camera);
-        View switchVideoButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_video);
-        View exposureButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.exposure);
-        View exposureLockButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.exposure_lock);
-        View audioControlButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.audio_control);
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        View trashButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.trash);
-        View shareButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.share);
-
-        // trash/share only shown when preview is paused after taking a photo
-        boolean pause_preview =  sharedPreferences.getBoolean(PreferenceKeys.PausePreviewPreferenceKey, false);
-        if( pause_preview ) {
-            assertFalse(mPreview.isPreviewStarted());
-            assertEquals(switchCameraButton.getVisibility(), View.GONE);
-            assertEquals(switchMultiCameraButton.getVisibility(), View.GONE);
-            assertEquals(switchVideoButton.getVisibility(), View.GONE);
-            assertEquals(exposureButton.getVisibility(), View.GONE);
-            assertEquals(exposureLockButton.getVisibility(), View.GONE);
-            assertEquals(audioControlButton.getVisibility(), View.GONE);
-            assertEquals(popupButton.getVisibility(), View.GONE);
-            assertEquals(trashButton.getVisibility(), View.VISIBLE);
-            assertEquals(shareButton.getVisibility(), View.VISIBLE);
-        }
-        else {
-            assertTrue(mPreview.isPreviewStarted()); // check preview restarted
-            assertEquals(switchCameraButton.getVisibility(), (mPreview.getCameraControllerManager().getNumberOfCameras() > 1 ? View.VISIBLE : View.GONE));
-            assertEquals(switchMultiCameraButton.getVisibility(), (mActivity.showSwitchMultiCamIcon() ? View.VISIBLE : View.GONE));
-            assertEquals(switchVideoButton.getVisibility(), View.VISIBLE);
-            if( !immersive_mode ) {
-                assertEquals(exposureButton.getVisibility(), exposureVisibility);
-                assertEquals(exposureLockButton.getVisibility(), exposureLockVisibility);
-            }
-            assertEquals(audioControlButton.getVisibility(), (has_audio_control_button ? View.VISIBLE : View.GONE));
-            assertEquals(popupButton.getVisibility(), View.VISIBLE);
-            assertEquals(trashButton.getVisibility(), View.GONE);
-            assertEquals(shareButton.getVisibility(), View.GONE);
-        }
+        return TestUtils.filesInSaveFolder(mActivity);
     }
 
     /*
      * Note that we pass test_wait_capture_result as a parameter rather than reading from the activity, as for some reason this sometimes resets to false?! Declaring it volatile doesn't fix the problem.
      */
     private void subTestTakePhoto(boolean locked_focus, boolean immersive_mode, boolean touch_to_focus, boolean wait_after_focus, boolean single_tap_photo, boolean double_tap_photo, boolean is_raw, boolean test_wait_capture_result) throws InterruptedException {
-        assertTrue(mPreview.isPreviewStarted());
-        assertFalse(mActivity.getApplicationInterface().getImageSaver().test_queue_blocked);
+        Thread.sleep(500); // needed for Pixel 6 Pro with Camera 2 API
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
-        boolean has_thumbnail_anim = sharedPreferences.getBoolean(PreferenceKeys.ThumbnailAnimationPreferenceKey, true);
-        boolean has_audio_control_button = !sharedPreferences.getString(PreferenceKeys.AudioControlPreferenceKey, "none").equals("none");
-        boolean is_dro = mActivity.supportsDRO() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_dro");
-        boolean is_hdr = mActivity.supportsHDR() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_hdr");
-        boolean is_nr = mActivity.supportsNoiseReduction() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_noise_reduction");
-        boolean is_expo = mActivity.supportsExpoBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_expo_bracketing");
-        boolean is_focus_bracketing = mActivity.supportsFocusBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_focus_bracketing");
-        boolean is_fast_burst = mActivity.supportsFastBurst() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_fast_burst");
-        String n_expo_images_s = sharedPreferences.getString(PreferenceKeys.ExpoBracketingNImagesPreferenceKey, "3");
-        int n_expo_images = Integer.parseInt(n_expo_images_s);
-        String n_focus_bracketing_images_s = sharedPreferences.getString(PreferenceKeys.FocusBracketingNImagesPreferenceKey, "3");
-        int n_focus_bracketing_images = Integer.parseInt(n_focus_bracketing_images_s);
-        String n_fast_burst_images_s = sharedPreferences.getString(PreferenceKeys.FastBurstNImagesPreferenceKey, "5");
-        int n_fast_burst_images = Integer.parseInt(n_fast_burst_images_s);
+        TestUtils.SubTestTakePhotoInfo info = TestUtils.getSubTestTakePhotoInfo(mActivity, immersive_mode, single_tap_photo, double_tap_photo);
+        boolean has_thumbnail_anim = info.has_thumbnail_anim;
+        boolean is_hdr = info.is_hdr;
+        boolean is_nr = info.is_nr;
+        boolean is_expo = info.is_expo;
+        int exposureVisibility = info.exposureVisibility;
+        int exposureLockVisibility = info.exposureLockVisibility;
+        String focus_value = info.focus_value;
+        String focus_value_ui = info.focus_value_ui;
+        boolean can_auto_focus = info.can_auto_focus;
+        boolean manual_can_auto_focus = info.manual_can_auto_focus;
+        boolean can_focus_area = info.can_focus_area;
 
         int saved_count_cameraTakePicture = mPreview.count_cameraTakePicture;
 
@@ -3822,54 +3334,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         int n_files = files == null ? 0 : files.length;
         Log.d(TAG, "n_files at start: " + n_files);
 
-        View switchCameraButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_camera);
-        View switchMultiCameraButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_multi_camera);
-        View switchVideoButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_video);
-        //View flashButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.flash);
-        //View focusButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.focus_mode);
-        View exposureButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.exposure);
-        View exposureLockButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.exposure_lock);
-        View audioControlButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.audio_control);
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        View trashButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.trash);
-        View shareButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.share);
-        assertEquals(switchCameraButton.getVisibility(), (immersive_mode ? View.GONE : (mPreview.getCameraControllerManager().getNumberOfCameras() > 1 ? View.VISIBLE : View.GONE)));
-        assertEquals(switchMultiCameraButton.getVisibility(), (immersive_mode ? View.GONE : (mActivity.showSwitchMultiCamIcon() ? View.VISIBLE : View.GONE)));
-        assertEquals(switchVideoButton.getVisibility(), (immersive_mode ? View.GONE : View.VISIBLE));
-        int exposureVisibility = exposureButton.getVisibility();
-        int exposureLockVisibility = exposureLockButton.getVisibility();
-        assertEquals(audioControlButton.getVisibility(), ((has_audio_control_button && !immersive_mode) ? View.VISIBLE : View.GONE));
-        assertEquals(popupButton.getVisibility(), (immersive_mode ? View.GONE : View.VISIBLE));
-        assertEquals(trashButton.getVisibility(), View.GONE);
-        assertEquals(shareButton.getVisibility(), View.GONE);
-
-        String focus_value = mPreview.getCameraController().getFocusValue();
-        String focus_value_ui = mPreview.getCurrentFocusValue();
-        boolean can_auto_focus = false;
-        boolean manual_can_auto_focus = false;
-        boolean can_focus_area = false;
-        if( focus_value.equals("focus_mode_auto") || focus_value.equals("focus_mode_macro") ) {
-            can_auto_focus = true;
-        }
-
-        if( focus_value.equals("focus_mode_auto") || focus_value.equals("focus_mode_macro") ) {
-            manual_can_auto_focus = true;
-        }
-        else if( focus_value.equals("focus_mode_continuous_picture") && !single_tap_photo && !double_tap_photo ) {
-            // if single_tap_photo or double_tap_photo, and continuous mode, we go straight to taking a photo rather than doing a touch to focus
-            manual_can_auto_focus = true;
-        }
-
-        if( mPreview.getMaxNumFocusAreas() != 0 && ( focus_value.equals("focus_mode_auto") || focus_value.equals("focus_mode_macro") || focus_value.equals("focus_mode_continuous_picture") || focus_value.equals("focus_mode_continuous_video") || focus_value.equals("focus_mode_manual2") ) ) {
-            can_focus_area = true;
-        }
-        Log.d(TAG, "focus_value? " + focus_value);
-        Log.d(TAG, "can_auto_focus? " + can_auto_focus);
-        Log.d(TAG, "manual_can_auto_focus? " + manual_can_auto_focus);
-        Log.d(TAG, "can_focus_area? " + can_focus_area);
         int saved_count = mPreview.count_cameraAutoFocus;
 
-        checkFocusInitial(focus_value, focus_value_ui);
+        //checkFocusInitial(focus_value, focus_value_ui);
 
         int saved_thumbnail_count = mActivity.getApplicationInterface().getDrawPreview().test_thumbnail_anim_count;
         Log.d(TAG, "saved_thumbnail_count: " + saved_thumbnail_count);
@@ -3888,43 +3355,6 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
 
         waitForTakePhoto();
-
-        Date date = new Date();
-        String suffix = "";
-        int max_time_s = 2;
-        if( is_dro ) {
-            suffix = "_DRO";
-        }
-        else if( is_hdr ) {
-            suffix = "_HDR";
-        }
-        else if( is_nr ) {
-            suffix = "_NR";
-            if( mActivity.getApplicationInterface().getNRModePref() == MyApplicationInterface.NRModePref.NRMODE_LOW_LIGHT )
-                max_time_s += 6; // takes longer to save low light photo
-        }
-        else if( is_expo ) {
-            suffix = "_" + (n_expo_images-1);
-        }
-        else if( is_focus_bracketing ) {
-            suffix = "_" + (n_focus_bracketing_images-1); // when focus bracketing starts from _0
-            //suffix = "_" + (n_focus_bracketing_images); // when focus bracketing starts from _1
-            max_time_s = 60; // can take much longer to save in focus bracketing mode!
-        }
-        else if( is_fast_burst ) {
-            suffix = "_" + (n_fast_burst_images-1); // when burst numbering starts from _0
-            //suffix = "_" + (n_fast_burst_images); // when burst numbering starts from _1
-            max_time_s = 4; // takes longer to save 20 images!
-        }
-
-        if( is_raw ) {
-            max_time_s += 6; // extra time needed for Nexus 6 at least
-        }
-
-        boolean pause_preview =  sharedPreferences.getBoolean(PreferenceKeys.PausePreviewPreferenceKey, false);
-        if( pause_preview ) {
-            max_time_s += 3; // need to allow longer for testTakePhotoRawWaitCaptureResult with Nexus 6 at least
-        }
 
         this.getInstrumentation().waitForIdleSync();
         Log.d(TAG, "after idle sync");
@@ -3957,13 +3387,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         mActivity.waitUntilImageQueueEmpty();
         Log.d(TAG, "mActivity.hasThumbnailAnimation()?: " + mActivity.hasThumbnailAnimation());
 
-        checkFocusAfterTakePhoto(focus_value, focus_value_ui);
+        TestUtils.checkFocusAfterTakePhoto(mActivity, focus_value, focus_value_ui);
 
-        checkFilesAfterTakePhoto(is_raw, test_wait_capture_result, files, suffix, max_time_s, date);
+        TestUtils.checkFilesAfterTakePhoto(mActivity, is_raw, test_wait_capture_result, files);
 
-        checkFocusAfterTakePhoto2(touch_to_focus, single_tap_photo, double_tap_photo, test_wait_capture_result, locked_focus, can_auto_focus, can_focus_area, saved_count);
+        TestUtils.checkFocusAfterTakePhoto2(mActivity, touch_to_focus, single_tap_photo, double_tap_photo, test_wait_capture_result, locked_focus, can_auto_focus, can_focus_area, saved_count);
 
-        postTakePhotoChecks(immersive_mode, exposureVisibility, exposureLockVisibility);
+        TestUtils.postTakePhotoChecks(mActivity, immersive_mode, exposureVisibility, exposureLockVisibility);
 
         assertFalse(mActivity.getApplicationInterface().getImageSaver().test_queue_blocked);
         assertTrue( mPreview.getCameraController() == null || mPreview.getCameraController().count_camera_parameters_exception == 0 );
@@ -5049,6 +4479,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         boolean has_audio_control_button = !sharedPreferences.getString(PreferenceKeys.AudioControlPreferenceKey, "none").equals("none");
 
         Log.d(TAG, "check if preview is started");
+        Thread.sleep(500); // needed for Pixel 6 Pro with Camera 2 API
         assertTrue(mPreview.isPreviewStarted());
 
         View switchCameraButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_camera);
@@ -5202,6 +4633,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
         boolean has_audio_control_button = !sharedPreferences.getString(PreferenceKeys.AudioControlPreferenceKey, "none").equals("none");
 
+        Thread.sleep(500); // needed for Pixel 6 Pro with Camera 2 API
         assertTrue(mPreview.isPreviewStarted());
 
         View switchCameraButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_camera);
@@ -5745,7 +5177,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         mActivity.test_have_angle = false;
     }
 
-    private void subTestTakePhotoAutoLevelAngles() {
+    private void subTestTakePhotoAutoLevelAngles() throws InterruptedException {
         Log.d(TAG, "subTestTakePhotoAutoLevelAngles");
         setToDefault();
 
@@ -5755,6 +5187,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.apply();
         updateForSettings();
 
+        Thread.sleep(500); // needed for Pixel 6 Pro with Camera 2 API
         assertTrue(mPreview.isPreviewStarted());
         assertTrue(mActivity.getApplicationInterface().getDrawPreview().getStoredAutoStabilisePref());
         final int [] angles = new int[]{0, -129, 30, -44, 61, -89, 179};
@@ -5783,7 +5216,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     /* Tests taking photos repeatedly with auto-stabilise enabled, at various angles.
      * Tests with front and back.
      */
-    public void testTakePhotoAutoLevelAngles() {
+    public void testTakePhotoAutoLevelAngles() throws InterruptedException {
         Log.d(TAG, "testTakePhotoAutoLevel");
 
         subTestTakePhotoAutoLevelAngles();
@@ -5791,7 +5224,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
     /* As testTakePhotoAutoLevelAngles(), but with test_low_memory set.
      */
-    public void testTakePhotoAutoLevelAnglesLowMemory() {
+    public void testTakePhotoAutoLevelAnglesLowMemory() throws InterruptedException {
         Log.d(TAG, "testTakePhotoAutoLevelAnglesLowMemory");
 
         mActivity.test_low_memory = true;
@@ -5807,6 +5240,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
      * @return The number of resultant video files
      */
     private int subTestTakeVideo(boolean test_exposure_lock, boolean test_focus_area, boolean allow_failure, boolean immersive_mode, VideoTestCallback test_cb, long time_ms, boolean max_filesize, int n_non_video_files) throws InterruptedException {
+        Thread.sleep(500); // needed for Pixel 6 Pro with Camera 2 API
         assertTrue(mPreview.isPreviewStarted());
         if( mPreview.usingCamera2API() ) {
             assertEquals(mPreview.getCurrentPreviewSize().width, mPreview.getCameraController().test_texture_view_buffer_w);
@@ -6013,6 +5447,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
 
         if( mPreview.usingCamera2API() ) {
+            assertNotNull(mPreview.getCameraController());
             assertEquals(mPreview.getCurrentPreviewSize().width, mPreview.getCameraController().test_texture_view_buffer_w);
             assertEquals(mPreview.getCurrentPreviewSize().height, mPreview.getCameraController().test_texture_view_buffer_h);
         }
@@ -6868,7 +6303,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             // as this tests Android 8+'s seamless restart
             return;
         }
-        if( isEmulator() ) {
+        if( TestUtils.isEmulator() ) {
             // as test takes about 6.5 minutes on emulator (possibly due to unusual video file sizes), even though it does eventually pass
             return;
         }
@@ -6937,8 +6372,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     }
 
     /** As testTakeVideoMaxFileSize4(), but using Storage Access Framework.
-     *  N.B., failing on Galaxy S10e Android 12 due to receiving MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED
-     *  shortly after MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING.
+     *  N.B., failing on Galaxy S10e Android 12 and Pixel 6 Pro due to receiving MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED
+     *  shortly after MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING. Seems to be issue specific to using SAF with too small
+     *  maximum file sizes.
      */
     public void testTakeVideoMaxFileSize4SAF() throws InterruptedException {
         Log.d(TAG, "testTakeVideoMaxFileSize4SAF");
@@ -7135,6 +6571,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     }
 
     /** Will likely be unreliable on OnePlus 3T and Galaxy S10e with Camera2.
+     *  Also hangs with old camera API on Pixel 6 Pro.
      */
     public void testTakeVideoFPS() throws InterruptedException {
         Log.d(TAG, "testTakeVideoFPS");
@@ -7179,7 +6616,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
     }
 
-    /** Will likely be unreliable on OnePlus 3T and Galaxy S10e.
+    /** Will likely be unreliable on OnePlus 3T, Galaxy S10e, Pixel 6 Pro.
      *  Manual mode should be ignored by high speed video, but check this doesn't crash at least!
      */
     public void testTakeVideoFPSHighSpeedManual() throws InterruptedException {
@@ -7359,7 +6796,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertTrue(video_width == high_speed_video_width && video_height == high_speed_video_height);
     }
 
-    /** Will likely be unreliable on OnePlus 3T and Galaxy S10e.
+    /** Will likely be unreliable on OnePlus 3T, Galaxy S10e and Pixel 6 Pro.
      */
     public void testTakeVideoSlowMotion() throws InterruptedException {
         Log.d(TAG, "testTakeVideoSlowMotion");
@@ -7412,6 +6849,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
     /** Take video with timelapse mode.
      *  Fails on Android emulator (at least for Android 7.1 on VirtualScene camera).
+     *  Fails on Pixel 6 Pro with old camera API.
      */
     public void testTakeVideoTimeLapse() throws InterruptedException {
         Log.d(TAG, "testTakeVideoTimeLapse");
@@ -8051,10 +7489,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
                 Thread.sleep(1000); // need at least 1000ms for Nexus 7
             }
             else {
-                View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-                clickView(popupButton);
-                while( !mActivity.popupIsOpen() ) {
-                }
+                openPopupMenu();
             }
             takePhotoButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.take_photo);
             // check timer cancelled, and not yet taken a photo
@@ -8248,17 +7683,136 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // now open popup, pause and resume, then reopen popup
         // this tests against a crash, if we don't remove the popup from the popup container in MainUI.destroyPopup()
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        assertFalse(mActivity.popupIsOpen());
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         pauseAndResume();
-        assertFalse(mActivity.popupIsOpen());
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
+        openPopupMenu();
+    }
+
+    /* Tests against a bug where popup wouldn't show with left UI placement, due to 0 popup view height.
+     */
+    public void testPopupLeftLayout() {
+        Log.d(TAG, "testPopupLeftLayout");
+
+        setToDefault();
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(PreferenceKeys.UIPlacementPreferenceKey, "ui_left");
+        editor.apply();
+        updateForSettings();
+
+        View popup_view = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup_container);
+
+        openPopupMenu();
+
+        int popup_width = popup_view.getWidth();
+        int popup_height = popup_view.getHeight();
+        int test_popup_width = mActivity.getMainUI().test_saved_popup_width;
+        int test_popup_height = mActivity.getMainUI().test_saved_popup_height;
+        Log.d(TAG, "popup_width: " + popup_width);
+        Log.d(TAG, "popup_height: " + popup_height);
+        Log.d(TAG, "test_popup_width: " + test_popup_width);
+        Log.d(TAG, "test_popup_height: " + test_popup_height);
+        assertTrue(popup_width > 0);
+        assertTrue(popup_height > 0);
+        assertEquals(popup_width, test_popup_width);
+        assertEquals(popup_height, test_popup_height);
+
+        // now reopen popup view, and check the same dimensions
+        closePopupMenu();
+
+        openPopupMenu();
+
+        int new_popup_width = popup_view.getWidth();
+        int new_popup_height = popup_view.getHeight();
+        test_popup_width = mActivity.getMainUI().test_saved_popup_width;
+        test_popup_height = mActivity.getMainUI().test_saved_popup_height;
+        Log.d(TAG, "new_popup_width: " + new_popup_width);
+        Log.d(TAG, "new_popup_height: " + new_popup_height);
+        Log.d(TAG, "test_popup_width: " + test_popup_width);
+        Log.d(TAG, "test_popup_height: " + test_popup_height);
+        assertEquals(popup_width, new_popup_width);
+        assertEquals(popup_height, new_popup_height);
+        assertEquals(popup_width, test_popup_width);
+        assertEquals(popup_height, test_popup_height);
+    }
+
+    /* Tests with ui_right vs ui_top layout.
+     */
+    public void testRightLayout() {
+        Log.d(TAG, "testRightLayout");
+
+        setToDefault();
+        {
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString(PreferenceKeys.UIPlacementPreferenceKey, "ui_right");
+            editor.apply();
+            updateForSettings();
         }
+
+        openPopupMenu();
+
+        Point display_size = new Point();
+        {
+            Display display = mActivity.getWindowManager().getDefaultDisplay();
+            display.getSize(display_size);
+            Log.d(TAG, "display_size: " + display_size.x + " x " + display_size.y);
+        }
+        View settingsButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.settings);
+        View galleryButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.gallery);
+
+        Log.d(TAG, "settings right: " + settingsButton.getRight());
+        Log.d(TAG, "settings top: " + settingsButton.getTop());
+        Log.d(TAG, "gallery right: " + galleryButton.getRight());
+        Log.d(TAG, "gallery top: " + galleryButton.getTop());
+
+        final float scale = mActivity.getResources().getDisplayMetrics().density;
+        int expected_gap = (int) (MainUI.privacy_indicator_gap_dp * scale + 0.5f); // convert dps to pixels;
+        if( mActivity.getSystemOrientation() == MainActivity.SystemOrientation.PORTRAIT ) {
+            assertTrue(settingsButton.getBottom() > (int)(0.8*display_size.y));
+            assertEquals(display_size.x, settingsButton.getRight());
+            // position may be 1 coordinate different on some devices, e.g., Galaxy Nexus
+            // have 14 pixel gap on Pixel 6 Pro
+            assertEquals((double)(display_size.y-1-expected_gap), (double)(galleryButton.getBottom()), 14.0+1.0e-5);
+            assertEquals(display_size.x-expected_gap, galleryButton.getRight());
+        }
+        else {
+            assertTrue(settingsButton.getRight() > (int)(0.8*display_size.x));
+            assertEquals(0, settingsButton.getTop());
+            assertEquals(display_size.x-expected_gap, galleryButton.getRight());
+            assertEquals(expected_gap, galleryButton.getTop());
+        }
+
+        {
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString(PreferenceKeys.UIPlacementPreferenceKey, "ui_top");
+            editor.apply();
+            updateForSettings();
+        }
+
+        Log.d(TAG, "settings right: " + settingsButton.getRight());
+        Log.d(TAG, "settings top: " + settingsButton.getTop());
+        Log.d(TAG, "gallery right: " + galleryButton.getRight());
+        Log.d(TAG, "gallery top: " + galleryButton.getTop());
+
+        if( mActivity.getSystemOrientation() == MainActivity.SystemOrientation.PORTRAIT ) {
+            assertTrue(settingsButton.getBottom() < (int)(0.2*display_size.y));
+            assertEquals(display_size.x, settingsButton.getRight());
+            // position may be 1 coordinate different on some devices, e.g., Galaxy Nexus
+            // have 14 pixel gap on Pixel 6 Pro
+            assertEquals((double)(display_size.y-1-expected_gap), (double)(galleryButton.getBottom()), 14.0+1.0e-5);
+            assertEquals(display_size.x-expected_gap, galleryButton.getRight());
+        }
+        else {
+            assertTrue(settingsButton.getRight() < (int)(0.2*display_size.x));
+            assertEquals(0, settingsButton.getTop());
+            assertEquals(display_size.x-expected_gap, galleryButton.getRight());
+            assertEquals(expected_gap, galleryButton.getTop());
+        }
+
+        openPopupMenu();
     }
 
     /* Tests layout bug with popup menu.
@@ -8280,10 +7834,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             Thread.sleep(400);
 
             // open popup
-            assertFalse(mActivity.popupIsOpen());
-            clickView(popupButton);
-            while( !mActivity.popupIsOpen() ) {
-            }
+            openPopupMenu();
 
             // check popup width is not larger than expected
             int popup_container_width = popup_container.getWidth();
@@ -8325,9 +7876,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         if( !on_timer ) {
             // open popup now
-            clickView(popupButton);
-            while( !mActivity.popupIsOpen() ) {
-            }
+            openPopupMenu();
         }
 
         View takePhotoButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.take_photo);
@@ -8343,9 +7892,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
                 Thread.sleep(2000);
 
                 // now open popup
-                clickView(popupButton);
-                while( !mActivity.popupIsOpen() ) {
-                }
+                openPopupMenu();
 
                 // check timer is cancelled
                 assertFalse(mPreview.isOnTimer());
@@ -8377,9 +7924,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
                 }
                 else {
                     // now open popup again
-                    clickView(popupButton);
-                    while( !mActivity.popupIsOpen() ) {
-                    }
+                    openPopupMenu();
                     subTestPopupButtonAvailability("TEST_FLASH", "flash_off", supported_flash_values);
                     subTestPopupButtonAvailability("TEST_FLASH", "flash_auto", supported_flash_values);
                     subTestPopupButtonAvailability("TEST_FLASH", "flash_on", supported_flash_values);
@@ -8423,9 +7968,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
 
         // now open popup again
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
         subTestPopupButtonAvailability();
     }
 
@@ -8922,53 +8465,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertEquals(size, new_size);
     }
 
-    /** Tests the Exif tags in the resultant file. If the file is null, the uri will be
-     *  used instead to read the Exif tags.
-     */
-    private void testExif(String file, Uri uri, boolean expect_gps) throws IOException {
-        //final String TAG_GPS_IMG_DIRECTION = "GPSImgDirection";
-        //final String TAG_GPS_IMG_DIRECTION_REF = "GPSImgDirectionRef";
-        InputStream inputStream = null;
-        ExifInterface exif;
-        if( file != null ) {
-            assertNull(uri); // should only supply one of file or uri
-            exif = new ExifInterface(file);
-        }
-        else {
-            assertNotNull(uri);
-            inputStream = getActivity().getContentResolver().openInputStream(uri);
-            exif = new ExifInterface(inputStream);
-        }
-
-        assertNotNull(exif.getAttribute(ExifInterface.TAG_ORIENTATION));
-        if( !( isEmulator() && Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1 ) ) {
-            // older Android emulator versions don't store exif info in photos
-            assertNotNull(exif.getAttribute(ExifInterface.TAG_MAKE));
-            assertNotNull(exif.getAttribute(ExifInterface.TAG_MODEL));
-
-            if( expect_gps ) {
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
-                // can't read custom tags, even though we can write them?!
-                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION) != null);
-                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION_REF) != null);
-            }
-            else {
-                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
-                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
-                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
-                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
-                // can't read custom tags, even though we can write them?!
-                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION) == null);
-                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION_REF) == null);
-            }
-        }
-
-        if( inputStream != null ) {
-            inputStream.close();
-        }
+    private void testExif(String file, Uri uri, boolean expect_device_tags, boolean expect_datetime, boolean expect_gps) throws IOException {
+        TestUtils.testExif(getActivity(), file, uri, expect_device_tags, expect_datetime, expect_gps);
     }
 
     private void subTestLocationOn(boolean gps_direction) throws IOException {
@@ -9017,7 +8515,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         this.getInstrumentation().waitForIdleSync();
         assertEquals(1, mPreview.count_cameraTakePicture);
         mActivity.waitUntilImageQueueEmpty();
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         // now test with auto-stabilise
         {
@@ -9036,7 +8534,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         this.getInstrumentation().waitForIdleSync();
         assertEquals(2, mPreview.count_cameraTakePicture);
         mActivity.waitUntilImageQueueEmpty();
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         // switch to front camera
         if( mPreview.getCameraControllerManager().getNumberOfCameras() > 1 ) {
@@ -9130,7 +8628,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertNull(mActivity.getLocationSupplier().getLocation());
 
         mActivity.waitUntilImageQueueEmpty();
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, false);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, false);
 
         assertTrue(mActivity.getLocationSupplier().noLocationListeners());
         assertFalse(mActivity.getLocationSupplier().testHasReceivedLocation());
@@ -9162,7 +8660,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertNull(mActivity.getLocationSupplier().getLocation());
 
         mActivity.waitUntilImageQueueEmpty();
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, false);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, false);
 
         assertTrue(mActivity.getLocationSupplier().noLocationListeners());
         assertFalse(mActivity.getLocationSupplier().testHasReceivedLocation());
@@ -9450,7 +8948,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         int n_files = getNFiles() - n_old_files;
         Log.d(TAG, "n_files: " + n_files);
         assertEquals(1, n_files);
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, false);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, false);
 
         // now again with location
         {
@@ -9484,7 +8982,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         n_files = getNFiles() - n_old_files;
         Log.d(TAG, "n_files: " + n_files);
         assertEquals(2, n_files);
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         // now again with location and custom text
         {
@@ -9513,7 +9011,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         n_files = getNFiles() - n_old_files;
         Log.d(TAG, "n_files: " + n_files);
         assertEquals(3, n_files);
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         // now test with auto-stabilise
         {
@@ -9538,7 +9036,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         n_files = getNFiles() - n_old_files;
         Log.d(TAG, "n_files: " + n_files);
         assertEquals(4, n_files);
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         // now again with auto-stabilise angle 0
 
@@ -9556,7 +9054,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         n_files = getNFiles() - n_old_files;
         Log.d(TAG, "n_files: " + n_files);
         assertEquals(5, n_files);
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         mActivity.test_have_angle = false;
     }
@@ -9779,6 +9277,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.putBoolean(PreferenceKeys.ShowZoomControlsPreferenceKey, true);
         editor.apply();
         updateForSettings();
+
         assertEquals(zoomControls.getVisibility(), View.VISIBLE);
 
         Log.d(TAG, "zoom in");
@@ -9828,6 +9327,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.putBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, false);
         editor.apply();
         updateForSettings();
+
         assertEquals(zoomSeekBar.getVisibility(), View.INVISIBLE);
 
         Log.d(TAG, "zoom in");
@@ -10775,10 +10275,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         CameraController.Size old_picture_size = mPreview.getCameraController().getPictureSize();
 
         // open popup
-        assertFalse( mActivity.popupIsOpen() );
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         TextView photoResolutionButton = (TextView)mActivity.getUIButton("PHOTO_RESOLUTIONS");
         assertNotNull(photoResolutionButton);
@@ -10815,10 +10312,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertTrue(mPreview.isVideo());
 
         // open popup
-        assertFalse( mActivity.popupIsOpen() );
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         TextView videoResolutionButton = (TextView)mActivity.getUIButton("VIDEO_RESOLUTIONS");
         assertNotNull(videoResolutionButton);
@@ -11952,152 +11446,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         return bitmap;
     }*/
 
-    /** Converts a path to a Uri for com.android.providers.media.documents.
-     */
-    private Uri getDocumentUri(String filename) throws FileNotFoundException {
-        Log.d(TAG, "getDocumentUri: " + filename);
-
-        // convert from File path format to Storage Access Framework form
-        Uri treeUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3ADCIM%2FtestOpenCamera");
-        Log.d(TAG, "treeUri: " + treeUri);
-        if( !filename.startsWith(images_base_path) ) {
-            Log.e(TAG, "unknown base for: " + filename);
-            throw new FileNotFoundException();
-        }
-        String stem = filename.substring(images_base_path.length());
-        Uri stemUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3ADCIM" + stem.replace("/", "%2F"));
-        Log.d(TAG, "stem: " + stem);
-        Log.d(TAG, "stemUri: " + stemUri);
-        //String docID = "primary:DCIM" + stem;
-        String docID = DocumentsContract.getTreeDocumentId(stemUri);
-        Log.d(TAG, "docID: " + docID);
-        Uri uri = DocumentsContract.buildDocumentUriUsingTree(treeUri, docID);
-
-        if( uri == null ) {
-            throw new FileNotFoundException();
-        }
-        return uri;
+    private Bitmap getBitmapFromFile(String filename) {
+        return TestUtils.getBitmapFromFile(mActivity, filename);
     }
 
-    private Bitmap getBitmapFromFile(String filename) throws FileNotFoundException {
-        return getBitmapFromFile(filename, 1);
-    }
-
-    /** Loads bitmap from supplied filename.
-     *  Note that on Android 10+ (with scoped storage), this uses Storage Access Framework, which
-     *  means Open Camera must have SAF permission to the folder DCIM/testOpenCamera.
-     */
-    private Bitmap getBitmapFromFile(String filename, int inSampleSize) throws FileNotFoundException {
-        Log.d(TAG, "getBitmapFromFile: " + filename);
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inMutable = true;
-        //options.inSampleSize = inSampleSize;
-        if( inSampleSize > 1 ) {
-            // use inDensity for better quality, as inSampleSize uses nearest neighbour
-            // see same code in ImageSaver.setBitmapOptionsSampleSize()
-            options.inDensity = inSampleSize;
-            options.inTargetDensity = 1;
-        }
-
-        Uri uri = null;
-        Bitmap bitmap;
-
-        if( MainActivity.useScopedStorage() ) {
-            uri = getDocumentUri(filename);
-            Log.d(TAG, "uri: " + uri);
-            InputStream is = mActivity.getContentResolver().openInputStream(uri);
-            bitmap = BitmapFactory.decodeStream(is, null, options);
-            try {
-                is.close();
-            }
-            catch(IOException e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            bitmap = BitmapFactory.decodeFile(filename, options);
-        }
-        if( bitmap == null )
-            throw new FileNotFoundException();
-        Log.d(TAG, "    done: " + bitmap);
-
-        // now need to take exif orientation into account, as some devices or camera apps store the orientation in the exif tag,
-        // which getBitmap() doesn't account for
-        ParcelFileDescriptor parcelFileDescriptor = null;
-        FileDescriptor fileDescriptor;
-        try {
-            ExifInterface exif = null;
-            if( uri != null ) {
-                parcelFileDescriptor = mActivity.getContentResolver().openFileDescriptor(uri, "r");
-                if( parcelFileDescriptor != null ) {
-                    fileDescriptor = parcelFileDescriptor.getFileDescriptor();
-                    exif = new ExifInterface(fileDescriptor);
-                }
-            }
-            else {
-                exif = new ExifInterface(filename);
-            }
-            if( exif != null ) {
-                int exif_orientation_s = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
-                boolean needs_tf = false;
-                int exif_orientation = 0;
-                // from http://jpegclub.org/exif_orientation.html
-                // and http://stackoverflow.com/questions/20478765/how-to-get-the-correct-orientation-of-the-image-selected-from-the-default-image
-                if( exif_orientation_s == ExifInterface.ORIENTATION_UNDEFINED || exif_orientation_s == ExifInterface.ORIENTATION_NORMAL ) {
-                    // leave unchanged
-                }
-                else if( exif_orientation_s == ExifInterface.ORIENTATION_ROTATE_180 ) {
-                    needs_tf = true;
-                    exif_orientation = 180;
-                }
-                else if( exif_orientation_s == ExifInterface.ORIENTATION_ROTATE_90 ) {
-                    needs_tf = true;
-                    exif_orientation = 90;
-                }
-                else if( exif_orientation_s == ExifInterface.ORIENTATION_ROTATE_270 ) {
-                    needs_tf = true;
-                    exif_orientation = 270;
-                }
-                else {
-                    // just leave unchanged for now
-                    Log.e(TAG, "    unsupported exif orientation: " + exif_orientation_s);
-                }
-                Log.d(TAG, "    exif orientation: " + exif_orientation);
-
-                if( needs_tf ) {
-                    Log.d(TAG, "    need to rotate bitmap due to exif orientation tag");
-                    Matrix m = new Matrix();
-                    m.setRotate(exif_orientation, bitmap.getWidth() * 0.5f, bitmap.getHeight() * 0.5f);
-                    Bitmap rotated_bitmap = Bitmap.createBitmap(bitmap, 0, 0,bitmap.getWidth(), bitmap.getHeight(), m, true);
-                    if( rotated_bitmap != bitmap ) {
-                        bitmap.recycle();
-                        bitmap = rotated_bitmap;
-                    }
-                }
-            }
-        }
-        catch(IOException e) {
-            e.printStackTrace();
-        }
-        finally {
-            if( parcelFileDescriptor != null ) {
-                try {
-                    parcelFileDescriptor.close();
-                }
-                catch(IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        /*{
-            for(int y=0;y<bitmap.getHeight();y++) {
-                for(int x=0;x<bitmap.getWidth();x++) {
-                    int color = bitmap.getPixel(x, y);
-                    Log.d(TAG, x + "," + y + ": " + Color.red(color) + "," + Color.green(color) + "," + Color.blue(color));
-                }
-            }
-        }*/
-        return bitmap;
+    private Bitmap getBitmapFromFile(String filename, int inSampleSize) {
+        return TestUtils.getBitmapFromFile(mActivity, filename, inSampleSize);
     }
 
     /* Tests restarting a large number of times - can be useful for testing for memory/resource leaks.
@@ -12300,163 +11654,29 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
     }
 
-    private static class HistogramDetails {
-        final int min_value;
-        final int median_value;
-        final int max_value;
-
-        HistogramDetails(int min_value, int median_value, int max_value) {
-            this.min_value = min_value;
-            this.median_value = median_value;
-            this.max_value = max_value;
-        }
+    private TestUtils.HistogramDetails checkHistogram(Bitmap bitmap) {
+        return TestUtils.checkHistogram(mActivity, bitmap);
     }
 
-    /** Checks for the resultant histogram.
-     *  We check that we have a single range of non-zero values.
-     * @param bitmap The bitmap to compute and check a histogram for.
-     */
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private HistogramDetails checkHistogram(Bitmap bitmap) {
-        int [] histogram = mActivity.getApplicationInterface().getHDRProcessor().computeHistogram(bitmap, true);
-        assertEquals(256, histogram.length);
-        int total = 0;
-        for(int i=0;i<histogram.length;i++) {
-            Log.d(TAG, "histogram[" + i + "]: " + histogram[i]);
-            total += histogram[i];
-        }
-        Log.d(TAG, "total: " + total);
-        boolean started = false;
-        int min_value = -1, median_value = -1, max_value = -1;
-        int count = 0;
-        int middle = total/2;
-        for(int i=0;i<histogram.length;i++) {
-            int value = histogram[i];
-            if( !started ) {
-                started = value != 0;
-            }
-            if( value != 0 ) {
-                if( min_value == -1 )
-                    min_value = i;
-                max_value = i;
-                count += value;
-                if( count >= middle && median_value == -1 )
-                    median_value = i;
-            }
-        }
-        Log.d(TAG, "min_value: " + min_value);
-        Log.d(TAG, "median_value: " + median_value);
-        Log.d(TAG, "max_value: " + max_value);
-        return new HistogramDetails(min_value, median_value, max_value);
+    private TestUtils.HistogramDetails subTestHDR(List<Bitmap> inputs, String output_name, boolean test_dro, int iso, long exposure_time) {
+        return TestUtils.subTestHDR(mActivity, inputs, output_name, test_dro, iso, exposure_time);
     }
 
-    private HistogramDetails subTestHDR(List<Bitmap> inputs, String output_name, boolean test_dro, int iso, long exposure_time) throws IOException, InterruptedException {
-        return subTestHDR(inputs, output_name, test_dro, iso, exposure_time, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD);
-    }
-
-    /** The following testHDRX tests test the HDR algorithm on a given set of input images.
-     *  By testing on a fixed sample, this makes it easier to finetune the HDR algorithm for quality and performance.
-     *  To use these tests, the testdata/ subfolder should be manually copied to the test device in the DCIM/testOpenCamera/
-     *  folder (so you have DCIM/testOpenCamera/testdata/). We don't use assets/ as we'd end up with huge APK sizes which takes
-     *  time to transfer to the device everytime we run the tests.
-     * @param iso The ISO of the middle image (for testing Open Camera's "smart" contrast enhancement). If set to -1, then use "always" contrast enhancement.
-     * @param exposure_time The exposure time of the middle image (for testing Open Camera's "smart" contrast enhancement)
-     */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private HistogramDetails subTestHDR(List<Bitmap> inputs, String output_name, boolean test_dro, int iso, long exposure_time, HDRProcessor.TonemappingAlgorithm tonemapping_algorithm) throws IOException, InterruptedException {
-        Log.d(TAG, "subTestHDR");
-
-        if( Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ) {
-            Log.d(TAG, "renderscript requires Android Lollipop or better");
-            return null;
-        }
-
-        Thread.sleep(1000); // wait for camera to open
-
-        Bitmap dro_bitmap_in = null;
-        if( test_dro ) {
-            // save copy of input bitmap to also test DRO (since the HDR routine will free the inputs)
-            int mid = (inputs.size()-1)/2;
-            dro_bitmap_in = inputs.get(mid);
-            dro_bitmap_in = dro_bitmap_in.copy(dro_bitmap_in.getConfig(), true);
-        }
-
-        HistogramDetails hdrHistogramDetails = null;
-        if( inputs.size() > 1 ) {
-            String preference_hdr_contrast_enhancement = (iso==-1) ? "preference_hdr_contrast_enhancement_always" : "preference_hdr_contrast_enhancement_smart";
-    		float hdr_alpha = ImageSaver.getHDRAlpha(preference_hdr_contrast_enhancement, exposure_time, inputs.size());
-            long time_s = System.currentTimeMillis();
-            try {
-                mActivity.getApplicationInterface().getHDRProcessor().processHDR(inputs, true, null, true, null, hdr_alpha, 4, true, tonemapping_algorithm, HDRProcessor.DROTonemappingAlgorithm.DROALGORITHM_GAINGAMMA);
-            }
-            catch(HDRProcessorException e) {
-                e.printStackTrace();
-                throw new RuntimeException();
-            }
-            Log.d(TAG, "HDR time: " + (System.currentTimeMillis() - time_s));
-
-            saveBitmap(inputs.get(0), output_name);
-            hdrHistogramDetails = checkHistogram(inputs.get(0));
-        }
-        inputs.get(0).recycle();
-        inputs.clear();
-
-        if( test_dro ) {
-            inputs.add(dro_bitmap_in);
-            long time_s = System.currentTimeMillis();
-            try {
-                mActivity.getApplicationInterface().getHDRProcessor().processHDR(inputs, true, null, true, null, 0.5f, 4, true, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD, HDRProcessor.DROTonemappingAlgorithm.DROALGORITHM_GAINGAMMA);
-            }
-            catch(HDRProcessorException e) {
-                e.printStackTrace();
-                throw new RuntimeException();
-            }
-            Log.d(TAG, "DRO time: " + (System.currentTimeMillis() - time_s));
-
-            saveBitmap(inputs.get(0), "dro" + output_name);
-            checkHistogram(inputs.get(0));
-            inputs.get(0).recycle();
-            inputs.clear();
-        }
-        Thread.sleep(500);
-
-        return hdrHistogramDetails;
+    private TestUtils.HistogramDetails subTestHDR(List<Bitmap> inputs, String output_name, boolean test_dro, int iso, long exposure_time, HDRProcessor.TonemappingAlgorithm tonemapping_algorithm/*, HDRTestCallback test_callback*/) {
+        return TestUtils.subTestHDR(mActivity, inputs, output_name, test_dro, iso, exposure_time, tonemapping_algorithm);
     }
 
     private void checkHDROffsets(int [] exp_offsets_x, int [] exp_offsets_y) {
-        checkHDROffsets(exp_offsets_x, exp_offsets_y, 1);
+        TestUtils.checkHDROffsets(mActivity, exp_offsets_x, exp_offsets_y);
     }
 
-    /** Checks that the HDR offsets used for auto-alignment are as expected.
-     */
     private void checkHDROffsets(int [] exp_offsets_x, int [] exp_offsets_y, int scale) {
-        int [] offsets_x = mActivity.getApplicationInterface().getHDRProcessor().offsets_x;
-        int [] offsets_y = mActivity.getApplicationInterface().getHDRProcessor().offsets_y;
-        for(int i=0;i<offsets_x.length;i++) {
-            Log.d(TAG, "offsets " + i + " ( " + offsets_x[i]*scale + " , " + offsets_y[i]*scale + " ), expected ( " + exp_offsets_x[i] + " , " + exp_offsets_y[i] + " )");
-            // we allow some tolerance as different devices can produce different results (e.g., Nexus 6 vs OnePlus 3T; see testHDR5 on Nexus 6)
-            assertTrue(Math.abs(offsets_x[i]*scale - exp_offsets_x[i]) <= 1);
-            assertTrue(Math.abs(offsets_y[i]*scale - exp_offsets_y[i]) <= 1);
-        }
+        TestUtils.checkHDROffsets(mActivity, exp_offsets_x, exp_offsets_y, scale);
     }
 
-    private void checkHistogramDetails(HistogramDetails hdrHistogramDetails, int exp_min_value, int exp_median_value, int exp_max_value) {
-        Log.d(TAG, "checkHistogramDetails");
-        Log.d(TAG, "compare min value " + hdrHistogramDetails.min_value + " to expected " + exp_min_value);
-        Log.d(TAG, "compare median value " + hdrHistogramDetails.median_value + " to expected " + exp_median_value);
-        Log.d(TAG, "compare max value " + hdrHistogramDetails.max_value + " to expected " + exp_max_value);
-        // we allow some tolerance as different devices can produce different results (e.g., Nexus 6 vs OnePlus 3T; see testHDR18 on Nexus 6 which needs a tolerance of 2)
-        // interestingly it's testHDR18 that also needs a higher tolerance for Nokia 8 vs Galaxy S10e
-        assertTrue(Math.abs(exp_min_value - hdrHistogramDetails.min_value) <= 3);
-        assertTrue(Math.abs(exp_median_value - hdrHistogramDetails.median_value) <= 3);
-        assertTrue(Math.abs(exp_max_value - hdrHistogramDetails.max_value) <= 3);
+    private static void checkHistogramDetails(TestUtils.HistogramDetails hdrHistogramDetails, int exp_min_value, int exp_median_value, int exp_max_value) {
+        TestUtils.checkHistogramDetails(hdrHistogramDetails, exp_min_value, exp_median_value, exp_max_value);
     }
-
-    final private String images_base_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath();
-    final private String hdr_images_path = images_base_path + "/testOpenCamera/testdata/hdrsamples/";
-    final private String avg_images_path = images_base_path + "/testOpenCamera/testdata/avgsamples/";
-    final private String logprofile_images_path = images_base_path + "/testOpenCamera/testdata/logprofilesamples/";
-    final private String panorama_images_path = images_base_path + "/testOpenCamera/testdata/panoramasamples/";
 
     /** Tests HDR algorithm on test samples "saintpaul".
      */
@@ -12467,12 +11687,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "saintpaul/input2.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "saintpaul/input3.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "saintpaul/input4.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "saintpaul/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "saintpaul/input3.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "saintpaul/input4.jpg") );
 
         // actual ISO unknown, so guessing
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR1_output.jpg", false, 1600, 1000000000L);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR1_output.jpg", false, 1600, 1000000000L);
 
         int [] exp_offsets_x = {0, 0, 0};
         int [] exp_offsets_y = {0, 0, 0};
@@ -12494,13 +11714,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "saintpaul/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "saintpaul/input2.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "saintpaul/input3.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "saintpaul/input4.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "saintpaul/input5.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "saintpaul/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "saintpaul/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "saintpaul/input3.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "saintpaul/input4.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "saintpaul/input5.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR1_exp5_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR1_exp5_output.jpg", false, -1, -1);
 
         int [] exp_offsets_x = {0, 0, 0, 0, 0};
         int [] exp_offsets_y = {0, 0, 0, 0, 0};
@@ -12519,9 +11739,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "stlouis/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "stlouis/input2.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "stlouis/input3.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "stlouis/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "stlouis/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "stlouis/input3.jpg") );
 
         // actual ISO unknown, so guessing
         subTestHDR(inputs, "testHDR2_output.jpg", false, 1600, (long)(1000000000L*2.5));
@@ -12540,11 +11760,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR3/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR3/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR3/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR3/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR3/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR3/input2.jpg") );
         
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR3_output.jpg", false, 40, 1000000000L/680);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR3_output.jpg", false, 40, 1000000000L/680);
 
         int [] exp_offsets_x = {0, 0, 0};
         int [] exp_offsets_y = {1, 0, -1};
@@ -12564,9 +11784,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR4/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR4/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR4/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR4/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR4/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR4/input2.jpg") );
         
         subTestHDR(inputs, "testHDR4_output.jpg", true, 102, 1000000000L/60);
 
@@ -12584,9 +11804,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR5/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR5/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR5/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR5/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR5/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR5/input2.jpg") );
         
         subTestHDR(inputs, "testHDR5_output.jpg", false, 40, 1000000000L/398);
 
@@ -12608,9 +11828,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR6/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR6/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR6/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR6/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR6/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR6/input2.jpg") );
         
         subTestHDR(inputs, "testHDR6_output.jpg", false, 40, 1000000000L/2458);
 
@@ -12628,9 +11848,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR7/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR7/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR7/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR7/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR7/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR7/input2.jpg") );
         
         subTestHDR(inputs, "testHDR7_output.jpg", false, 40, 1000000000L/538);
 
@@ -12648,9 +11868,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR8/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR8/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR8/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR8/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR8/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR8/input2.jpg") );
         
         subTestHDR(inputs, "testHDR8_output.jpg", false, 40, 1000000000L/148);
 
@@ -12668,9 +11888,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR9/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR9/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR9/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR9/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR9/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR9/input2.jpg") );
         
         subTestHDR(inputs, "testHDR9_output.jpg", false, 40, 1000000000L/1313);
 
@@ -12688,9 +11908,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR10/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR10/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR10/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR10/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR10/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR10/input2.jpg") );
         
         subTestHDR(inputs, "testHDR10_output.jpg", false, 107, 1000000000L/120);
 
@@ -12708,11 +11928,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR11/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR11/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR11/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR11/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR11/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR11/input2.jpg") );
         
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR11_output.jpg", true, 40, 1000000000L/2662);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR11_output.jpg", true, 40, 1000000000L/2662);
 
         int [] exp_offsets_x = {-2, 0, 1};
         int [] exp_offsets_y = {1, 0, -1};
@@ -12732,9 +11952,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR12/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR12/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR12/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR12/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR12/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR12/input2.jpg") );
         
         subTestHDR(inputs, "testHDR12_output.jpg", true, 1196, 1000000000L/12);
 
@@ -12752,9 +11972,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR13/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR13/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR13/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR13/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR13/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR13/input2.jpg") );
         
         subTestHDR(inputs, "testHDR13_output.jpg", false, 323, 1000000000L/24);
 
@@ -12772,9 +11992,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR14/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR14/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR14/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR14/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR14/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR14/input2.jpg") );
         
         subTestHDR(inputs, "testHDR14_output.jpg", false, 40, 1000000000L/1229);
 
@@ -12792,9 +12012,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR15/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR15/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR15/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR15/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR15/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR15/input2.jpg") );
         
         subTestHDR(inputs, "testHDR15_output.jpg", false, 40, 1000000000L/767);
 
@@ -12812,9 +12032,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR16/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR16/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR16/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR16/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR16/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR16/input2.jpg") );
         
         subTestHDR(inputs, "testHDR16_output.jpg", false, 52, 1000000000L/120);
 
@@ -12832,9 +12052,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR17/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR17/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR17/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR17/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR17/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR17/input2.jpg") );
         
         subTestHDR(inputs, "testHDR17_output.jpg", true, 557, 1000000000L/12);
 
@@ -12856,11 +12076,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR18/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR18/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR18/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR18/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR18/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR18/input2.jpg") );
         
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR18_output.jpg", true, 100, 1000000000L/800);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR18_output.jpg", true, 100, 1000000000L/800);
 
         int [] exp_offsets_x = {0, 0, 0};
         int [] exp_offsets_y = {0, 0, 0};
@@ -12881,9 +12101,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR19/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR19/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR19/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR19/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR19/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR19/input2.jpg") );
         
         subTestHDR(inputs, "testHDR19_output.jpg", true, 100, 1000000000L/160);
 
@@ -12901,9 +12121,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR20/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR20/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR20/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR20/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR20/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR20/input2.jpg") );
         
         subTestHDR(inputs, "testHDR20_output.jpg", true, 100, 1000000000L*2);
 
@@ -12921,9 +12141,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR21/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR21/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR21/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR21/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR21/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR21/input2.jpg") );
 
         // ISO and exposure unknown, so guessing
         subTestHDR(inputs, "testHDR21_output.jpg", true, 800, 1000000000L/12);
@@ -12942,9 +12162,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR22/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR22/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR22/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR22/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR22/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR22/input2.jpg") );
         
         subTestHDR(inputs, "testHDR22_output.jpg", true, 391, 1000000000L/12);
 
@@ -12966,10 +12186,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0068.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0064.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0068.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0064.png") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp2_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp2_output.jpg", false, -1, -1);
 
         int [] exp_offsets_x = {0, 0};
         int [] exp_offsets_y = {0, 0};
@@ -12988,10 +12208,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0070.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0062.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0070.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0062.png") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp2b_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp2b_output.jpg", false, -1, -1);
 
         int [] exp_offsets_x = {0, 0};
         int [] exp_offsets_y = {0, 0};
@@ -13007,12 +12227,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0068.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0066.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0064.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0068.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0066.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0064.png") );
 
         // ISO unknown, so guessing
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_output.jpg", false, 1600, 1000000000L);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_output.jpg", false, 1600, 1000000000L);
 
         int [] exp_offsets_x = {0, 0, 0};
         int [] exp_offsets_y = {0, 0, 0};
@@ -13032,12 +12252,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0070.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0068.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0064.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0062.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0070.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0068.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0064.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0062.png") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp4_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp4_output.jpg", false, -1, -1);
 
         int [] exp_offsets_x = {0, 0, 0, 0};
         int [] exp_offsets_y = {0, 0, 0, 0};
@@ -13056,13 +12276,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0070.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0068.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0066.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0064.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0062.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0070.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0068.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0066.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0064.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0062.png") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp5_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp5_output.jpg", false, -1, -1);
 
         int [] exp_offsets_x = {0, 0, 0, 0, 0};
         int [] exp_offsets_y = {0, 0, 0, 0, 0};
@@ -13082,14 +12302,14 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0072.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0070.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0068.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0064.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0062.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0061.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0072.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0070.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0068.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0064.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0062.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0061.png") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp6_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp6_output.jpg", false, -1, -1);
 
         int [] exp_offsets_x = {0, 0, 0, 0, 0, 0};
         int [] exp_offsets_y = {0, 0, 0, 0, 0, 0};
@@ -13108,15 +12328,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0072.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0070.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0068.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0066.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0064.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0062.png") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR23/memorial0061.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0072.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0070.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0068.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0066.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0064.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0062.png") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR23/memorial0061.png") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp7_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR23_exp7_output.jpg", false, -1, -1);
 
         int [] exp_offsets_x = {0, 0, 0, 0, 0, 0, 0};
         int [] exp_offsets_y = {0, 0, 0, 0, 0, 0, 0};
@@ -13136,9 +12356,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR24/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR24/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR24/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR24/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR24/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR24/input2.jpg") );
         
         subTestHDR(inputs, "testHDR24_output.jpg", true, 40, 1000000000L/422);
 
@@ -13156,9 +12376,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR25/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR25/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR25/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR25/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR25/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR25/input2.jpg") );
         
         subTestHDR(inputs, "testHDR25_output.jpg", true, 40, 1000000000L/1917);
 
@@ -13176,11 +12396,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR26/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR26/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR26/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR26/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR26/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR26/input2.jpg") );
         
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR26_output.jpg", true, 40, 1000000000L/5325);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR26_output.jpg", true, 40, 1000000000L/5325);
 
         int [] exp_offsets_x = {-1, 0, 1};
         int [] exp_offsets_y = {1, 0, -1};
@@ -13199,9 +12419,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR27/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR27/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR27/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR27/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR27/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR27/input2.jpg") );
         
         subTestHDR(inputs, "testHDR27_output.jpg", true, 40, 1000000000L/949);
 
@@ -13219,9 +12439,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR28/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR28/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR28/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR28/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR28/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR28/input2.jpg") );
         
         subTestHDR(inputs, "testHDR28_output.jpg", true, 294, 1000000000L/20);
 
@@ -13239,9 +12459,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR29/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR29/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR29/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR29/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR29/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR29/input2.jpg") );
         
         subTestHDR(inputs, "testHDR29_output.jpg", false, 40, 1000000000L/978);
 
@@ -13259,9 +12479,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR30/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR30/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR30/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR30/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR30/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR30/input2.jpg") );
 
         subTestHDR(inputs, "testHDR30_output.jpg", false, 40, 1000000000L/978);
 
@@ -13283,9 +12503,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR31/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR31/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR31/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR31/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR31/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR31/input2.jpg") );
 
         subTestHDR(inputs, "testHDR31_output.jpg", false, 40, 1000000000L/422);
 
@@ -13307,11 +12527,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR32/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR32/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR32/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR32/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR32/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR32/input2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR32_output.jpg", true, 40, 1000000000L/1331);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR32_output.jpg", true, 40, 1000000000L/1331);
 
         int [] exp_offsets_x = {1, 0, 0};
         int [] exp_offsets_y = {13, 0, -10};
@@ -13332,9 +12552,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR33/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR33/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR33/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR33/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR33/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR33/input2.jpg") );
 
         subTestHDR(inputs, "testHDR33_output.jpg", true, 40, 1000000000L/354);
 
@@ -13352,9 +12572,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR34/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR34/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR34/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR34/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR34/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR34/input2.jpg") );
 
         subTestHDR(inputs, "testHDR34_output.jpg", true, 40, 1000000000L/4792);
 
@@ -13372,9 +12592,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR35/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR35/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR35/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR35/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR35/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR35/input2.jpg") );
 
         subTestHDR(inputs, "testHDR35_output.jpg", true, 40, 1000000000L/792);
 
@@ -13392,9 +12612,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR36/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR36/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR36/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR36/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR36/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR36/input2.jpg") );
 
         subTestHDR(inputs, "testHDR36_output.jpg", false, 100, 1000000000L/1148);
 
@@ -13412,9 +12632,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR37/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR37/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR37/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR37/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR37/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR37/input2.jpg") );
 
         subTestHDR(inputs, "testHDR37_output.jpg", false, 46, 1000000000L/120);
 
@@ -13433,11 +12653,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR38/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR38/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR38/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR38/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR38/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR38/input2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR38_filmic_output.jpg", false, 125, 1000000000L/2965, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_FILMIC);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR38_filmic_output.jpg", false, 125, 1000000000L/2965, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_FU2);
 
         int [] exp_offsets_x = {-1, 0, 0};
         int [] exp_offsets_y = {0, 0, 0};
@@ -13456,11 +12676,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR39/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR39/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR39/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR39/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR39/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR39/input2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR39_output.jpg", false, 125, 1000000000L/2135);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR39_output.jpg", false, 125, 1000000000L/2135);
 
         int [] exp_offsets_x = {-6, 0, -2};
         int [] exp_offsets_y = {6, 0, -8};
@@ -13478,11 +12698,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR40/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR40/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR40/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR40/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR40/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR40/input2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR40_output.jpg", false, 50, 1000000000L/262);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR40_output.jpg", false, 50, 1000000000L/262);
 
         int [] exp_offsets_x = {5, 0, -2};
         int [] exp_offsets_y = {13, 0, 24};
@@ -13500,11 +12720,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR40/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR40/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR40/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR40/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR40/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR40/input2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR40_exponential_output.jpg", false, 50, 1000000000L/262, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_EXPONENTIAL);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR40_exponential_output.jpg", false, 50, 1000000000L/262, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_EXPONENTIAL);
 
         int [] exp_offsets_x = {5, 0, -2};
         int [] exp_offsets_y = {13, 0, 24};
@@ -13522,11 +12742,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR40/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR40/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR40/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR40/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR40/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR40/input2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR40_filmic_output.jpg", false, 50, 1000000000L/262, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_FILMIC);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR40_filmic_output.jpg", false, 50, 1000000000L/262, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_FU2);
 
         int [] exp_offsets_x = {5, 0, -2};
         int [] exp_offsets_y = {13, 0, 24};
@@ -13544,9 +12764,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR41/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR41/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR41/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR41/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR41/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR41/input2.jpg") );
 
         subTestHDR(inputs, "testHDR41_output.jpg", false, 925, 1000000000L/25);
     }
@@ -13560,9 +12780,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR42/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR42/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR42/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR42/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR42/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR42/input2.jpg") );
 
         subTestHDR(inputs, "testHDR42_output.jpg", false, 112, 1000000000L/679);
     }
@@ -13576,9 +12796,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR43/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR43/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR43/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR43/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR43/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR43/input2.jpg") );
 
         subTestHDR(inputs, "testHDR43_output.jpg", false, 1196, 1000000000L/12);
     }
@@ -13592,9 +12812,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR44/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR44/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR44/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR44/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR44/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR44/input2.jpg") );
 
         subTestHDR(inputs, "testHDR44_output.jpg", false, 100, 1000000000L/1016);
     }
@@ -13608,13 +12828,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6314.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6312.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6310.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6309.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6311.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6313.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6315.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6314.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6312.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6310.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6309.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6311.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6313.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6315.jpg") );
 
         // ISO 100, exposure time 2s, but pass in -1 since these are HDRNTests
         subTestHDR(inputs, "testHDR45_output.jpg", false, -1, -1);
@@ -13629,15 +12849,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6314.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6312.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6310.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6309.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6311.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6313.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6315.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6314.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6312.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6310.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6309.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6311.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6313.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6315.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR45_exp5_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR45_exp5_output.jpg", false, -1, -1);
     }
 
     /** Tests HDR algorithm on test samples "testHDR45".
@@ -13649,15 +12869,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6314.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6312.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6310.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6309.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6311.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6313.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR45/IMG_6315.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6314.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6312.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6310.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6309.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6311.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6313.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR45/IMG_6315.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR45_exp7_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR45_exp7_output.jpg", false, -1, -1);
     }
 
     /** Tests HDR algorithm on test samples "testHDR46".
@@ -13669,12 +12889,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 06.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 05.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 04.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 03.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 02.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 01.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 06.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 05.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 04.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 03.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 02.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 01.jpg") );
 
         // ISO 100, exposure time 1/60s, but pass in -1 since these are HDRNTests
         subTestHDR(inputs, "testHDR46_output.jpg", false, -1, -1);
@@ -13689,14 +12909,14 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 06.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 05.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 04.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 03.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 02.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR46/Izmir Harbor - ppw - 01.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 06.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 05.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 04.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 03.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 02.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR46/Izmir Harbor - ppw - 01.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR46_exp5_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR46_exp5_output.jpg", false, -1, -1);
     }
 
     /** Tests HDR algorithm on test samples "testHDR47".
@@ -13709,8 +12929,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
 
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 05.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 03.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 05.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 03.jpg") );
 
         subTestHDR(inputs, "testHDR47_exp2_output.jpg", false, -1, -1);
     }
@@ -13725,14 +12945,14 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
 
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 08.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 07.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 06.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 05.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 04.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 03.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 02.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 01.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 08.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 07.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 06.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 05.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 04.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 03.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 02.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 01.jpg") );
 
         // ISO 400, exposure time 1/60s, but pass in -1 since these are HDRNTests
         subTestHDR(inputs, "testHDR47_output.jpg", false, -1, -1);
@@ -13747,16 +12967,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 08.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 07.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 06.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 05.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 04.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 03.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 02.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 01.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 08.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 07.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 06.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 05.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 04.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 03.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 02.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 01.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR47_exp5_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR47_exp5_output.jpg", false, -1, -1);
 
         checkHistogramDetails(hdrHistogramDetails, 1, 73, 255);
     }
@@ -13770,16 +12990,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 08.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 07.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 06.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 05.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 04.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 03.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 02.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR47/High Five - ppw - 01.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 08.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 07.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 06.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 05.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 04.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 03.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 02.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR47/High Five - ppw - 01.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR47_exp7_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR47_exp7_output.jpg", false, -1, -1);
 
         checkHistogramDetails(hdrHistogramDetails, 1, 73, 255);
     }
@@ -13794,11 +13014,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
 
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR48/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR48/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR48/input2.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR48/input3.jpg") );
-        //inputs.add( getBitmapFromFile(hdr_images_path + "testHDR48/input4.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR48/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR48/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR48/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR48/input3.jpg") );
+        //inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR48/input4.jpg") );
 
         // ISO 100, exposure time 1/716s, but pass in -1 since these are HDRNTests
         subTestHDR(inputs, "testHDR48_output.jpg", false, -1, -1);
@@ -13814,13 +13034,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
 
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR48/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR48/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR48/input2.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR48/input3.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR48/input4.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR48/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR48/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR48/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR48/input3.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR48/input4.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR48_exp5_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR48_exp5_output.jpg", false, -1, -1);
 
         checkHistogramDetails(hdrHistogramDetails, 0, 59, 241);
     }
@@ -13834,10 +13054,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input3.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input3.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR49_exp2_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR49_exp2_output.jpg", false, -1, -1);
 
         checkHistogramDetails(hdrHistogramDetails, 0, 92, 250);
     }
@@ -13851,12 +13071,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input2.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input3.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input3.jpg") );
 
         // ISO 100, exposure time 1/417s, but pass in -1 since these are HDRNTests
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR49_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR49_output.jpg", false, -1, -1);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
         checkHistogramDetails(hdrHistogramDetails, 0, 81, 254);
@@ -13871,12 +13091,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input3.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input4.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input3.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input4.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR49_exp4_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR49_exp4_output.jpg", false, -1, -1);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 100, 245);
         checkHistogramDetails(hdrHistogramDetails, 0, 94, 244);
@@ -13891,13 +13111,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input2.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input3.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR49/input4.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input3.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR49/input4.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR49_exp5_output.jpg", false, -1, -1);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR49_exp5_output.jpg", false, -1, -1);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 72, 244);
         checkHistogramDetails(hdrHistogramDetails, 0, 78, 243);
@@ -13912,11 +13132,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR50/IMG_20180626_221357_0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR50/IMG_20180626_221357_1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR50/IMG_20180626_221357_2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR50/IMG_20180626_221357_0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR50/IMG_20180626_221357_1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR50/IMG_20180626_221357_2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR50_output.jpg", false, 867, 1000000000L/14);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR50_output.jpg", false, 867, 1000000000L/14);
 
         checkHistogramDetails(hdrHistogramDetails, 0, 69, 255);
     }
@@ -13930,11 +13150,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR51/IMG_20180323_104702_0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR51/IMG_20180323_104702_1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR51/IMG_20180323_104702_2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR51/IMG_20180323_104702_0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR51/IMG_20180323_104702_1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR51/IMG_20180323_104702_2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR51_output.jpg", true, 1600, 1000000000L/11);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR51_output.jpg", true, 1600, 1000000000L/11);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
     }
@@ -13948,11 +13168,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR52/IMG_20181023_143633_EXP0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR52/IMG_20181023_143633_EXP1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR52/IMG_20181023_143633_EXP2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR52/IMG_20181023_143633_EXP0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR52/IMG_20181023_143633_EXP1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR52/IMG_20181023_143633_EXP2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR52_output.jpg", false, 100, 1000000000L/2105);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR52_output.jpg", false, 100, 1000000000L/2105);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
     }
@@ -13966,11 +13186,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR53/IMG_20181106_135411_EXP0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR53/IMG_20181106_135411_EXP1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR53/IMG_20181106_135411_EXP2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR53/IMG_20181106_135411_EXP0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR53/IMG_20181106_135411_EXP1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR53/IMG_20181106_135411_EXP2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR53_output.jpg", false, 103, 1000000000L/5381);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR53_output.jpg", false, 103, 1000000000L/5381);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 55, 254);
         checkHistogramDetails(hdrHistogramDetails, 0, 64, 255);
@@ -13985,11 +13205,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR54/IMG_20181107_115508_EXP0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR54/IMG_20181107_115508_EXP1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR54/IMG_20181107_115508_EXP2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR54/IMG_20181107_115508_EXP0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR54/IMG_20181107_115508_EXP1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR54/IMG_20181107_115508_EXP2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR54_output.jpg", false, 752, 1000000000L/14);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR54_output.jpg", false, 752, 1000000000L/14);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
     }
@@ -14003,11 +13223,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR55/IMG_20181107_115608_EXP0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR55/IMG_20181107_115608_EXP1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR55/IMG_20181107_115608_EXP2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR55/IMG_20181107_115608_EXP0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR55/IMG_20181107_115608_EXP1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR55/IMG_20181107_115608_EXP2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR55_output.jpg", false, 1505, 1000000000L/10);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR55_output.jpg", false, 1505, 1000000000L/10);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
     }
@@ -14021,11 +13241,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR56/180502_141722_OC_0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR56/180502_141722_OC_1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR56/180502_141722_OC_2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR56/180502_141722_OC_0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR56/180502_141722_OC_1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR56/180502_141722_OC_2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR56_output.jpg", false, 50, 1000000000L/40);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR56_output.jpg", false, 50, 1000000000L/40);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
     }
@@ -14039,11 +13259,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR57/IMG_20181119_145313_EXP0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR57/IMG_20181119_145313_EXP1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR57/IMG_20181119_145313_EXP2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR57/IMG_20181119_145313_EXP0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR57/IMG_20181119_145313_EXP1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR57/IMG_20181119_145313_EXP2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR57_output.jpg", true, 100, 1000000000L/204);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR57_output.jpg", true, 100, 1000000000L/204);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
     }
@@ -14057,11 +13277,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR58/IMG_20190911_210146_0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR58/IMG_20190911_210146_1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR58/IMG_20190911_210146_2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR58/IMG_20190911_210146_0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR58/IMG_20190911_210146_1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR58/IMG_20190911_210146_2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR58_output.jpg", false, 1250, 1000000000L/10);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR58_output.jpg", false, 1250, 1000000000L/10);
         //HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR58_output.jpg", false, 1250, 1000000000L/10, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_CLAMP);
 
         checkHistogramDetails(hdrHistogramDetails, 11, 119, 255);
@@ -14076,11 +13296,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR59/IMG_20190911_210154_0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR59/IMG_20190911_210154_1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR59/IMG_20190911_210154_2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR59/IMG_20190911_210154_0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR59/IMG_20190911_210154_1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR59/IMG_20190911_210154_2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR59_output.jpg", false, 1250, 1000000000L/10);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR59_output.jpg", false, 1250, 1000000000L/10);
         //HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR59_output.jpg", false, 1250, 1000000000L/10, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_CLAMP);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
@@ -14095,11 +13315,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR60/IMG_20200507_020319_0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR60/IMG_20200507_020319_1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR60/IMG_20200507_020319_2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR60/IMG_20200507_020319_0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR60/IMG_20200507_020319_1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR60/IMG_20200507_020319_2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR60_output.jpg", false, 491, 1000000000L/10);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR60_output.jpg", false, 491, 1000000000L/10);
         //HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR60_output.jpg", false, 491, 1000000000L/10, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_CLAMP);
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
@@ -14114,11 +13334,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR61/IMG_20191111_145230_0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR61/IMG_20191111_145230_1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDR61/IMG_20191111_145230_2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR61/IMG_20191111_145230_0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR61/IMG_20191111_145230_1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDR61/IMG_20191111_145230_2.jpg") );
 
-        HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR61_output.jpg", false, 50, 1000000000L/5025);
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestHDR(inputs, "testHDR61_output.jpg", false, 50, 1000000000L/5025);
 
         checkHistogramDetails(hdrHistogramDetails, 0, 86, 254);
 
@@ -14138,9 +13358,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDRtemp/input0.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDRtemp/input1.jpg") );
-        inputs.add( getBitmapFromFile(hdr_images_path + "testHDRtemp/input2.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDRtemp/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDRtemp/input1.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.hdr_images_path + "testHDRtemp/input2.jpg") );
         
         subTestHDR(inputs, "testHDRtemp_output.jpg", true, 100, 1000000000L/100);
     }
@@ -14155,7 +13375,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(avg_images_path + "testAvg3/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.avg_images_path + "testAvg3/input0.jpg") );
 
         subTestHDR(inputs, "testDRODark0_output.jpg", true, -1, -1);
     }
@@ -14170,7 +13390,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<Bitmap> inputs = new ArrayList<>();
-        inputs.add( getBitmapFromFile(avg_images_path + "testAvg8/input0.jpg") );
+        inputs.add( getBitmapFromFile(TestUtils.avg_images_path + "testAvg8/input0.jpg") );
 
         subTestHDR(inputs, "testDRODark1_output.jpg", true, -1, -1);
     }
@@ -14188,7 +13408,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         setToDefault();
 
-        Bitmap bitmap = getBitmapFromFile(hdr_images_path + "testHDR3/input1.jpg");
+        Bitmap bitmap = getBitmapFromFile(TestUtils.hdr_images_path + "testHDR3/input1.jpg");
         Bitmap bitmap_saved = bitmap.copy(bitmap.getConfig(), false);
 
         Thread.sleep(1000); // wait for camera to open
@@ -14234,118 +13454,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
     }
 
-    private interface TestAvgCallback {
-        void doneProcessAvg(int index); // called after every call to HDRProcessor.processAvg()
-    }
-
-    /** The following testAvgX tests test the Avg noise reduction algorithm on a given set of input images.
-     *  By testing on a fixed sample, this makes it easier to finetune the algorithm for quality and performance.
-     *  To use these tests, the testdata/ subfolder should be manually copied to the test device in the DCIM/testOpenCamera/
-     *  folder (so you have DCIM/testOpenCamera/testdata/). We don't use assets/ as we'd end up with huge APK sizes which takes
-     *  time to transfer to the device everytime we run the tests.
-     */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private HistogramDetails subTestAvg(List<String> inputs, String output_name, int iso, long exposure_time, float zoom_factor, TestAvgCallback cb) throws IOException, InterruptedException {
-        Log.d(TAG, "subTestAvg");
-
-        if( Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ) {
-            Log.d(TAG, "renderscript requires Android Lollipop or better");
-            return null;
-        }
-
-        Thread.sleep(1000); // wait for camera to open
-
-        /*Bitmap nr_bitmap = getBitmapFromFile(inputs.get(0));
-        long time_s = System.currentTimeMillis();
-        try {
-            for(int i=1;i<inputs.size();i++) {
-                Log.d(TAG, "processAvg for image: " + i);
-                Bitmap new_bitmap = getBitmapFromFile(inputs.get(i));
-                float avg_factor = (float)i;
-                mActivity.getApplicationInterface().getHDRProcessor().processAvg(nr_bitmap, new_bitmap, avg_factor, true);
-                // processAvg recycles new_bitmap
-                if( cb != null ) {
-                    cb.doneProcessAvg(i);
-                }
-                //break; // test
-            }
-            //mActivity.getApplicationInterface().getHDRProcessor().processAvgMulti(inputs, hdr_strength, 4);
-        }
-        catch(HDRProcessorException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-        Log.d(TAG, "Avg time: " + (System.currentTimeMillis() - time_s));
-
-        {
-            mActivity.getApplicationInterface().getHDRProcessor().avgBrighten(nr_bitmap);
-            Log.d(TAG, "time after brighten: " + (System.currentTimeMillis() - time_s));
-        }*/
-
-        Bitmap nr_bitmap;
-        try {
-            // initialise allocation from first two bitmaps
-            //int inSampleSize = mActivity.getApplicationInterface().getHDRProcessor().getAvgSampleSize(inputs.size());
-            int inSampleSize = mActivity.getApplicationInterface().getHDRProcessor().getAvgSampleSize(iso, exposure_time);
-            Bitmap bitmap0 = getBitmapFromFile(inputs.get(0), inSampleSize);
-            Bitmap bitmap1 = getBitmapFromFile(inputs.get(1), inSampleSize);
-            int width = bitmap0.getWidth();
-            int height = bitmap0.getHeight();
-
-            float avg_factor = 1.0f;
-            List<Long> times = new ArrayList<>();
-            long time_s = System.currentTimeMillis();
-            HDRProcessor.AvgData avg_data = mActivity.getApplicationInterface().getHDRProcessor().processAvg(bitmap0, bitmap1, avg_factor, iso, exposure_time, zoom_factor);
-            Allocation allocation = avg_data.allocation_out;
-            times.add(System.currentTimeMillis() - time_s);
-            // processAvg recycles both bitmaps
-            if( cb != null ) {
-                cb.doneProcessAvg(1);
-            }
-
-            for(int i=2;i<inputs.size();i++) {
-                Log.d(TAG, "processAvg for image: " + i);
-
-                Bitmap new_bitmap = getBitmapFromFile(inputs.get(i), inSampleSize);
-                avg_factor = (float)i;
-                time_s = System.currentTimeMillis();
-                mActivity.getApplicationInterface().getHDRProcessor().updateAvg(avg_data, width, height, new_bitmap, avg_factor, iso, exposure_time, zoom_factor);
-                times.add(System.currentTimeMillis() - time_s);
-                // updateAvg recycles new_bitmap
-                if( cb != null ) {
-                    cb.doneProcessAvg(i);
-                }
-            }
-
-            time_s = System.currentTimeMillis();
-            nr_bitmap = mActivity.getApplicationInterface().getHDRProcessor().avgBrighten(allocation, width, height, iso, exposure_time);
-            avg_data.destroy();
-            //noinspection UnusedAssignment
-            avg_data = null;
-            times.add(System.currentTimeMillis() - time_s);
-
-            long total_time = 0;
-            Log.d(TAG, "*** times are:");
-            for(long time : times) {
-                total_time += time;
-                Log.d(TAG, "    " + time);
-            }
-            Log.d(TAG, "    total: " + total_time);
-        }
-        catch(HDRProcessorException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-
-        saveBitmap(nr_bitmap, output_name);
-        HistogramDetails hdrHistogramDetails = checkHistogram(nr_bitmap);
-        nr_bitmap.recycle();
-        System.gc();
-        inputs.clear();
-
-        Thread.sleep(500);
-
-        return hdrHistogramDetails;
+    private TestUtils.HistogramDetails subTestAvg(List<String> inputs, String output_name, int iso, long exposure_time, float zoom_factor, TestUtils.TestAvgCallback cb) {
+        return TestUtils.subTestAvg(mActivity, inputs, output_name, iso, exposure_time, zoom_factor, cb);
     }
 
     /** Tests Avg algorithm on test samples "testAvg1".
@@ -14357,13 +13467,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg1/input0.jpg");
-        inputs.add(avg_images_path + "testAvg1/input1.jpg");
-        inputs.add(avg_images_path + "testAvg1/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg1/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg1/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg1/input2.jpg");
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg1_output.jpg", 1600, 1000000000L/17, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg1_output.jpg", 1600, 1000000000L/17, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -14410,13 +13520,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg2/input0.jpg");
-        inputs.add(avg_images_path + "testAvg2/input1.jpg");
-        inputs.add(avg_images_path + "testAvg2/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg2/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg2/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg2/input2.jpg");
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg2_output.jpg", 1600, 1000000000L/17, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg2_output.jpg", 1600, 1000000000L/17, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -14461,15 +13571,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg3/input0.jpg");
-        inputs.add(avg_images_path + "testAvg3/input1.jpg");
-        inputs.add(avg_images_path + "testAvg3/input2.jpg");
-        inputs.add(avg_images_path + "testAvg3/input3.jpg");
-        inputs.add(avg_images_path + "testAvg3/input4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg3/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg3/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg3/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg3/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg3/input4.jpg");
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg3_output.jpg", 1600, 1000000000L/16, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg3_output.jpg", 1600, 1000000000L/16, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -14552,15 +13662,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg4/input0.jpg");
-        inputs.add(avg_images_path + "testAvg4/input1.jpg");
-        inputs.add(avg_images_path + "testAvg4/input2.jpg");
-        inputs.add(avg_images_path + "testAvg4/input3.jpg");
-        inputs.add(avg_images_path + "testAvg4/input4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg4/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg4/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg4/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg4/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg4/input4.jpg");
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg4_output.jpg", 1600, 1000000000L/16, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg4_output.jpg", 1600, 1000000000L/16, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -14617,15 +13727,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg5/input0.jpg");
-        inputs.add(avg_images_path + "testAvg5/input1.jpg");
-        inputs.add(avg_images_path + "testAvg5/input2.jpg");
-        inputs.add(avg_images_path + "testAvg5/input3.jpg");
-        inputs.add(avg_images_path + "testAvg5/input4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg5/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg5/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg5/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg5/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg5/input4.jpg");
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg5_output.jpg", 1600, 1000000000L/16, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg5_output.jpg", 1600, 1000000000L/16, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -14684,18 +13794,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg6/input0.jpg");
-        inputs.add(avg_images_path + "testAvg6/input1.jpg");
-        inputs.add(avg_images_path + "testAvg6/input2.jpg");
-        inputs.add(avg_images_path + "testAvg6/input3.jpg");
-        inputs.add(avg_images_path + "testAvg6/input4.jpg");
-        inputs.add(avg_images_path + "testAvg6/input5.jpg");
-        inputs.add(avg_images_path + "testAvg6/input6.jpg");
-        inputs.add(avg_images_path + "testAvg6/input7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg6/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg6/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg6/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg6/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg6/input4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg6/input5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg6/input6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg6/input7.jpg");
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg6_output.jpg", 1600, 1000000000L/17, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg6_output.jpg", 1600, 1000000000L/17, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -14768,18 +13878,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg7/input0.jpg");
-        inputs.add(avg_images_path + "testAvg7/input1.jpg");
-        inputs.add(avg_images_path + "testAvg7/input2.jpg");
-        inputs.add(avg_images_path + "testAvg7/input3.jpg");
-        inputs.add(avg_images_path + "testAvg7/input4.jpg");
-        inputs.add(avg_images_path + "testAvg7/input5.jpg");
-        inputs.add(avg_images_path + "testAvg7/input6.jpg");
-        inputs.add(avg_images_path + "testAvg7/input7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg7/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg7/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg7/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg7/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg7/input4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg7/input5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg7/input6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg7/input7.jpg");
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg7_output.jpg", 1600, 1000000000L/16, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg7_output.jpg", 1600, 1000000000L/16, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -14816,18 +13926,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg8/input0.jpg");
-        inputs.add(avg_images_path + "testAvg8/input1.jpg");
-        inputs.add(avg_images_path + "testAvg8/input2.jpg");
-        inputs.add(avg_images_path + "testAvg8/input3.jpg");
-        inputs.add(avg_images_path + "testAvg8/input4.jpg");
-        inputs.add(avg_images_path + "testAvg8/input5.jpg");
-        inputs.add(avg_images_path + "testAvg8/input6.jpg");
-        inputs.add(avg_images_path + "testAvg8/input7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg8/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg8/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg8/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg8/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg8/input4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg8/input5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg8/input6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg8/input7.jpg");
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg8_output.jpg", 1600, 1000000000L/16, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg8_output.jpg", 1600, 1000000000L/16, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -14858,31 +13968,31 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         final boolean use_auto_photos = true;
 
         if( use_auto_photos ) {
-            inputs.add(avg_images_path + "testAvg9/input_auto0.jpg");
-            inputs.add(avg_images_path + "testAvg9/input_auto1.jpg");
-            inputs.add(avg_images_path + "testAvg9/input_auto2.jpg");
-            inputs.add(avg_images_path + "testAvg9/input_auto3.jpg");
-            inputs.add(avg_images_path + "testAvg9/input_auto4.jpg");
-            inputs.add(avg_images_path + "testAvg9/input_auto5.jpg");
-            inputs.add(avg_images_path + "testAvg9/input_auto6.jpg");
-            inputs.add(avg_images_path + "testAvg9/input_auto7.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input_auto0.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input_auto1.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input_auto2.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input_auto3.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input_auto4.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input_auto5.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input_auto6.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input_auto7.jpg");
         }
         else {
-            inputs.add(avg_images_path + "testAvg9/input0.jpg");
-            inputs.add(avg_images_path + "testAvg9/input1.jpg");
-            inputs.add(avg_images_path + "testAvg9/input2.jpg");
-            inputs.add(avg_images_path + "testAvg9/input3.jpg");
-            inputs.add(avg_images_path + "testAvg9/input4.jpg");
-            inputs.add(avg_images_path + "testAvg9/input5.jpg");
-            inputs.add(avg_images_path + "testAvg9/input6.jpg");
-            inputs.add(avg_images_path + "testAvg9/input7.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input0.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input1.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input2.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input3.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input4.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input5.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input6.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg9/input7.jpg");
         }
 
         String out_filename = use_auto_photos ? "testAvg9_auto_output.jpg" : "testAvg9_output.jpg";
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, out_filename, 1600, use_auto_photos ? 1000000000L/16 : 1000000000L/11, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, out_filename, 1600, use_auto_photos ? 1000000000L/16 : 1000000000L/11, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -14907,29 +14017,29 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         final boolean use_auto_photos = false;
 
         if( use_auto_photos ) {
-            inputs.add(avg_images_path + "testAvg10/input_auto0.jpg");
-            inputs.add(avg_images_path + "testAvg10/input_auto1.jpg");
-            inputs.add(avg_images_path + "testAvg10/input_auto2.jpg");
-            inputs.add(avg_images_path + "testAvg10/input_auto3.jpg");
-            inputs.add(avg_images_path + "testAvg10/input_auto4.jpg");
-            inputs.add(avg_images_path + "testAvg10/input_auto5.jpg");
-            inputs.add(avg_images_path + "testAvg10/input_auto6.jpg");
-            inputs.add(avg_images_path + "testAvg10/input_auto7.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input_auto0.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input_auto1.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input_auto2.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input_auto3.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input_auto4.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input_auto5.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input_auto6.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input_auto7.jpg");
         }
         else {
-            inputs.add(avg_images_path + "testAvg10/input0.jpg");
-            inputs.add(avg_images_path + "testAvg10/input1.jpg");
-            inputs.add(avg_images_path + "testAvg10/input2.jpg");
-            inputs.add(avg_images_path + "testAvg10/input3.jpg");
-            inputs.add(avg_images_path + "testAvg10/input4.jpg");
-            inputs.add(avg_images_path + "testAvg10/input5.jpg");
-            inputs.add(avg_images_path + "testAvg10/input6.jpg");
-            inputs.add(avg_images_path + "testAvg10/input7.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input0.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input1.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input2.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input3.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input4.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input5.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input6.jpg");
+            inputs.add(TestUtils.avg_images_path + "testAvg10/input7.jpg");
         }
 
         String out_filename = use_auto_photos ? "testAvg10_auto_output.jpg" : "testAvg10_output.jpg";
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, out_filename, 1196, use_auto_photos ? 1000000000L/12 : 1000000000L/10, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, out_filename, 1196, use_auto_photos ? 1000000000L/12 : 1000000000L/10, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -14953,16 +14063,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
         // note, we don't actually use 8 images for a bright scene like this, but it serves as a good test for
         // misalignment/ghosting anyway
-        inputs.add(avg_images_path + "testAvg11/input0.jpg");
-        inputs.add(avg_images_path + "testAvg11/input1.jpg");
-        inputs.add(avg_images_path + "testAvg11/input2.jpg");
-        inputs.add(avg_images_path + "testAvg11/input3.jpg");
-        inputs.add(avg_images_path + "testAvg11/input4.jpg");
-        inputs.add(avg_images_path + "testAvg11/input5.jpg");
-        inputs.add(avg_images_path + "testAvg11/input6.jpg");
-        inputs.add(avg_images_path + "testAvg11/input7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg11/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg11/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg11/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg11/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg11/input4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg11/input5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg11/input6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg11/input7.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg11_output.jpg", 100, 1000000000L/338, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg11_output.jpg", 100, 1000000000L/338, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15064,10 +14174,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg12/input0.jpg");
-        inputs.add(avg_images_path + "testAvg12/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg12/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg12/input1.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg12_output.jpg", 100, 1000000000L/1617, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg12_output.jpg", 100, 1000000000L/1617, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15093,10 +14203,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg13/input0.jpg");
-        inputs.add(avg_images_path + "testAvg13/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg13/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg13/input1.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg13_output.jpg", 100, 1000000000L/2482, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg13_output.jpg", 100, 1000000000L/2482, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15118,18 +14228,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg14/input0.jpg");
-        inputs.add(avg_images_path + "testAvg14/input1.jpg");
-        inputs.add(avg_images_path + "testAvg14/input2.jpg");
-        inputs.add(avg_images_path + "testAvg14/input3.jpg");
-        inputs.add(avg_images_path + "testAvg14/input4.jpg");
-        inputs.add(avg_images_path + "testAvg14/input5.jpg");
-        inputs.add(avg_images_path + "testAvg14/input6.jpg");
-        inputs.add(avg_images_path + "testAvg14/input7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg14/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg14/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg14/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg14/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg14/input4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg14/input5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg14/input6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg14/input7.jpg");
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg14_output.jpg", 1600, 1000000000L/10, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg14_output.jpg", 1600, 1000000000L/10, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15161,10 +14271,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg15/input0.jpg");
-        inputs.add(avg_images_path + "testAvg15/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg15/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg15/input1.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg15_output.jpg", 100, 1000000000L/1525, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg15_output.jpg", 100, 1000000000L/1525, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15186,10 +14296,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg16/input0.jpg");
-        inputs.add(avg_images_path + "testAvg16/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg16/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg16/input1.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg16_output.jpg", 100, 1000000000L/293, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg16_output.jpg", 100, 1000000000L/293, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15211,18 +14321,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg17/input0.jpg");
-        inputs.add(avg_images_path + "testAvg17/input1.jpg");
-        inputs.add(avg_images_path + "testAvg17/input2.jpg");
-        inputs.add(avg_images_path + "testAvg17/input3.jpg");
-        inputs.add(avg_images_path + "testAvg17/input4.jpg");
-        inputs.add(avg_images_path + "testAvg17/input5.jpg");
-        inputs.add(avg_images_path + "testAvg17/input6.jpg");
-        inputs.add(avg_images_path + "testAvg17/input7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg17/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg17/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg17/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg17/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg17/input4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg17/input5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg17/input6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg17/input7.jpg");
 
         // the input images record ISO=800, but they were taken with OnePlus 3T which has bug where ISO is reported as max
         // of 800; in reality for a scene this dark, it was probably more like ISO 1600
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg17_output.jpg", 1600, 1000000000L/17, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg17_output.jpg", 1600, 1000000000L/17, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15257,10 +14367,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg18/input0.jpg");
-        inputs.add(avg_images_path + "testAvg18/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg18/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg18/input1.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg18_output.jpg", 100, 1000000000L/591, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg18_output.jpg", 100, 1000000000L/591, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15283,10 +14393,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // list assets
         List<String> inputs = new ArrayList<>();
         // repeat same image twice
-        inputs.add(avg_images_path + "testAvg19/input0.jpg");
-        inputs.add(avg_images_path + "testAvg19/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg19/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg19/input0.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg19_output.jpg", 100, 1000000000L/2483, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg19_output.jpg", 100, 1000000000L/2483, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15313,10 +14423,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // list assets
         List<String> inputs = new ArrayList<>();
         // repeat same image twice
-        inputs.add(avg_images_path + "testAvg20/input0.jpg");
-        inputs.add(avg_images_path + "testAvg20/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg20/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg20/input0.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg20_output.jpg", 100, 1000000000L/3124, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg20_output.jpg", 100, 1000000000L/3124, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15339,10 +14449,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // list assets
         List<String> inputs = new ArrayList<>();
         // repeat same image twice
-        inputs.add(avg_images_path + "testAvg21/input0.jpg");
-        inputs.add(avg_images_path + "testAvg21/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg21/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg21/input0.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg21_output.jpg", 102, 1000000000L/6918, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg21_output.jpg", 102, 1000000000L/6918, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15365,10 +14475,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // list assets
         List<String> inputs = new ArrayList<>();
         // repeat same image twice
-        inputs.add(avg_images_path + "testAvg22/input0.jpg");
-        inputs.add(avg_images_path + "testAvg22/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg22/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg22/input0.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg22_output.jpg", 100, 1000000000L/3459, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg22_output.jpg", 100, 1000000000L/3459, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15390,17 +14500,17 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg23/IMG_20180520_111250_0.jpg");
-        inputs.add(avg_images_path + "testAvg23/IMG_20180520_111250_1.jpg");
-        inputs.add(avg_images_path + "testAvg23/IMG_20180520_111250_2.jpg");
-        inputs.add(avg_images_path + "testAvg23/IMG_20180520_111250_3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg23/IMG_20180520_111250_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg23/IMG_20180520_111250_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg23/IMG_20180520_111250_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg23/IMG_20180520_111250_3.jpg");
         // only test 4 images, to reflect latest behaviour that we take 4 images for this ISO
-        /*inputs.add(avg_images_path + "testAvg23/IMG_20180520_111250_4.jpg");
-        inputs.add(avg_images_path + "testAvg23/IMG_20180520_111250_5.jpg");
-        inputs.add(avg_images_path + "testAvg23/IMG_20180520_111250_6.jpg");
-        inputs.add(avg_images_path + "testAvg23/IMG_20180520_111250_7.jpg");*/
+        /*inputs.add(TestUtils.avg_images_path + "testAvg23/IMG_20180520_111250_4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg23/IMG_20180520_111250_5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg23/IMG_20180520_111250_6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg23/IMG_20180520_111250_7.jpg");*/
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg23_output.jpg", 1044, 1000000000L/10, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg23_output.jpg", 1044, 1000000000L/10, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15459,10 +14569,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg24/input0.jpg");
-        inputs.add(avg_images_path + "testAvg24/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg24/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg24/input1.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg24_output.jpg", 100, 1000000000L/2421, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg24_output.jpg", 100, 1000000000L/2421, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15486,12 +14596,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg25/input0.jpg");
-        inputs.add(avg_images_path + "testAvg25/input1.jpg");
-        inputs.add(avg_images_path + "testAvg25/input2.jpg");
-        inputs.add(avg_images_path + "testAvg25/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg25/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg25/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg25/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg25/input3.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg25_output.jpg", 512, 1000000000L/20, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg25_output.jpg", 512, 1000000000L/20, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15512,12 +14622,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
         // note we now take only 3 images for bright scenes, but still test with 4 images as this serves as a good test
         // against ghosting
-        inputs.add(avg_images_path + "testAvg26/input0.jpg");
-        inputs.add(avg_images_path + "testAvg26/input1.jpg");
-        inputs.add(avg_images_path + "testAvg26/input2.jpg");
-        inputs.add(avg_images_path + "testAvg26/input3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg26/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg26/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg26/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg26/input3.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg26_output.jpg", 100, 1000000000L/365, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg26_output.jpg", 100, 1000000000L/365, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15556,10 +14666,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg27/IMG_20180610_205929_0.jpg");
-        inputs.add(avg_images_path + "testAvg27/IMG_20180610_205929_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg27/IMG_20180610_205929_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg27/IMG_20180610_205929_1.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg27_output.jpg", 100, 1000000000L/482, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg27_output.jpg", 100, 1000000000L/482, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15581,16 +14691,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // example from Google HDR+ dataset
         // note, the number of input images doesn't necessarily match what we'd take for this scene, but we want to compare
         // to the Google HDR+ result
-        inputs.add(avg_images_path + "testAvg28/input001.jpg");
-        inputs.add(avg_images_path + "testAvg28/input002.jpg");
-        inputs.add(avg_images_path + "testAvg28/input003.jpg");
-        inputs.add(avg_images_path + "testAvg28/input004.jpg");
-        inputs.add(avg_images_path + "testAvg28/input005.jpg");
-        inputs.add(avg_images_path + "testAvg28/input006.jpg");
-        inputs.add(avg_images_path + "testAvg28/input007.jpg");
-        inputs.add(avg_images_path + "testAvg28/input008.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg28/input001.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg28/input002.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg28/input003.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg28/input004.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg28/input005.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg28/input006.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg28/input007.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg28/input008.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg28_output.jpg", 811, 1000000000L/21, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg28_output.jpg", 811, 1000000000L/21, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15615,17 +14725,17 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // example from Google HDR+ dataset
         // note, the number of input images doesn't necessarily match what we'd take for this scene, but we want to compare
         // to the Google HDR+ result
-        inputs.add(avg_images_path + "testAvg29/input001.jpg");
-        inputs.add(avg_images_path + "testAvg29/input002.jpg");
-        inputs.add(avg_images_path + "testAvg29/input003.jpg");
-        inputs.add(avg_images_path + "testAvg29/input004.jpg");
-        inputs.add(avg_images_path + "testAvg29/input005.jpg");
-        inputs.add(avg_images_path + "testAvg29/input006.jpg");
-        inputs.add(avg_images_path + "testAvg29/input007.jpg");
-        inputs.add(avg_images_path + "testAvg29/input008.jpg");
-        inputs.add(avg_images_path + "testAvg29/input009.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg29/input001.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg29/input002.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg29/input003.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg29/input004.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg29/input005.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg29/input006.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg29/input007.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg29/input008.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg29/input009.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg29_output.jpg", 40, 1000000000L/2660, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg29_output.jpg", 40, 1000000000L/2660, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15648,11 +14758,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // example from Google HDR+ dataset
         // note, the number of input images doesn't necessarily match what we'd take for this scene, but we want to compare
         // to the Google HDR+ result
-        inputs.add(avg_images_path + "testAvg30/input001.jpg");
-        inputs.add(avg_images_path + "testAvg30/input002.jpg");
-        inputs.add(avg_images_path + "testAvg30/input003.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg30/input001.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg30/input002.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg30/input003.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg30_output.jpg", 60, 1000000000L/411, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg30_output.jpg", 60, 1000000000L/411, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15694,18 +14804,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // example from Google HDR+ dataset
         // note, the number of input images doesn't necessarily match what we'd take for this scene, but we want to compare
         // to the Google HDR+ result
-        inputs.add(avg_images_path + "testAvg31/input001.jpg");
-        inputs.add(avg_images_path + "testAvg31/input002.jpg");
-        inputs.add(avg_images_path + "testAvg31/input003.jpg");
-        inputs.add(avg_images_path + "testAvg31/input004.jpg");
-        inputs.add(avg_images_path + "testAvg31/input005.jpg");
-        inputs.add(avg_images_path + "testAvg31/input006.jpg");
-        inputs.add(avg_images_path + "testAvg31/input007.jpg");
-        inputs.add(avg_images_path + "testAvg31/input008.jpg");
-        inputs.add(avg_images_path + "testAvg31/input009.jpg");
-        inputs.add(avg_images_path + "testAvg31/input010.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg31/input001.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg31/input002.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg31/input003.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg31/input004.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg31/input005.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg31/input006.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg31/input007.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg31/input008.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg31/input009.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg31/input010.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg31_output.jpg", 609, 1000000000L/25, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg31_output.jpg", 609, 1000000000L/25, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15729,15 +14839,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // example from Google HDR+ dataset
         // note, the number of input images doesn't necessarily match what we'd take for this scene, but we want to compare
         // to the Google HDR+ result
-        inputs.add(avg_images_path + "testAvg32/input001.jpg");
-        inputs.add(avg_images_path + "testAvg32/input002.jpg");
-        inputs.add(avg_images_path + "testAvg32/input003.jpg");
-        inputs.add(avg_images_path + "testAvg32/input004.jpg");
-        inputs.add(avg_images_path + "testAvg32/input005.jpg");
-        inputs.add(avg_images_path + "testAvg32/input006.jpg");
-        inputs.add(avg_images_path + "testAvg32/input007.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg32/input001.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg32/input002.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg32/input003.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg32/input004.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg32/input005.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg32/input006.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg32/input007.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg32_output.jpg", 335, 1000000000L/120, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg32_output.jpg", 335, 1000000000L/120, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15762,18 +14872,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // example from Google HDR+ dataset
         // note, the number of input images doesn't necessarily match what we'd take for this scene, but we want to compare
         // to the Google HDR+ result
-        inputs.add(avg_images_path + "testAvg33/input001.jpg");
-        inputs.add(avg_images_path + "testAvg33/input002.jpg");
-        inputs.add(avg_images_path + "testAvg33/input003.jpg");
-        inputs.add(avg_images_path + "testAvg33/input004.jpg");
-        inputs.add(avg_images_path + "testAvg33/input005.jpg");
-        inputs.add(avg_images_path + "testAvg33/input006.jpg");
-        inputs.add(avg_images_path + "testAvg33/input007.jpg");
-        inputs.add(avg_images_path + "testAvg33/input008.jpg");
-        inputs.add(avg_images_path + "testAvg33/input009.jpg");
-        inputs.add(avg_images_path + "testAvg33/input010.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg33/input001.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg33/input002.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg33/input003.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg33/input004.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg33/input005.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg33/input006.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg33/input007.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg33/input008.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg33/input009.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg33/input010.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg33_output.jpg", 948, 1000000000L/18, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg33_output.jpg", 948, 1000000000L/18, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15793,11 +14903,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg34/IMG_20180627_121959_0.jpg");
-        inputs.add(avg_images_path + "testAvg34/IMG_20180627_121959_1.jpg");
-        inputs.add(avg_images_path + "testAvg34/IMG_20180627_121959_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg34/IMG_20180627_121959_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg34/IMG_20180627_121959_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg34/IMG_20180627_121959_2.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg34_output.jpg", 100, 1000000000L/289, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg34_output.jpg", 100, 1000000000L/289, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15819,11 +14929,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg35/IMG_20180711_144453_0.jpg");
-        inputs.add(avg_images_path + "testAvg35/IMG_20180711_144453_1.jpg");
-        inputs.add(avg_images_path + "testAvg35/IMG_20180711_144453_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg35/IMG_20180711_144453_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg35/IMG_20180711_144453_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg35/IMG_20180711_144453_2.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg35_output.jpg", 100, 1000000000L/2549, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg35_output.jpg", 100, 1000000000L/2549, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15843,17 +14953,17 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg36/IMG_20180709_114831_0.jpg");
-        inputs.add(avg_images_path + "testAvg36/IMG_20180709_114831_1.jpg");
-        inputs.add(avg_images_path + "testAvg36/IMG_20180709_114831_2.jpg");
-        inputs.add(avg_images_path + "testAvg36/IMG_20180709_114831_3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg36/IMG_20180709_114831_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg36/IMG_20180709_114831_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg36/IMG_20180709_114831_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg36/IMG_20180709_114831_3.jpg");
         // only test 4 images, to reflect latest behaviour that we take 4 images for this ISO/exposure time
-        /*inputs.add(avg_images_path + "testAvg36/IMG_20180709_114831_4.jpg");
-        inputs.add(avg_images_path + "testAvg36/IMG_20180709_114831_5.jpg");
-        inputs.add(avg_images_path + "testAvg36/IMG_20180709_114831_6.jpg");
-        inputs.add(avg_images_path + "testAvg36/IMG_20180709_114831_7.jpg");*/
+        /*inputs.add(TestUtils.avg_images_path + "testAvg36/IMG_20180709_114831_4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg36/IMG_20180709_114831_5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg36/IMG_20180709_114831_6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg36/IMG_20180709_114831_7.jpg");*/
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg36_output.jpg", 752, 1000000000L/10, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg36_output.jpg", 752, 1000000000L/10, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15882,12 +14992,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg37/IMG_20180715_173155_0.jpg");
-        inputs.add(avg_images_path + "testAvg37/IMG_20180715_173155_1.jpg");
-        inputs.add(avg_images_path + "testAvg37/IMG_20180715_173155_2.jpg");
-        inputs.add(avg_images_path + "testAvg37/IMG_20180715_173155_3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg37/IMG_20180715_173155_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg37/IMG_20180715_173155_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg37/IMG_20180715_173155_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg37/IMG_20180715_173155_3.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg37_output.jpg", 131, 1000000000L/50, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg37_output.jpg", 131, 1000000000L/50, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15911,17 +15021,17 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg38/IMG_20180716_232102_0.jpg");
-        inputs.add(avg_images_path + "testAvg38/IMG_20180716_232102_1.jpg");
-        inputs.add(avg_images_path + "testAvg38/IMG_20180716_232102_2.jpg");
-        inputs.add(avg_images_path + "testAvg38/IMG_20180716_232102_3.jpg");
-        inputs.add(avg_images_path + "testAvg38/IMG_20180716_232102_4.jpg");
-        inputs.add(avg_images_path + "testAvg38/IMG_20180716_232102_5.jpg");
-        inputs.add(avg_images_path + "testAvg38/IMG_20180716_232102_6.jpg");
-        inputs.add(avg_images_path + "testAvg38/IMG_20180716_232102_7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg38/IMG_20180716_232102_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg38/IMG_20180716_232102_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg38/IMG_20180716_232102_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg38/IMG_20180716_232102_3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg38/IMG_20180716_232102_4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg38/IMG_20180716_232102_5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg38/IMG_20180716_232102_6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg38/IMG_20180716_232102_7.jpg");
 
         // n.b., this was a zoomed in photo, but can't quite remember the exact zoom level!
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg38_output.jpg", 1505, 1000000000L/10, 3.95f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg38_output.jpg", 1505, 1000000000L/10, 3.95f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15941,18 +15051,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // example from Google HDR+ dataset
         // note, the number of input images doesn't necessarily match what we'd take for this scene, but we want to compare
         // to the Google HDR+ result
-        inputs.add(avg_images_path + "testAvg39/input001.jpg");
-        inputs.add(avg_images_path + "testAvg39/input002.jpg");
-        inputs.add(avg_images_path + "testAvg39/input003.jpg");
-        inputs.add(avg_images_path + "testAvg39/input004.jpg");
-        inputs.add(avg_images_path + "testAvg39/input005.jpg");
-        inputs.add(avg_images_path + "testAvg39/input006.jpg");
-        inputs.add(avg_images_path + "testAvg39/input007.jpg");
-        inputs.add(avg_images_path + "testAvg39/input008.jpg");
-        inputs.add(avg_images_path + "testAvg39/input009.jpg");
-        inputs.add(avg_images_path + "testAvg39/input010.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg39/input001.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg39/input002.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg39/input003.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg39/input004.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg39/input005.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg39/input006.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg39/input007.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg39/input008.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg39/input009.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg39/input010.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg39_output.jpg", 521, 1000000000L/27, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg39_output.jpg", 521, 1000000000L/27, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -15975,17 +15085,17 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // example from Google HDR+ dataset
         // note, the number of input images doesn't necessarily match what we'd take for this scene, but we want to compare
         // to the Google HDR+ result
-        inputs.add(avg_images_path + "testAvg40/input001.jpg");
-        inputs.add(avg_images_path + "testAvg40/input002.jpg");
-        inputs.add(avg_images_path + "testAvg40/input003.jpg");
-        inputs.add(avg_images_path + "testAvg40/input004.jpg");
-        inputs.add(avg_images_path + "testAvg40/input005.jpg");
-        inputs.add(avg_images_path + "testAvg40/input006.jpg");
-        inputs.add(avg_images_path + "testAvg40/input007.jpg");
-        inputs.add(avg_images_path + "testAvg40/input008.jpg");
-        inputs.add(avg_images_path + "testAvg40/input009.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg40/input001.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg40/input002.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg40/input003.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg40/input004.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg40/input005.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg40/input006.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg40/input007.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg40/input008.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg40/input009.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg40_output.jpg", 199, 1000000000L/120, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg40_output.jpg", 199, 1000000000L/120, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16010,18 +15120,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // example from Google HDR+ dataset
         // note, the number of input images doesn't necessarily match what we'd take for this scene, but we want to compare
         // to the Google HDR+ result
-        inputs.add(avg_images_path + "testAvg41/input001.jpg");
-        inputs.add(avg_images_path + "testAvg41/input002.jpg");
-        inputs.add(avg_images_path + "testAvg41/input003.jpg");
-        inputs.add(avg_images_path + "testAvg41/input004.jpg");
-        inputs.add(avg_images_path + "testAvg41/input005.jpg");
-        inputs.add(avg_images_path + "testAvg41/input006.jpg");
-        inputs.add(avg_images_path + "testAvg41/input007.jpg");
-        inputs.add(avg_images_path + "testAvg41/input008.jpg");
-        inputs.add(avg_images_path + "testAvg41/input009.jpg");
-        inputs.add(avg_images_path + "testAvg41/input010.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg41/input001.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg41/input002.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg41/input003.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg41/input004.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg41/input005.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg41/input006.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg41/input007.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg41/input008.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg41/input009.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg41/input010.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg41_output.jpg", 100, 1000000000L/869, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg41_output.jpg", 100, 1000000000L/869, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16042,11 +15152,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg42/IMG_20180822_145152_0.jpg");
-        inputs.add(avg_images_path + "testAvg42/IMG_20180822_145152_1.jpg");
-        inputs.add(avg_images_path + "testAvg42/IMG_20180822_145152_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg42/IMG_20180822_145152_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg42/IMG_20180822_145152_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg42/IMG_20180822_145152_2.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg42_output.jpg", 100, 1000000000L/2061, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg42_output.jpg", 100, 1000000000L/2061, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16066,11 +15176,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg43/IMG_20180831_143226_0.jpg");
-        inputs.add(avg_images_path + "testAvg43/IMG_20180831_143226_1.jpg");
-        inputs.add(avg_images_path + "testAvg43/IMG_20180831_143226_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg43/IMG_20180831_143226_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg43/IMG_20180831_143226_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg43/IMG_20180831_143226_2.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg43_output.jpg", 100, 1000000000L/2152, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg43_output.jpg", 100, 1000000000L/2152, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16089,11 +15199,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg44/IMG_20180830_133917_0.jpg");
-        inputs.add(avg_images_path + "testAvg44/IMG_20180830_133917_1.jpg");
-        inputs.add(avg_images_path + "testAvg44/IMG_20180830_133917_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg44/IMG_20180830_133917_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg44/IMG_20180830_133917_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg44/IMG_20180830_133917_2.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg44_output.jpg", 40, 1000000000L/2130, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg44_output.jpg", 40, 1000000000L/2130, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16112,11 +15222,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg45/IMG_20180719_133947_0.jpg");
-        inputs.add(avg_images_path + "testAvg45/IMG_20180719_133947_1.jpg");
-        inputs.add(avg_images_path + "testAvg45/IMG_20180719_133947_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg45/IMG_20180719_133947_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg45/IMG_20180719_133947_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg45/IMG_20180719_133947_2.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg45_output.jpg", 100, 1000000000L/865, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg45_output.jpg", 100, 1000000000L/865, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16135,16 +15245,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg46/IMG_20180903_203141_0.jpg");
-        inputs.add(avg_images_path + "testAvg46/IMG_20180903_203141_1.jpg");
-        inputs.add(avg_images_path + "testAvg46/IMG_20180903_203141_2.jpg");
-        inputs.add(avg_images_path + "testAvg46/IMG_20180903_203141_3.jpg");
-        inputs.add(avg_images_path + "testAvg46/IMG_20180903_203141_4.jpg");
-        inputs.add(avg_images_path + "testAvg46/IMG_20180903_203141_5.jpg");
-        inputs.add(avg_images_path + "testAvg46/IMG_20180903_203141_6.jpg");
-        inputs.add(avg_images_path + "testAvg46/IMG_20180903_203141_7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg46/IMG_20180903_203141_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg46/IMG_20180903_203141_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg46/IMG_20180903_203141_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg46/IMG_20180903_203141_3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg46/IMG_20180903_203141_4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg46/IMG_20180903_203141_5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg46/IMG_20180903_203141_6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg46/IMG_20180903_203141_7.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg46_output.jpg", 1505, 1000000000L/10, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg46_output.jpg", 1505, 1000000000L/10, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16163,12 +15273,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg47/IMG_20180911_114752_0.jpg");
-        inputs.add(avg_images_path + "testAvg47/IMG_20180911_114752_1.jpg");
-        inputs.add(avg_images_path + "testAvg47/IMG_20180911_114752_2.jpg");
-        inputs.add(avg_images_path + "testAvg47/IMG_20180911_114752_3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg47/IMG_20180911_114752_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg47/IMG_20180911_114752_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg47/IMG_20180911_114752_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg47/IMG_20180911_114752_3.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg47_output.jpg", 749, 1000000000L/12, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg47_output.jpg", 749, 1000000000L/12, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16187,16 +15297,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg48/IMG_20180911_110520_0.jpg");
-        inputs.add(avg_images_path + "testAvg48/IMG_20180911_110520_1.jpg");
-        inputs.add(avg_images_path + "testAvg48/IMG_20180911_110520_2.jpg");
-        inputs.add(avg_images_path + "testAvg48/IMG_20180911_110520_3.jpg");
-        inputs.add(avg_images_path + "testAvg48/IMG_20180911_110520_4.jpg");
-        inputs.add(avg_images_path + "testAvg48/IMG_20180911_110520_5.jpg");
-        inputs.add(avg_images_path + "testAvg48/IMG_20180911_110520_6.jpg");
-        inputs.add(avg_images_path + "testAvg48/IMG_20180911_110520_7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg48/IMG_20180911_110520_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg48/IMG_20180911_110520_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg48/IMG_20180911_110520_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg48/IMG_20180911_110520_3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg48/IMG_20180911_110520_4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg48/IMG_20180911_110520_5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg48/IMG_20180911_110520_6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg48/IMG_20180911_110520_7.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg48_output.jpg", 1196, 1000000000L/10, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg48_output.jpg", 1196, 1000000000L/10, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16215,16 +15325,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg49/IMG_20180911_120200_0.jpg");
-        inputs.add(avg_images_path + "testAvg49/IMG_20180911_120200_1.jpg");
-        inputs.add(avg_images_path + "testAvg49/IMG_20180911_120200_2.jpg");
-        inputs.add(avg_images_path + "testAvg49/IMG_20180911_120200_3.jpg");
-        inputs.add(avg_images_path + "testAvg49/IMG_20180911_120200_4.jpg");
-        inputs.add(avg_images_path + "testAvg49/IMG_20180911_120200_5.jpg");
-        inputs.add(avg_images_path + "testAvg49/IMG_20180911_120200_6.jpg");
-        inputs.add(avg_images_path + "testAvg49/IMG_20180911_120200_7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg49/IMG_20180911_120200_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg49/IMG_20180911_120200_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg49/IMG_20180911_120200_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg49/IMG_20180911_120200_3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg49/IMG_20180911_120200_4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg49/IMG_20180911_120200_5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg49/IMG_20180911_120200_6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg49/IMG_20180911_120200_7.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg49_output.jpg", 1505, 1000000000L/10, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg49_output.jpg", 1505, 1000000000L/10, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16243,12 +15353,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg50/IMG_20181015_144335_0.jpg");
-        inputs.add(avg_images_path + "testAvg50/IMG_20181015_144335_1.jpg");
-        inputs.add(avg_images_path + "testAvg50/IMG_20181015_144335_2.jpg");
-        inputs.add(avg_images_path + "testAvg50/IMG_20181015_144335_3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg50/IMG_20181015_144335_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg50/IMG_20181015_144335_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg50/IMG_20181015_144335_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg50/IMG_20181015_144335_3.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg50_output.jpg", 114, 1000000000L/33, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg50_output.jpg", 114, 1000000000L/33, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16267,16 +15377,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg51/IMG_20181025_182917_0.jpg");
-        inputs.add(avg_images_path + "testAvg51/IMG_20181025_182917_1.jpg");
-        inputs.add(avg_images_path + "testAvg51/IMG_20181025_182917_2.jpg");
-        inputs.add(avg_images_path + "testAvg51/IMG_20181025_182917_3.jpg");
-        inputs.add(avg_images_path + "testAvg51/IMG_20181025_182917_4.jpg");
-        inputs.add(avg_images_path + "testAvg51/IMG_20181025_182917_5.jpg");
-        inputs.add(avg_images_path + "testAvg51/IMG_20181025_182917_6.jpg");
-        inputs.add(avg_images_path + "testAvg51/IMG_20181025_182917_7.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg51/IMG_20181025_182917_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg51/IMG_20181025_182917_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg51/IMG_20181025_182917_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg51/IMG_20181025_182917_3.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg51/IMG_20181025_182917_4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg51/IMG_20181025_182917_5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg51/IMG_20181025_182917_6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg51/IMG_20181025_182917_7.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg51_output.jpg", 1600, 1000000000L/3, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg51_output.jpg", 1600, 1000000000L/3, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16306,11 +15416,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvg52/IMG_20181119_144836_0.jpg");
-        inputs.add(avg_images_path + "testAvg52/IMG_20181119_144836_1.jpg");
-        inputs.add(avg_images_path + "testAvg52/IMG_20181119_144836_2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg52/IMG_20181119_144836_0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg52/IMG_20181119_144836_1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvg52/IMG_20181119_144836_2.jpg");
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg52_output.jpg", 100, 1000000000L/297, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvg52_output.jpg", 100, 1000000000L/297, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16331,17 +15441,17 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // list assets
         List<String> inputs = new ArrayList<>();
-        inputs.add(avg_images_path + "testAvgtemp/input0.png");
-        /*inputs.add(avg_images_path + "testAvgtemp/input0.jpg");
-        inputs.add(avg_images_path + "testAvgtemp/input1.jpg");
-        inputs.add(avg_images_path + "testAvgtemp/input2.jpg");
-        inputs.add(avg_images_path + "testAvgtemp/input3.jpg");*/
-        /*inputs.add(avg_images_path + "testAvgtemp/input4.jpg");
-        inputs.add(avg_images_path + "testAvgtemp/input5.jpg");
-        inputs.add(avg_images_path + "testAvgtemp/input6.jpg");
-        inputs.add(avg_images_path + "testAvgtemp/input7.jpg");*/
+        inputs.add(TestUtils.avg_images_path + "testAvgtemp/input0.png");
+        /*inputs.add(TestUtils.avg_images_path + "testAvgtemp/input0.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvgtemp/input1.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvgtemp/input2.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvgtemp/input3.jpg");*/
+        /*inputs.add(TestUtils.avg_images_path + "testAvgtemp/input4.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvgtemp/input5.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvgtemp/input6.jpg");
+        inputs.add(TestUtils.avg_images_path + "testAvgtemp/input7.jpg");*/
 
-        HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvgtemp_output.jpg", 250, 1000000000L/33, 1.0f, new TestAvgCallback() {
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestAvg(inputs, "testAvgtemp_output.jpg", 250, 1000000000L/33, 1.0f, new TestUtils.TestAvgCallback() {
             @Override
             public void doneProcessAvg(int index) {
                 Log.d(TAG, "doneProcessAvg: " + index);
@@ -16373,7 +15483,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         return (int)(255.0f * out_f + 0.5f);
     }
 
-    private HistogramDetails subTestLogProfile(String image_path, String output_name) throws IOException, InterruptedException {
+    private TestUtils.HistogramDetails subTestLogProfile(String image_path, String output_name) throws IOException, InterruptedException {
         Log.d(TAG, "subTestLogProfile");
 
         if( !mPreview.usingCamera2API() ) {
@@ -16427,7 +15537,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
 
         saveBitmap(bitmap, output_name);
-        HistogramDetails hdrHistogramDetails = checkHistogram(bitmap);
+        TestUtils.HistogramDetails hdrHistogramDetails = checkHistogram(bitmap);
         bitmap.recycle();
         System.gc();
 
@@ -16448,9 +15558,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.apply();
         updateForSettings();
 
-        String image_path = avg_images_path + "testAvg1/input0.jpg";
+        String image_path = TestUtils.avg_images_path + "testAvg1/input0.jpg";
 
-        HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile1_output.jpg");
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile1_output.jpg");
 
         //checkHistogramDetails(hdrHistogramDetails, 1, 23, 253);
         checkHistogramDetails(hdrHistogramDetails, 0, 7, 253);
@@ -16468,9 +15578,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.apply();
         updateForSettings();
 
-        String image_path = avg_images_path + "testAvg20/input0.jpg";
+        String image_path = TestUtils.avg_images_path + "testAvg20/input0.jpg";
 
-        HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile2_output.jpg");
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile2_output.jpg");
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 58, 243);
 
@@ -16499,9 +15609,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.apply();
         updateForSettings();
 
-        String image_path = logprofile_images_path + "testLogProfile3.jpg";
+        String image_path = TestUtils.logprofile_images_path + "testLogProfile3.jpg";
 
-        HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile3_output.jpg");
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile3_output.jpg");
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 157, 255);
         checkHistogramDetails(hdrHistogramDetails, 0, 143, 255);
@@ -16519,9 +15629,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.apply();
         updateForSettings();
 
-        String image_path = avg_images_path + "testAvg1/input0.jpg";
+        String image_path = TestUtils.avg_images_path + "testAvg1/input0.jpg";
 
-        HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile1_extra_strong_output.jpg");
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile1_extra_strong_output.jpg");
 
         //checkHistogramDetails(hdrHistogramDetails, 2, 67, 254);
 
@@ -16550,9 +15660,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.apply();
         updateForSettings();
 
-        String image_path = avg_images_path + "testAvg20/input0.jpg";
+        String image_path = TestUtils.avg_images_path + "testAvg20/input0.jpg";
 
-        HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile2_extra_strong_output.jpg");
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile2_extra_strong_output.jpg");
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 126, 250);
 
@@ -16581,243 +15691,20 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.apply();
         updateForSettings();
 
-        String image_path = logprofile_images_path + "testLogProfile3.jpg";
+        String image_path = TestUtils.logprofile_images_path + "testLogProfile3.jpg";
 
-        HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile3_extra_strong_output.jpg");
+        TestUtils.HistogramDetails hdrHistogramDetails = subTestLogProfile(image_path, "testLogProfile3_extra_strong_output.jpg");
 
         //checkHistogramDetails(hdrHistogramDetails, 0, 212, 255);
         checkHistogramDetails(hdrHistogramDetails, 0, 170, 255);
     }
 
-    /** Returns the mediastore Uri for the supplied filename inside the supplied baseUri, or null
-     *  if an entry can't be found.
-     */
-    private Uri getUriFromName(Uri baseUri, String name) {
-        Uri uri = null;
-        String [] projection = new String[]{MediaStore.Images.ImageColumns._ID};
-        Cursor cursor = null;
-        try {
-            cursor = mActivity.getContentResolver().query(baseUri, projection, MediaStore.Images.ImageColumns.DISPLAY_NAME + " LIKE ?", new String[]{name}, null);
-            if( cursor != null && cursor.moveToFirst() ) {
-                Log.d(TAG, "found: " + cursor.getCount());
-                long id = cursor.getLong(0);
-                uri = ContentUris.withAppendedId(baseUri, id);
-                Log.d(TAG, "id: " + id);
-                Log.d(TAG, "uri: " + uri);
-            }
-        }
-        catch(Exception e) {
-            Log.e(TAG, "Exception trying to find uri from filename");
-            e.printStackTrace();
-        }
-        finally {
-            if( cursor != null ) {
-                cursor.close();
-            }
-        }
-        return uri;
+    private void saveBitmap(Bitmap bitmap, String name) {
+        TestUtils.saveBitmap(mActivity, bitmap, name);
     }
 
-    private void saveBitmap(Bitmap bitmap, String name) throws IOException {
-        Log.d(TAG, "saveBitmap: " + name);
-
-        File file = null;
-        ContentValues contentValues = null;
-        Uri uri = null;
-        OutputStream outputStream;
-        if( MainActivity.useScopedStorage() ) {
-            Uri folder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ?
-                    MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY) :
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-            // first try to delete pre-existing image
-            Uri old_uri = getUriFromName(folder, name);
-            if( old_uri != null ) {
-                Log.d(TAG, "delete: " + old_uri);
-                mActivity.getContentResolver().delete(old_uri, null, null);
-            }
-
-            contentValues = new ContentValues();
-            contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, name);
-            String extension = name.substring(name.lastIndexOf("."));
-            String mime_type = mActivity.getStorageUtils().getImageMimeType(extension);
-            Log.d(TAG, "mime_type: " + mime_type);
-            contentValues.put(MediaStore.Images.Media.MIME_TYPE, mime_type);
-            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
-                String relative_path = Environment.DIRECTORY_DCIM + File.separator;
-                Log.d(TAG, "relative_path: " + relative_path);
-                contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, relative_path);
-                contentValues.put(MediaStore.Images.Media.IS_PENDING, 1);
-            }
-
-            uri = mActivity.getContentResolver().insert(folder, contentValues);
-            Log.d(TAG, "saveUri: " + uri);
-            if( uri == null ) {
-                throw new IOException();
-            }
-            outputStream = mActivity.getContentResolver().openOutputStream(uri);
-        }
-        else {
-            file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + File.separator + name);
-            outputStream = new FileOutputStream(file);
-        }
-
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
-        outputStream.close();
-
-        if( MainActivity.useScopedStorage() ) {
-            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
-                contentValues.clear();
-                contentValues.put(MediaStore.Images.Media.IS_PENDING, 0);
-                mActivity.getContentResolver().update(uri, contentValues, null, null);
-            }
-        }
-        else {
-            mActivity.getStorageUtils().broadcastFile(file, true, false, true);
-        }
-    }
-
-    /**
-     * @param panorama_pics_per_screen The value of panorama_pics_per_screen used when taking the input photos.
-     * @param camera_angle_x The value of preview.getViewAngleX(for_preview=false) (in degrees) when taking the input photos (on the device used).
-     * @param camera_angle_y The value of preview.getViewAngleY(for_preview=false) (in degrees) when taking the input photos (on the device used).
-     */
-    private void subTestPanorama(List<String> inputs, String output_name, String gyro_debug_info_filename, float panorama_pics_per_screen, float camera_angle_x, float camera_angle_y, float gyro_tol_degrees) throws IOException, InterruptedException {
-        Log.d(TAG, "subTestPanorama");
-
-        // we set panorama_pics_per_screen in the test rather than using MyApplicationInterface.panorama_pics_per_screen,
-        // in case the latter value is changed
-
-        boolean first = true;
-        Matrix scale_matrix = null;
-        int bitmap_width = 0;
-        int bitmap_height = 0;
-        List<Bitmap> bitmaps = new ArrayList<>();
-        for(String input : inputs) {
-            Bitmap bitmap = getBitmapFromFile(input);
-
-            if( first ) {
-                bitmap_width = bitmap.getWidth();
-                bitmap_height = bitmap.getHeight();
-                Log.d(TAG, "bitmap_width: " + bitmap_width);
-                Log.d(TAG, "bitmap_height: " + bitmap_height);
-
-                final int max_height = 2080;
-                //final int max_height = 2079; // test non power of 2
-                if( bitmap_height > max_height ) {
-                    float scale = ((float)max_height) / ((float)bitmap_height);
-                    Log.d(TAG, "scale: " + scale);
-                    scale_matrix = new Matrix();
-                    scale_matrix.postScale(scale, scale);
-                }
-
-                first = false;
-            }
-
-            // downscale
-            if( scale_matrix != null ) {
-                Bitmap new_bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap_width, bitmap_height, scale_matrix, true);
-                bitmap.recycle();
-                bitmap = new_bitmap;
-            }
-
-            bitmaps.add(bitmap);
-        }
-
-        bitmap_width = bitmaps.get(0).getWidth();
-        bitmap_height = bitmaps.get(0).getHeight();
-        Log.d(TAG, "bitmap_width is now: " + bitmap_width);
-        Log.d(TAG, "bitmap_height is now: " + bitmap_height);
-
-
-        /*ImageSaver.GyroDebugInfo gyro_debug_info = null;
-        if( gyro_debug_info_filename != null ) {
-            InputStream inputStream;
-            try {
-                inputStream = new FileInputStream(gyro_debug_info_filename);
-            }
-            catch(FileNotFoundException e) {
-                Log.e(TAG, "failed to load gyro debug info file: " + gyro_debug_info_filename);
-                e.printStackTrace();
-                throw new RuntimeException();
-            }
-
-            gyro_debug_info = new ImageSaver.GyroDebugInfo();
-            if( !ImageSaver.readGyroDebugXml(inputStream, gyro_debug_info) ) {
-                Log.e(TAG, "failed to read gyro debug xml");
-                throw new RuntimeException();
-            }
-            else if( gyro_debug_info.image_info.size() != bitmaps.size() ) {
-                Log.e(TAG, "gyro debug xml has unexpected number of images: " + gyro_debug_info.image_info.size());
-                throw new RuntimeException();
-            }
-        }*/
-        //bitmaps.subList(2,bitmaps.size()).clear(); // test
-
-        Bitmap panorama = null;
-        try {
-            final boolean crop = true;
-            //final boolean crop = false; // test
-            panorama = mActivity.getApplicationInterface().getPanoramaProcessor().panorama(bitmaps, panorama_pics_per_screen, camera_angle_y, crop);
-        }
-        catch(PanoramaProcessorException e) {
-            e.printStackTrace();
-            fail();
-        }
-
-        saveBitmap(panorama, output_name);
-        Thread.sleep(500);
-
-        // check we've cropped correctly:
-        final float black_factor = 0.9f;
-        // top:
-        int n_black = 0;
-        for(int i=0;i<panorama.getWidth();i++) {
-            int color = panorama.getPixel(i, 0);
-            if( ((color >> 16) & 0xff) == 0 && ((color >> 8) & 0xff) == 0 && ((color) & 0xff) == 0 ) {
-                n_black++;
-            }
-        }
-        if( n_black >= panorama.getWidth()*black_factor ) {
-            Log.e(TAG, "too many black pixels on top border: " + n_black);
-            fail();
-        }
-        // bottom:
-        n_black = 0;
-        for(int i=0;i<panorama.getWidth();i++) {
-            int color = panorama.getPixel(i, panorama.getHeight()-1);
-            if( ((color >> 16) & 0xff) == 0 && ((color >> 8) & 0xff) == 0 && ((color) & 0xff) == 0 ) {
-                n_black++;
-            }
-        }
-        if( n_black >= panorama.getWidth()*black_factor ) {
-            Log.e(TAG, "too many black pixels on bottom border: " + n_black);
-            fail();
-        }
-        // left:
-        n_black = 0;
-        for(int i=0;i<panorama.getHeight();i++) {
-            int color = panorama.getPixel(0, i);
-            if( ((color >> 16) & 0xff) == 0 && ((color >> 8) & 0xff) == 0 && ((color) & 0xff) == 0 ) {
-                n_black++;
-            }
-        }
-        if( n_black >= panorama.getHeight()*black_factor ) {
-            Log.e(TAG, "too many black pixels on left border: " + n_black);
-            fail();
-        }
-        // right:
-        n_black = 0;
-        for(int i=0;i<panorama.getHeight();i++) {
-            int color = panorama.getPixel(panorama.getWidth()-1, i);
-            if( ((color >> 16) & 0xff) == 0 && ((color >> 8) & 0xff) == 0 && ((color) & 0xff) == 0 ) {
-                n_black++;
-            }
-        }
-        if( n_black >= panorama.getHeight()*black_factor ) {
-            Log.e(TAG, "too many black pixels on right border: " + n_black);
-            fail();
-        }
+    private void subTestPanorama(List<String> inputs, String output_name, String gyro_debug_info_filename, float panorama_pics_per_screen, float camera_angle_x, float camera_angle_y, float gyro_tol_degrees) {
+        TestUtils.subTestPanorama(mActivity, inputs, output_name, gyro_debug_info_filename, panorama_pics_per_screen, camera_angle_x, camera_angle_y, gyro_tol_degrees);
     }
 
     /** Tests panorama algorithm on test samples "testPanoramaWhite".
@@ -16831,8 +15718,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // list assets
         List<String> inputs = new ArrayList<>();
 
-        inputs.add(panorama_images_path + "testPanoramaWhite/input0.jpg");
-        inputs.add(panorama_images_path + "testPanoramaWhite/input0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanoramaWhite/input0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanoramaWhite/input0.jpg");
         float camera_angle_x = 66.3177f;
         float camera_angle_y = 50.04736f;
         float panorama_pics_per_screen = 2.0f;
@@ -16851,10 +15738,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // list assets
         List<String> inputs = new ArrayList<>();
 
-        inputs.add(panorama_images_path + "testPanorama1/input0.jpg");
-        inputs.add(panorama_images_path + "testPanorama1/input1.jpg");
-        inputs.add(panorama_images_path + "testPanorama1/input2.jpg");
-        inputs.add(panorama_images_path + "testPanorama1/input3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama1/input0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama1/input1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama1/input2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama1/input3.jpg");
         float camera_angle_x = 62.93796f;
         float camera_angle_y = 47.44656f;
         float panorama_pics_per_screen = 2.0f;
@@ -16876,22 +15763,22 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         /*final float panorama_pics_per_screen = 1.0f;
-        //inputs.add(panorama_images_path + "testPanorama2xxx/input0.jpg");
-        inputs.add(panorama_images_path + "testPanorama2xxx/input1.jpg");
-        inputs.add(panorama_images_path + "testPanorama2xxx/input2.jpg");*/
+        //inputs.add(TestUtils.panorama_images_path + "testPanorama2xxx/input0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama2xxx/input1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama2xxx/input2.jpg");*/
         /*final float panorama_pics_per_screen = 2.0f;
-        //inputs.add(panorama_images_path + "testPanorama1/input0.jpg");
-        inputs.add(panorama_images_path + "testPanorama1/input1.jpg");
-        inputs.add(panorama_images_path + "testPanorama1/input2.jpg");
-        inputs.add(panorama_images_path + "testPanorama1/input3.jpg");
+        //inputs.add(TestUtils.panorama_images_path + "testPanorama1/input0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama1/input1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama1/input2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama1/input3.jpg");
         String output_name = "testPanorama1_output.jpg";*/
         float panorama_pics_per_screen = 4.0f;
-        inputs.add(panorama_images_path + "testPanorama2/input0.jpg");
-        inputs.add(panorama_images_path + "testPanorama2/input1.jpg");
-        inputs.add(panorama_images_path + "testPanorama2/input2.jpg");
-        inputs.add(panorama_images_path + "testPanorama2/input3.jpg");
-        inputs.add(panorama_images_path + "testPanorama2/input4.jpg");
-        inputs.add(panorama_images_path + "testPanorama2/input5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama2/input0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama2/input1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama2/input2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama2/input3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama2/input4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama2/input5.jpg");
         String output_name = "testPanorama2_output.jpg";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -16912,17 +15799,17 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 4.0f;
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131249.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131252.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131255.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131258.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131301.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131303.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131305.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131307.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131315.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131317.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131320.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131249.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131252.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131255.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131258.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131301.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131303.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131305.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131307.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131315.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131317.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131320.jpg");
         String output_name = "testPanorama3_output.jpg";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -16944,17 +15831,17 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 2.0f;
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131249.jpg");
-        //inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131252.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131255.jpg");
-        //inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131258.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131301.jpg");
-        //inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131303.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131305.jpg");
-        //inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131307.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131315.jpg");
-        //inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131317.jpg");
-        inputs.add(panorama_images_path + "testPanorama3/IMG_20190214_131320.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131249.jpg");
+        //inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131252.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131255.jpg");
+        //inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131258.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131301.jpg");
+        //inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131303.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131305.jpg");
+        //inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131307.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131315.jpg");
+        //inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131317.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama3/IMG_20190214_131320.jpg");
         String output_name = "testPanorama3_picsperscreen2_output.jpg";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -16975,16 +15862,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 4.0f;
-        inputs.add(panorama_images_path + "testPanorama4/IMG_20190222_225317_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama4/IMG_20190222_225317_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama4/IMG_20190222_225317_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama4/IMG_20190222_225317_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama4/IMG_20190222_225317_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama4/IMG_20190222_225317_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama4/IMG_20190222_225317_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama4/IMG_20190222_225317_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama4/IMG_20190222_225317_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama4/IMG_20190222_225317_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama4/IMG_20190222_225317_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama4/IMG_20190222_225317_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama4/IMG_20190222_225317_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama4/IMG_20190222_225317_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama4/IMG_20190222_225317_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama4/IMG_20190222_225317_7.jpg");
         String output_name = "testPanorama4_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama4/IMG_20190222_225317.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama4/IMG_20190222_225317.xml";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
         // these images were taken with incorrect camera view angles, so we compensate in the test:
@@ -17004,16 +15891,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 4.0f;
-        inputs.add(panorama_images_path + "testPanorama5/IMG_20190223_220524_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama5/IMG_20190223_220524_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama5/IMG_20190223_220524_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama5/IMG_20190223_220524_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama5/IMG_20190223_220524_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama5/IMG_20190223_220524_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama5/IMG_20190223_220524_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama5/IMG_20190223_220524_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama5/IMG_20190223_220524_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama5/IMG_20190223_220524_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama5/IMG_20190223_220524_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama5/IMG_20190223_220524_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama5/IMG_20190223_220524_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama5/IMG_20190223_220524_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama5/IMG_20190223_220524_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama5/IMG_20190223_220524_7.jpg");
         String output_name = "testPanorama5_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama5/IMG_20190223_220524.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama5/IMG_20190223_220524.xml";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
         // these images were taken with incorrect camera view angles, so we compensate in the test:
@@ -17033,16 +15920,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 4.0f;
-        inputs.add(panorama_images_path + "testPanorama6/IMG_20190225_154232_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama6/IMG_20190225_154232_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama6/IMG_20190225_154232_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama6/IMG_20190225_154232_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama6/IMG_20190225_154232_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama6/IMG_20190225_154232_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama6/IMG_20190225_154232_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama6/IMG_20190225_154232_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama6/IMG_20190225_154232_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama6/IMG_20190225_154232_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama6/IMG_20190225_154232_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama6/IMG_20190225_154232_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama6/IMG_20190225_154232_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama6/IMG_20190225_154232_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama6/IMG_20190225_154232_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama6/IMG_20190225_154232_7.jpg");
         String output_name = "testPanorama6_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama6/IMG_20190225_154232.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama6/IMG_20190225_154232.xml";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
         // these images were taken with incorrect camera view angles, so we compensate in the test:
@@ -17062,17 +15949,17 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 4.0f;
-        inputs.add(panorama_images_path + "testPanorama7/IMG_20190225_155510_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama7/IMG_20190225_155510_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama7/IMG_20190225_155510_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama7/IMG_20190225_155510_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama7/IMG_20190225_155510_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama7/IMG_20190225_155510_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama7/IMG_20190225_155510_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama7/IMG_20190225_155510_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama7/IMG_20190225_155510_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama7/IMG_20190225_155510_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama7/IMG_20190225_155510_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama7/IMG_20190225_155510_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama7/IMG_20190225_155510_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama7/IMG_20190225_155510_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama7/IMG_20190225_155510_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama7/IMG_20190225_155510_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama7/IMG_20190225_155510_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama7/IMG_20190225_155510_8.jpg");
         String output_name = "testPanorama7_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama7/IMG_20190225_155510.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama7/IMG_20190225_155510.xml";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
         // these images were taken with incorrect camera view angles, so we compensate in the test:
@@ -17092,12 +15979,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 2.0f;
-        inputs.add(panorama_images_path + "testPanorama8/IMG_20190227_001431_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama8/IMG_20190227_001431_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama8/IMG_20190227_001431_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama8/IMG_20190227_001431_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama8/IMG_20190227_001431_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama8/IMG_20190227_001431_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama8/IMG_20190227_001431_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama8/IMG_20190227_001431_3.jpg");
         String output_name = "testPanorama8_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama8/IMG_20190227_001431.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama8/IMG_20190227_001431.xml";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
         // these images were taken with incorrect camera view angles, so we compensate in the test:
@@ -17117,15 +16004,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.0f;
-        inputs.add(panorama_images_path + "testPanorama9/IMG_20190301_145213_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama9/IMG_20190301_145213_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama9/IMG_20190301_145213_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama9/IMG_20190301_145213_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama9/IMG_20190301_145213_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama9/IMG_20190301_145213_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama9/IMG_20190301_145213_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama9/IMG_20190301_145213_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama9/IMG_20190301_145213_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama9/IMG_20190301_145213_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama9/IMG_20190301_145213_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama9/IMG_20190301_145213_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama9/IMG_20190301_145213_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama9/IMG_20190301_145213_6.jpg");
         String output_name = "testPanorama9_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama9/IMG_20190301_145213.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama9/IMG_20190301_145213.xml";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
         // these images were taken with incorrect camera view angles, so we compensate in the test:
@@ -17147,21 +16034,21 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.0f;
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_9.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_10.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_11.jpg");
-        inputs.add(panorama_images_path + "testPanorama10/IMG_20190301_144948_12.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_10.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_11.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948_12.jpg");
         String output_name = "testPanorama10_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama10/IMG_20190301_144948.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama10/IMG_20190301_144948.xml";
         //gyro_name = null;
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -17182,15 +16069,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.0f;
-        inputs.add(panorama_images_path + "testPanorama11/IMG_20190306_143652_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama11/IMG_20190306_143652_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama11/IMG_20190306_143652_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama11/IMG_20190306_143652_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama11/IMG_20190306_143652_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama11/IMG_20190306_143652_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama11/IMG_20190306_143652_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama11/IMG_20190306_143652_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama11/IMG_20190306_143652_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama11/IMG_20190306_143652_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama11/IMG_20190306_143652_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama11/IMG_20190306_143652_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama11/IMG_20190306_143652_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama11/IMG_20190306_143652_6.jpg");
         String output_name = "testPanorama11_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama11/IMG_20190306_143652.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama11/IMG_20190306_143652.xml";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
         // these images were taken with incorrect camera view angles, so we compensate in the test:
@@ -17210,18 +16097,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.0f;
-        inputs.add(panorama_images_path + "testPanorama12/IMG_20190308_152008_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama12/IMG_20190308_152008_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama12/IMG_20190308_152008_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama12/IMG_20190308_152008_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama12/IMG_20190308_152008_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama12/IMG_20190308_152008_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama12/IMG_20190308_152008_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama12/IMG_20190308_152008_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama12/IMG_20190308_152008_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama12/IMG_20190308_152008_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008_9.jpg");
         String output_name = "testPanorama12_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama12/IMG_20190308_152008.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama12/IMG_20190308_152008.xml";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
         // these images were taken with incorrect camera view angles, so we compensate in the test:
@@ -17241,18 +16128,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.0f;
-        inputs.add(panorama_images_path + "testPanorama13/IMG_20190512_014152_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama13/IMG_20190512_014152_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama13/IMG_20190512_014152_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama13/IMG_20190512_014152_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama13/IMG_20190512_014152_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama13/IMG_20190512_014152_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama13/IMG_20190512_014152_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama13/IMG_20190512_014152_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama13/IMG_20190512_014152_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama13/IMG_20190512_014152_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152_9.jpg");
         String output_name = "testPanorama13_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama13/IMG_20190512_014152.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama13/IMG_20190512_014152.xml";
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
 
@@ -17270,18 +16157,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama14/IMG_20190513_151249_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama14/IMG_20190513_151249_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama14/IMG_20190513_151249_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama14/IMG_20190513_151249_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama14/IMG_20190513_151249_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama14/IMG_20190513_151249_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama14/IMG_20190513_151249_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama14/IMG_20190513_151249_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama14/IMG_20190513_151249_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama14/IMG_20190513_151249_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249_9.jpg");
         String output_name = "testPanorama14_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama14/IMG_20190513_151249.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama14/IMG_20190513_151249.xml";
         //gyro_name = null;
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -17300,18 +16187,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama15/IMG_20190513_151624_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama15/IMG_20190513_151624_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama15/IMG_20190513_151624_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama15/IMG_20190513_151624_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama15/IMG_20190513_151624_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama15/IMG_20190513_151624_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama15/IMG_20190513_151624_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama15/IMG_20190513_151624_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama15/IMG_20190513_151624_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama15/IMG_20190513_151624_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624_9.jpg");
         String output_name = "testPanorama15_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama15/IMG_20190513_151624.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama15/IMG_20190513_151624.xml";
         //gyro_name = null;
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -17330,18 +16217,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama16/IMG_20190624_151731_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama16/IMG_20190624_151731_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama16/IMG_20190624_151731_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama16/IMG_20190624_151731_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama16/IMG_20190624_151731_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama16/IMG_20190624_151731_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama16/IMG_20190624_151731_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama16/IMG_20190624_151731_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama16/IMG_20190624_151731_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama16/IMG_20190624_151731_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731_9.jpg");
         String output_name = "testPanorama16_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama16/IMG_20190624_151731.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama16/IMG_20190624_151731.xml";
         //gyro_name = null;
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -17360,18 +16247,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama17/IMG_20190625_135423_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama17/IMG_20190625_135423_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama17/IMG_20190625_135423_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama17/IMG_20190625_135423_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama17/IMG_20190625_135423_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama17/IMG_20190625_135423_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama17/IMG_20190625_135423_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama17/IMG_20190625_135423_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama17/IMG_20190625_135423_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama17/IMG_20190625_135423_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423_9.jpg");
         String output_name = "testPanorama17_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama17/IMG_20190625_135423.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama17/IMG_20190625_135423.xml";
         //gyro_name = null;
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -17390,18 +16277,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama18/IMG_20190626_152559_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama18/IMG_20190626_152559_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama18/IMG_20190626_152559_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama18/IMG_20190626_152559_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama18/IMG_20190626_152559_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama18/IMG_20190626_152559_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama18/IMG_20190626_152559_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama18/IMG_20190626_152559_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama18/IMG_20190626_152559_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama18/IMG_20190626_152559_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559_9.jpg");
         String output_name = "testPanorama18_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama18/IMG_20190626_152559.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama18/IMG_20190626_152559.xml";
         //gyro_name = null;
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -17420,18 +16307,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama19/IMG_20190627_134059_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama19/IMG_20190627_134059_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama19/IMG_20190627_134059_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama19/IMG_20190627_134059_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama19/IMG_20190627_134059_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama19/IMG_20190627_134059_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama19/IMG_20190627_134059_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama19/IMG_20190627_134059_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama19/IMG_20190627_134059_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama19/IMG_20190627_134059_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059_9.jpg");
         String output_name = "testPanorama19_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama19/IMG_20190627_134059.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama19/IMG_20190627_134059.xml";
         //gyro_name = null;
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -17450,18 +16337,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama20/IMG_20190628_145027_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama20/IMG_20190628_145027_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama20/IMG_20190628_145027_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama20/IMG_20190628_145027_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama20/IMG_20190628_145027_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama20/IMG_20190628_145027_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama20/IMG_20190628_145027_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama20/IMG_20190628_145027_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama20/IMG_20190628_145027_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama20/IMG_20190628_145027_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027_9.jpg");
         String output_name = "testPanorama20_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama20/IMG_20190628_145027.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama20/IMG_20190628_145027.xml";
         //gyro_name = null;
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -17480,18 +16367,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama21/IMG_20190628_145552_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama21/IMG_20190628_145552_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama21/IMG_20190628_145552_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama21/IMG_20190628_145552_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama21/IMG_20190628_145552_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama21/IMG_20190628_145552_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama21/IMG_20190628_145552_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama21/IMG_20190628_145552_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama21/IMG_20190628_145552_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama21/IMG_20190628_145552_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552_9.jpg");
         String output_name = "testPanorama21_output.jpg";
-        String gyro_name = panorama_images_path + "testPanorama21/IMG_20190628_145552.xml";
+        String gyro_name = TestUtils.panorama_images_path + "testPanorama21/IMG_20190628_145552.xml";
         //gyro_name = null;
         float camera_angle_x = 66.708595f;
         float camera_angle_y = 50.282097f;
@@ -17510,14 +16397,14 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama22/IMG_20190629_165627_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama22/IMG_20190629_165627_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama22/IMG_20190629_165627_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama22/IMG_20190629_165627_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama22/IMG_20190629_165627_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama22/IMG_20190629_165627_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama22/IMG_20190629_165627_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama22/IMG_20190629_165627_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama22/IMG_20190629_165627_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama22/IMG_20190629_165627_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama22/IMG_20190629_165627_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama22/IMG_20190629_165627_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama22/IMG_20190629_165627_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama22/IMG_20190629_165627_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama22/IMG_20190629_165627_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama22/IMG_20190629_165627_7.jpg");
         String output_name = "testPanorama22_output.jpg";
         String gyro_name = null;
         float camera_angle_x = 66.708595f;
@@ -17537,11 +16424,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama23/IMG_20190702_145916_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama23/IMG_20190702_145916_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama23/IMG_20190702_145916_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama23/IMG_20190702_145916_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama23/IMG_20190702_145916_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama23/IMG_20190702_145916_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama23/IMG_20190702_145916_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama23/IMG_20190702_145916_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama23/IMG_20190702_145916_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama23/IMG_20190702_145916_4.jpg");
         String output_name = "testPanorama23_output.jpg";
         String gyro_name = null;
         float camera_angle_x = 66.708595f;
@@ -17561,16 +16448,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama24/IMG_20190703_154333_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama24/IMG_20190703_154333_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama24/IMG_20190703_154333_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama24/IMG_20190703_154333_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama24/IMG_20190703_154333_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama24/IMG_20190703_154333_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama24/IMG_20190703_154333_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama24/IMG_20190703_154333_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama24/IMG_20190703_154333_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama24/IMG_20190703_154333_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama24/IMG_20190703_154333_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama24/IMG_20190703_154333_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama24/IMG_20190703_154333_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama24/IMG_20190703_154333_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama24/IMG_20190703_154333_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama24/IMG_20190703_154333_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama24/IMG_20190703_154333_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama24/IMG_20190703_154333_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama24/IMG_20190703_154333_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama24/IMG_20190703_154333_9.jpg");
         String output_name = "testPanorama24_output.jpg";
         String gyro_name = null;
         // taken with OnePlus 3T, Camera2 API:
@@ -17592,13 +16479,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         float panorama_pics_per_screen = 3.33333f;
         //float panorama_pics_per_screen = 3.33333f / 2.0f;
-        inputs.add(panorama_images_path + "testPanorama25/IMG_20190706_215940_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama25/IMG_20190706_215940_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama25/IMG_20190706_215940_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama25/IMG_20190706_215940_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama25/IMG_20190706_215940_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama25/IMG_20190706_215940_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama25/IMG_20190706_215940_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama25/IMG_20190706_215940_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama25/IMG_20190706_215940_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama25/IMG_20190706_215940_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama25/IMG_20190706_215940_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama25/IMG_20190706_215940_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama25/IMG_20190706_215940_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama25/IMG_20190706_215940_6.jpg");
         String output_name = "testPanorama25_output.jpg";
         String gyro_name = null;
         // taken with Nokia 8, Camera2 API:
@@ -17619,13 +16506,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama26/IMG_20190706_214842_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama26/IMG_20190706_214842_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama26/IMG_20190706_214842_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama26/IMG_20190706_214842_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama26/IMG_20190706_214842_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama26/IMG_20190706_214842_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama26/IMG_20190706_214842_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama26/IMG_20190706_214842_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama26/IMG_20190706_214842_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama26/IMG_20190706_214842_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama26/IMG_20190706_214842_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama26/IMG_20190706_214842_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama26/IMG_20190706_214842_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama26/IMG_20190706_214842_6.jpg");
         String output_name = "testPanorama26_output.jpg";
         String gyro_name = null;
         // taken with Nokia 8, Camera2 API:
@@ -17646,13 +16533,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama27/IMG_20190706_192120_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama27/IMG_20190706_192120_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama27/IMG_20190706_192120_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama27/IMG_20190706_192120_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama27/IMG_20190706_192120_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama27/IMG_20190706_192120_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama27/IMG_20190706_192120_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama27/IMG_20190706_192120_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama27/IMG_20190706_192120_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama27/IMG_20190706_192120_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama27/IMG_20190706_192120_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama27/IMG_20190706_192120_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama27/IMG_20190706_192120_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama27/IMG_20190706_192120_6.jpg");
         String output_name = "testPanorama27_output.jpg";
         String gyro_name = null;
         // taken with Nokia 8, Camera2 API:
@@ -17674,27 +16561,27 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         float panorama_pics_per_screen = 3.33333f;
         // right-to-left:
-        /*inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_9.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_0.jpg");*/
+        /*inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_0.jpg");*/
         // converted from original JPEGs to PNG using Nokia 8:
-        inputs.add(panorama_images_path + "testPanorama28/input_bitmap_0.png");
-        inputs.add(panorama_images_path + "testPanorama28/input_bitmap_1.png");
-        inputs.add(panorama_images_path + "testPanorama28/input_bitmap_2.png");
-        inputs.add(panorama_images_path + "testPanorama28/input_bitmap_3.png");
-        inputs.add(panorama_images_path + "testPanorama28/input_bitmap_4.png");
-        inputs.add(panorama_images_path + "testPanorama28/input_bitmap_5.png");
-        inputs.add(panorama_images_path + "testPanorama28/input_bitmap_6.png");
-        inputs.add(panorama_images_path + "testPanorama28/input_bitmap_7.png");
-        inputs.add(panorama_images_path + "testPanorama28/input_bitmap_8.png");
-        inputs.add(panorama_images_path + "testPanorama28/input_bitmap_9.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/input_bitmap_0.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/input_bitmap_1.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/input_bitmap_2.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/input_bitmap_3.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/input_bitmap_4.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/input_bitmap_5.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/input_bitmap_6.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/input_bitmap_7.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/input_bitmap_8.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/input_bitmap_9.png");
         String output_name = "testPanorama28_output.jpg";
         String gyro_name = null;
         // taken with Samsung Galaxy S10e, Camera2 API, standard rear camera:
@@ -17719,27 +16606,27 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         float panorama_pics_per_screen = 3.33333f;
         // right-to-left:
-        /*inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_9.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama28/IMG_20190725_134756_0.jpg");*/
+        /*inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/IMG_20190725_134756_0.jpg");*/
         // converted from original JPEGs to PNG using Samsung Galaxy S10e:
-        inputs.add(panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_0.png");
-        inputs.add(panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_1.png");
-        inputs.add(panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_2.png");
-        inputs.add(panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_3.png");
-        inputs.add(panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_4.png");
-        inputs.add(panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_5.png");
-        inputs.add(panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_6.png");
-        inputs.add(panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_7.png");
-        inputs.add(panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_8.png");
-        inputs.add(panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_9.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_0.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_1.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_2.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_3.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_4.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_5.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_6.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_7.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_8.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama28/galaxys10e_input_bitmap_9.png");
         String output_name = "testPanorama28_galaxys10e_output.jpg";
         String gyro_name = null;
         // taken with Samsung Galaxy S10e, Camera2 API, standard rear camera:
@@ -17761,16 +16648,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         float panorama_pics_per_screen = 3.33333f;
         // right-to-left:
-        inputs.add(panorama_images_path + "testPanorama29/IMG_20190719_145852_9.jpg");
-        inputs.add(panorama_images_path + "testPanorama29/IMG_20190719_145852_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama29/IMG_20190719_145852_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama29/IMG_20190719_145852_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama29/IMG_20190719_145852_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama29/IMG_20190719_145852_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama29/IMG_20190719_145852_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama29/IMG_20190719_145852_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama29/IMG_20190719_145852_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama29/IMG_20190719_145852_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama29/IMG_20190719_145852_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama29/IMG_20190719_145852_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama29/IMG_20190719_145852_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama29/IMG_20190719_145852_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama29/IMG_20190719_145852_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama29/IMG_20190719_145852_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama29/IMG_20190719_145852_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama29/IMG_20190719_145852_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama29/IMG_20190719_145852_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama29/IMG_20190719_145852_0.jpg");
         String output_name = "testPanorama29_output.jpg";
         String gyro_name = null;
         // taken with Nokia 8, old API:
@@ -17791,27 +16678,27 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        /*inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_9.jpg");*/
+        /*inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_9.jpg");*/
         // converted from original JPEGs to PNG using Nokia 8:
-        inputs.add(panorama_images_path + "testPanorama30/nokia8_input_bitmap_0.png");
-        inputs.add(panorama_images_path + "testPanorama30/nokia8_input_bitmap_1.png");
-        inputs.add(panorama_images_path + "testPanorama30/nokia8_input_bitmap_2.png");
-        inputs.add(panorama_images_path + "testPanorama30/nokia8_input_bitmap_3.png");
-        inputs.add(panorama_images_path + "testPanorama30/nokia8_input_bitmap_4.png");
-        inputs.add(panorama_images_path + "testPanorama30/nokia8_input_bitmap_5.png");
-        inputs.add(panorama_images_path + "testPanorama30/nokia8_input_bitmap_6.png");
-        inputs.add(panorama_images_path + "testPanorama30/nokia8_input_bitmap_7.png");
-        inputs.add(panorama_images_path + "testPanorama30/nokia8_input_bitmap_8.png");
-        inputs.add(panorama_images_path + "testPanorama30/nokia8_input_bitmap_9.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/nokia8_input_bitmap_0.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/nokia8_input_bitmap_1.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/nokia8_input_bitmap_2.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/nokia8_input_bitmap_3.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/nokia8_input_bitmap_4.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/nokia8_input_bitmap_5.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/nokia8_input_bitmap_6.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/nokia8_input_bitmap_7.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/nokia8_input_bitmap_8.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/nokia8_input_bitmap_9.png");
         String output_name = "testPanorama30_output.jpg";
         String gyro_name = null;
         // taken with Samsung Galaxy S10e, old API, standard rear camera:
@@ -17836,27 +16723,27 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        /*inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama30/IMG_20190723_142934_9.jpg");*/
+        /*inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/IMG_20190723_142934_9.jpg");*/
         // converted from original JPEGs to PNG using Samsung Galaxy S10e:
-        inputs.add(panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_0.png");
-        inputs.add(panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_1.png");
-        inputs.add(panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_2.png");
-        inputs.add(panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_3.png");
-        inputs.add(panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_4.png");
-        inputs.add(panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_5.png");
-        inputs.add(panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_6.png");
-        inputs.add(panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_7.png");
-        inputs.add(panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_8.png");
-        inputs.add(panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_9.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_0.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_1.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_2.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_3.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_4.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_5.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_6.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_7.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_8.png");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama30/galaxys10e_input_bitmap_9.png");
         String output_name = "testPanorama30_galaxys10e_output.jpg";
         String gyro_name = null;
         // taken with Samsung Galaxy S10e, old API, standard rear camera:
@@ -17878,13 +16765,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama31/IMG_20190704_135633_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama31/IMG_20190704_135633_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama31/IMG_20190704_135633_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama31/IMG_20190704_135633_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama31/IMG_20190704_135633_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama31/IMG_20190704_135633_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama31/IMG_20190704_135633_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama31/IMG_20190704_135633_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama31/IMG_20190704_135633_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama31/IMG_20190704_135633_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama31/IMG_20190704_135633_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama31/IMG_20190704_135633_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama31/IMG_20190704_135633_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama31/IMG_20190704_135633_6.jpg");
         String output_name = "testPanorama31_output.jpg";
         String gyro_name = null;
         // taken with OnePlus 3T, Camera2 API:
@@ -17905,15 +16792,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama32/IMG_20190705_145938_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama32/IMG_20190705_145938_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama32/IMG_20190705_145938_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama32/IMG_20190705_145938_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama32/IMG_20190705_145938_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama32/IMG_20190705_145938_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama32/IMG_20190705_145938_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama32/IMG_20190705_145938_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama32/IMG_20190705_145938_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama32/IMG_20190705_145938_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama32/IMG_20190705_145938_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama32/IMG_20190705_145938_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama32/IMG_20190705_145938_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama32/IMG_20190705_145938_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama32/IMG_20190705_145938_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama32/IMG_20190705_145938_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama32/IMG_20190705_145938_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama32/IMG_20190705_145938_8.jpg");
         String output_name = "testPanorama32_output.jpg";
         String gyro_name = null;
         // taken with OnePlus 3T, old API:
@@ -17934,12 +16821,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama33/IMG_20190713_013437_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama33/IMG_20190713_013437_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama33/IMG_20190713_013437_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama33/IMG_20190713_013437_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama33/IMG_20190713_013437_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama33/IMG_20190713_013437_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama33/IMG_20190713_013437_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama33/IMG_20190713_013437_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama33/IMG_20190713_013437_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama33/IMG_20190713_013437_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama33/IMG_20190713_013437_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama33/IMG_20190713_013437_5.jpg");
         String output_name = "testPanorama33_output.jpg";
         String gyro_name = null;
         // taken with Nokia 8, old API:
@@ -17961,16 +16848,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         float panorama_pics_per_screen = 3.33333f;
         // right-to-left:
-        inputs.add(panorama_images_path + "testPanorama34/IMG_20190717_144042_9.jpg");
-        inputs.add(panorama_images_path + "testPanorama34/IMG_20190717_144042_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama34/IMG_20190717_144042_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama34/IMG_20190717_144042_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama34/IMG_20190717_144042_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama34/IMG_20190717_144042_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama34/IMG_20190717_144042_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama34/IMG_20190717_144042_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama34/IMG_20190717_144042_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama34/IMG_20190717_144042_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama34/IMG_20190717_144042_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama34/IMG_20190717_144042_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama34/IMG_20190717_144042_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama34/IMG_20190717_144042_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama34/IMG_20190717_144042_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama34/IMG_20190717_144042_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama34/IMG_20190717_144042_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama34/IMG_20190717_144042_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama34/IMG_20190717_144042_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama34/IMG_20190717_144042_0.jpg");
         String output_name = "testPanorama34_output.jpg";
         String gyro_name = null;
         // taken with Nexus 6, old API:
@@ -17991,16 +16878,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama35/IMG_20190717_145114_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama35/IMG_20190717_145114_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama35/IMG_20190717_145114_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama35/IMG_20190717_145114_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama35/IMG_20190717_145114_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama35/IMG_20190717_145114_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama35/IMG_20190717_145114_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama35/IMG_20190717_145114_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama35/IMG_20190717_145114_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama35/IMG_20190717_145114_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama35/IMG_20190717_145114_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama35/IMG_20190717_145114_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama35/IMG_20190717_145114_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama35/IMG_20190717_145114_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama35/IMG_20190717_145114_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama35/IMG_20190717_145114_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama35/IMG_20190717_145114_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama35/IMG_20190717_145114_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama35/IMG_20190717_145114_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama35/IMG_20190717_145114_9.jpg");
         String output_name = "testPanorama35_output.jpg";
         String gyro_name = null;
         // taken with Nexus 7, old API:
@@ -18021,14 +16908,14 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama36/IMG_20190722_201331_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama36/IMG_20190722_201331_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama36/IMG_20190722_201331_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama36/IMG_20190722_201331_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama36/IMG_20190722_201331_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama36/IMG_20190722_201331_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama36/IMG_20190722_201331_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama36/IMG_20190722_201331_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama36/IMG_20190722_201331_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama36/IMG_20190722_201331_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama36/IMG_20190722_201331_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama36/IMG_20190722_201331_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama36/IMG_20190722_201331_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama36/IMG_20190722_201331_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama36/IMG_20190722_201331_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama36/IMG_20190722_201331_7.jpg");
         String output_name = "testPanorama36_output.jpg";
         String gyro_name = null;
         // taken with Samsung Galaxy S10e, Camera2 API, ultra wide rear camera:
@@ -18049,15 +16936,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama37/IMG_20190723_203441_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama37/IMG_20190723_203441_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama37/IMG_20190723_203441_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama37/IMG_20190723_203441_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama37/IMG_20190723_203441_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama37/IMG_20190723_203441_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama37/IMG_20190723_203441_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama37/IMG_20190723_203441_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama37/IMG_20190723_203441_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama37/IMG_20190723_203441_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama37/IMG_20190723_203441_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama37/IMG_20190723_203441_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama37/IMG_20190723_203441_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama37/IMG_20190723_203441_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama37/IMG_20190723_203441_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama37/IMG_20190723_203441_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama37/IMG_20190723_203441_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama37/IMG_20190723_203441_8.jpg");
         String output_name = "testPanorama37_output.jpg";
         String gyro_name = null;
         // taken with Samsung Galaxy S10e, old API, standard rear camera:
@@ -18079,16 +16966,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         List<String> inputs = new ArrayList<>();
 
         float panorama_pics_per_screen = 3.33333f;
-        inputs.add(panorama_images_path + "testPanorama38/IMG_20190722_141148_0.jpg");
-        inputs.add(panorama_images_path + "testPanorama38/IMG_20190722_141148_1.jpg");
-        inputs.add(panorama_images_path + "testPanorama38/IMG_20190722_141148_2.jpg");
-        inputs.add(panorama_images_path + "testPanorama38/IMG_20190722_141148_3.jpg");
-        inputs.add(panorama_images_path + "testPanorama38/IMG_20190722_141148_4.jpg");
-        inputs.add(panorama_images_path + "testPanorama38/IMG_20190722_141148_5.jpg");
-        inputs.add(panorama_images_path + "testPanorama38/IMG_20190722_141148_6.jpg");
-        inputs.add(panorama_images_path + "testPanorama38/IMG_20190722_141148_7.jpg");
-        inputs.add(panorama_images_path + "testPanorama38/IMG_20190722_141148_8.jpg");
-        inputs.add(panorama_images_path + "testPanorama38/IMG_20190722_141148_9.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama38/IMG_20190722_141148_0.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama38/IMG_20190722_141148_1.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama38/IMG_20190722_141148_2.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama38/IMG_20190722_141148_3.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama38/IMG_20190722_141148_4.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama38/IMG_20190722_141148_5.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama38/IMG_20190722_141148_6.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama38/IMG_20190722_141148_7.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama38/IMG_20190722_141148_8.jpg");
+        inputs.add(TestUtils.panorama_images_path + "testPanorama38/IMG_20190722_141148_9.jpg");
         String output_name = "testPanorama38_output.jpg";
         String gyro_name = null;
         // taken with Samsung Galaxy S10e, Camera2 API, standard rear camera:

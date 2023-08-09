@@ -109,9 +109,10 @@ public class ImageSaver extends Thread {
         final Type type;
         enum ProcessType {
             NORMAL,
-            HDR,
+            HDR, // also covers DRO, if only 1 image in the request
             AVERAGE,
-            PANORAMA
+            PANORAMA,
+            X_NIGHT
         }
         final ProcessType process_type; // for type==JPEG
         final boolean force_suffix; // affects filename suffixes for saving jpeg_images: if true, filenames will always be appended with a suffix like _0, even if there's only 1 image in jpeg_images
@@ -152,6 +153,7 @@ public class ImageSaver extends Thread {
         final boolean is_front_facing;
         boolean mirror;
         final Date current_date;
+        final HDRProcessor.TonemappingAlgorithm preference_hdr_tonemapping_algorithm; // for HDR
         final String preference_hdr_contrast_enhancement; // for HDR
         final int iso; // not applicable for RAW image
         final long exposure_time; // not applicable for RAW image
@@ -167,6 +169,12 @@ public class ImageSaver extends Thread {
         //final String preference_stamp_geo_address;
         final String preference_units_distance;
         final boolean panorama_crop; // used for panorama
+        enum RemoveDeviceExif {
+            OFF, // don't remove any device exif tags
+            ON, // remove all device exif tags
+            KEEP_DATETIME // remove all device exif tags except datetime tags
+        }
+        final RemoveDeviceExif remove_device_exif;
         final boolean store_location;
         final Location location;
         final boolean store_geo_direction;
@@ -191,6 +199,7 @@ public class ImageSaver extends Thread {
                 boolean is_front_facing,
                 boolean mirror,
                 Date current_date,
+                HDRProcessor.TonemappingAlgorithm preference_hdr_tonemapping_algorithm,
                 String preference_hdr_contrast_enhancement,
                 int iso,
                 long exposure_time,
@@ -199,6 +208,7 @@ public class ImageSaver extends Thread {
                 //String preference_stamp_geo_address,
                 String preference_units_distance,
                 boolean panorama_crop,
+                RemoveDeviceExif remove_device_exif,
                 boolean store_location, Location location, boolean store_geo_direction, double geo_direction,
                 double pitch_angle, boolean store_ypr,
                 String custom_tag_artist,
@@ -223,6 +233,7 @@ public class ImageSaver extends Thread {
             this.is_front_facing = is_front_facing;
             this.mirror = mirror;
             this.current_date = current_date;
+            this.preference_hdr_tonemapping_algorithm = preference_hdr_tonemapping_algorithm;
             this.preference_hdr_contrast_enhancement = preference_hdr_contrast_enhancement;
             this.iso = iso;
             this.exposure_time = exposure_time;
@@ -238,6 +249,7 @@ public class ImageSaver extends Thread {
             //this.preference_stamp_geo_address = preference_stamp_geo_address;
             this.preference_units_distance = preference_units_distance;
             this.panorama_crop = panorama_crop;
+            this.remove_device_exif = remove_device_exif;
             this.store_location = store_location;
             this.location = location;
             this.store_geo_direction = store_geo_direction;
@@ -267,6 +279,7 @@ public class ImageSaver extends Thread {
                     this.is_front_facing,
                     this.mirror,
                     this.current_date,
+                    this.preference_hdr_tonemapping_algorithm,
                     this.preference_hdr_contrast_enhancement,
                     this.iso,
                     this.exposure_time,
@@ -274,7 +287,7 @@ public class ImageSaver extends Thread {
                     this.preference_stamp, this.preference_textstamp, this.font_size, this.color, this.pref_style, this.preference_stamp_dateformat, this.preference_stamp_timeformat, this.preference_stamp_gpsformat,
                     //this.preference_stamp_geo_address,
                     this.preference_units_distance,
-                    this.panorama_crop, this.store_location, this.location, this.store_geo_direction, this.geo_direction,
+                    this.panorama_crop, this.remove_device_exif, this.store_location, this.location, this.store_geo_direction, this.geo_direction,
                     this.pitch_angle, this.store_ypr,
                     this.custom_tag_artist,
                     this.custom_tag_copyright,
@@ -566,7 +579,7 @@ public class ImageSaver extends Thread {
      *  successfully.
      */
     boolean saveImageJpeg(boolean do_in_background,
-                          boolean is_hdr,
+                          Request.ProcessType processType,
                           boolean force_suffix,
                           int suffix_offset,
                           boolean save_expo,
@@ -578,6 +591,7 @@ public class ImageSaver extends Thread {
                           boolean is_front_facing,
                           boolean mirror,
                           Date current_date,
+                          HDRProcessor.TonemappingAlgorithm preference_hdr_tonemapping_algorithm,
                           String preference_hdr_contrast_enhancement,
                           int iso,
                           long exposure_time,
@@ -586,6 +600,7 @@ public class ImageSaver extends Thread {
                           //String preference_stamp_geo_address,
                           String preference_units_distance,
                           boolean panorama_crop,
+                          Request.RemoveDeviceExif remove_device_exif,
                           boolean store_location, Location location, boolean store_geo_direction, double geo_direction,
                           double pitch_angle, boolean store_ypr,
                           String custom_tag_artist,
@@ -598,7 +613,7 @@ public class ImageSaver extends Thread {
         }
         return saveImage(do_in_background,
                 false,
-                is_hdr,
+                processType,
                 force_suffix,
                 suffix_offset,
                 save_expo,
@@ -611,6 +626,7 @@ public class ImageSaver extends Thread {
                 is_front_facing,
                 mirror,
                 current_date,
+                preference_hdr_tonemapping_algorithm,
                 preference_hdr_contrast_enhancement,
                 iso,
                 exposure_time,
@@ -618,7 +634,7 @@ public class ImageSaver extends Thread {
                 preference_stamp, preference_textstamp, font_size, color, pref_style, preference_stamp_dateformat, preference_stamp_timeformat, preference_stamp_gpsformat,
                 //preference_stamp_geo_address,
                 preference_units_distance,
-                panorama_crop, store_location, location, store_geo_direction, geo_direction,
+                panorama_crop, remove_device_exif, store_location, location, store_geo_direction, geo_direction,
                 pitch_angle, store_ypr,
                 custom_tag_artist,
                 custom_tag_copyright,
@@ -642,7 +658,7 @@ public class ImageSaver extends Thread {
         }
         return saveImage(do_in_background,
                 true,
-                false,
+                Request.ProcessType.NORMAL,
                 force_suffix,
                 suffix_offset,
                 false,
@@ -655,6 +671,7 @@ public class ImageSaver extends Thread {
                 false,
                 false,
                 current_date,
+                HDRProcessor.default_tonemapping_algorithm_c,
                 null,
                 0,
                 0,
@@ -662,7 +679,7 @@ public class ImageSaver extends Thread {
                 null, null, 0, 0, null, null, null, null,
                 //null,
                 null,
-                false, false, null, false, 0.0,
+                false, Request.RemoveDeviceExif.OFF, false, null, false, 0.0,
                 0.0, false,
                 null, null,
                 1);
@@ -690,6 +707,7 @@ public class ImageSaver extends Thread {
                            //String preference_stamp_geo_address,
                            String preference_units_distance,
                            boolean panorama_crop,
+                           Request.RemoveDeviceExif remove_device_exif,
                            boolean store_location, Location location, boolean store_geo_direction, double geo_direction,
                            double pitch_angle, boolean store_ypr,
                            String custom_tag_artist,
@@ -713,6 +731,7 @@ public class ImageSaver extends Thread {
                 is_front_facing,
                 mirror,
                 current_date,
+                HDRProcessor.default_tonemapping_algorithm_c,
                 null,
                 iso,
                 exposure_time,
@@ -720,7 +739,7 @@ public class ImageSaver extends Thread {
                 preference_stamp, preference_textstamp, font_size, color, pref_style, preference_stamp_dateformat, preference_stamp_timeformat, preference_stamp_gpsformat,
                 //preference_stamp_geo_address,
                 preference_units_distance,
-                panorama_crop, store_location, location, store_geo_direction, geo_direction,
+                panorama_crop, remove_device_exif, store_location, location, store_geo_direction, geo_direction,
                 pitch_angle, store_ypr,
                 custom_tag_artist,
                 custom_tag_copyright,
@@ -781,7 +800,7 @@ public class ImageSaver extends Thread {
      */
     private boolean saveImage(boolean do_in_background,
                               boolean is_raw,
-                              boolean is_hdr,
+                              Request.ProcessType processType,
                               boolean force_suffix,
                               int suffix_offset,
                               boolean save_expo,
@@ -794,6 +813,7 @@ public class ImageSaver extends Thread {
                               boolean is_front_facing,
                               boolean mirror,
                               Date current_date,
+                              HDRProcessor.TonemappingAlgorithm preference_hdr_tonemapping_algorithm,
                               String preference_hdr_contrast_enhancement,
                               int iso,
                               long exposure_time,
@@ -802,6 +822,7 @@ public class ImageSaver extends Thread {
                               //String preference_stamp_geo_address,
                               String preference_units_distance,
                               boolean panorama_crop,
+                              Request.RemoveDeviceExif remove_device_exif,
                               boolean store_location, Location location, boolean store_geo_direction, double geo_direction,
                               double pitch_angle, boolean store_ypr,
                               String custom_tag_artist,
@@ -816,7 +837,7 @@ public class ImageSaver extends Thread {
         //do_in_background = false;
 
         Request request = new Request(is_raw ? Request.Type.RAW : Request.Type.JPEG,
-                is_hdr ? Request.ProcessType.HDR : Request.ProcessType.NORMAL,
+                processType,
                 force_suffix,
                 suffix_offset,
                 save_expo ? Request.SaveBase.SAVEBASE_ALL : Request.SaveBase.SAVEBASE_NONE,
@@ -829,6 +850,7 @@ public class ImageSaver extends Thread {
                 is_front_facing,
                 mirror,
                 current_date,
+                preference_hdr_tonemapping_algorithm,
                 preference_hdr_contrast_enhancement,
                 iso,
                 exposure_time,
@@ -836,7 +858,7 @@ public class ImageSaver extends Thread {
                 preference_stamp, preference_textstamp, font_size, color, pref_style, preference_stamp_dateformat, preference_stamp_timeformat, preference_stamp_gpsformat,
                 //preference_stamp_geo_address,
                 preference_units_distance,
-                panorama_crop, store_location, location, store_geo_direction, geo_direction,
+                panorama_crop, remove_device_exif, store_location, location, store_geo_direction, geo_direction,
                 pitch_angle, store_ypr,
                 custom_tag_artist,
                 custom_tag_copyright,
@@ -942,6 +964,7 @@ public class ImageSaver extends Thread {
                 false,
                 false,
                 null,
+                HDRProcessor.default_tonemapping_algorithm_c,
                 null,
                 0,
                 0,
@@ -949,7 +972,7 @@ public class ImageSaver extends Thread {
                 null, null, 0, 0, null, null, null, null,
                 //null,
                 null,
-                false, false, null, false, 0.0,
+                false, Request.RemoveDeviceExif.OFF, false, null, false, 0.0,
                 0.0, false,
                 null, null,
                 1);
@@ -1573,7 +1596,7 @@ public class ImageSaver extends Thread {
                 Log.d(TAG, "before HDR first bitmap: " + bitmaps.get(0) + " is mutable? " + bitmaps.get(0).isMutable());
             try {
                 if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
-                    hdrProcessor.processHDR(bitmaps, true, null, true, null, hdr_alpha, 4, true, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD, HDRProcessor.DROTonemappingAlgorithm.DROALGORITHM_GAINGAMMA); // this will recycle all the bitmaps except bitmaps.get(0), which will contain the hdr image
+                    hdrProcessor.processHDR(bitmaps, true, null, true, null, hdr_alpha, 4, true, request.preference_hdr_tonemapping_algorithm, HDRProcessor.DROTonemappingAlgorithm.DROALGORITHM_GAINGAMMA); // this will recycle all the bitmaps except bitmaps.get(0), which will contain the hdr image
                 }
                 else {
                     Log.e(TAG, "shouldn't have offered HDR as an option if not on Android 5");
@@ -1694,10 +1717,10 @@ public class ImageSaver extends Thread {
                     }
 
                     if( saveFile != null ) {
-                        storageUtils.broadcastFile(saveFile, false, false, false);
+                        storageUtils.broadcastFile(saveFile, false, false, false, false, null);
                     }
                     else {
-                        broadcastSAFFile(saveUri, false, false);
+                        broadcastSAFFile(saveUri, false, false, false);
                     }
                 }
                 catch(IOException e) {
@@ -1818,6 +1841,9 @@ public class ImageSaver extends Thread {
             byte [] image = request.jpeg_images.get(i);
             boolean multiple_jpegs = request.jpeg_images.size() > 1 && !first_only;
             String filename_suffix = (multiple_jpegs || request.force_suffix) ? suffix + (i + request.suffix_offset) : "";
+            if( request.process_type == Request.ProcessType.X_NIGHT ) {
+                filename_suffix = "_Night" + filename_suffix;
+            }
             boolean share_image = share && (i == mid_image);
             if( !saveSingleImageNow(request, image, null, filename_suffix, update_thumbnail, share_image, false, false) ) {
                 if( MyDebug.LOG )
@@ -2344,19 +2370,15 @@ public class ImageSaver extends Thread {
             Log.d(TAG, "postProcessBitmap");
         long time_s = System.currentTimeMillis();
 
-        boolean dategeo_stamp = request.preference_stamp.equals("preference_stamp_yes");
-        boolean text_stamp = request.preference_textstamp.length() > 0;
-        if( bitmap != null || request.image_format != Request.ImageFormat.STD || request.do_auto_stabilise || request.mirror || dategeo_stamp || text_stamp ) {
-            // either we have a bitmap, or will need to decode the bitmap to do post-processing
-            if( !ignore_exif_orientation ) {
-                if( bitmap != null ) {
-                    // rotate the bitmap if necessary for exif tags
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "rotate pre-existing bitmap for exif tags?");
-                    bitmap = rotateForExif(bitmap, data);
-                }
+        if( !ignore_exif_orientation ) {
+            if( bitmap != null ) {
+                // rotate the bitmap if necessary for exif tags
+                if( MyDebug.LOG )
+                    Log.d(TAG, "rotate pre-existing bitmap for exif tags?");
+                bitmap = rotateForExif(bitmap, data);
             }
         }
+
         if( request.do_auto_stabilise ) {
             bitmap = autoStabilise(data, bitmap, request.level_angle, request.is_front_facing);
         }
@@ -2372,6 +2394,18 @@ public class ImageSaver extends Thread {
             bitmap = loadBitmapWithRotation(data, true);
             if( bitmap == null ) {
                 // if we can't load bitmap for converting file formats, don't want to continue
+                System.gc();
+                throw new IOException();
+            }
+        }
+        if( request.remove_device_exif != Request.RemoveDeviceExif.OFF && bitmap == null ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "need to decode bitmap to strip exif tags");
+            // if removing device exif data, it's easier to do this by going through the codepath that
+            // resaves the bitmap, and then we avoid transferring/adding exif tags that we don't want
+            bitmap = loadBitmapWithRotation(data, true);
+            if( bitmap == null ) {
+                // if we can't load bitmap for removing device tags, don't want to continue
                 System.gc();
                 throw new IOException();
             }
@@ -2663,9 +2697,11 @@ public class ImageSaver extends Thread {
                     storageUtils.clearLastMediaScanned();
                 }
 
+                boolean hasnoexifdatetime = request.remove_device_exif != Request.RemoveDeviceExif.OFF && request.remove_device_exif != Request.RemoveDeviceExif.KEEP_DATETIME;
+
                 if( picFile != null && saveUri == null ) {
                     // broadcast for SAF is done later, when we've actually written out the file
-                    storageUtils.broadcastFile(picFile, true, false, update_thumbnail);
+                    storageUtils.broadcastFile(picFile, true, false, update_thumbnail, hasnoexifdatetime, null);
                     main_activity.test_last_saved_image = picFile.getAbsolutePath();
                 }
 
@@ -2696,12 +2732,12 @@ public class ImageSaver extends Thread {
                             storageUtils.announceUri(saveUri, true, false);
                             if( update_thumbnail ) {
                                 // we also want to save the uri - we can use the media uri directly, rather than having to scan it
-                                storageUtils.setLastMediaScanned(saveUri, false);
+                                storageUtils.setLastMediaScanned(saveUri, false, hasnoexifdatetime, saveUri);
                             }
                         }
                     }
                     else {
-                        broadcastSAFFile(saveUri, update_thumbnail, request.image_capture_intent);
+                        broadcastSAFFile(saveUri, update_thumbnail, hasnoexifdatetime, request.image_capture_intent);
                     }
 
                     main_activity.test_last_saved_imageuri = saveUri;
@@ -2855,11 +2891,11 @@ public class ImageSaver extends Thread {
         }
     }
 
-    private void broadcastSAFFile(Uri saveUri, boolean set_last_scanned, boolean image_capture_intent) {
+    private void broadcastSAFFile(Uri saveUri, boolean set_last_scanned, boolean hasnoexifdatetime, boolean image_capture_intent) {
         if( MyDebug.LOG )
             Log.d(TAG, "broadcastSAFFile");
         StorageUtils storageUtils = main_activity.getStorageUtils();
-        storageUtils.broadcastUri(saveUri, true, false, set_last_scanned, image_capture_intent);
+        storageUtils.broadcastUri(saveUri, true, false, set_last_scanned, hasnoexifdatetime, image_capture_intent);
     }
 
     /** As setExifFromFile, but can read the Exif tags directly from the jpeg data, and to a file descriptor, rather than a file.
@@ -2883,51 +2919,26 @@ public class ImageSaver extends Thread {
         }
     }
 
-    /** Transfers exif tags from exif to exif_new, and then applies any extra Exif tags according to the preferences in the request.
-     *  Note that we use several ExifInterface tags that are now deprecated in API level 23 and 24. These are replaced with new tags that have
-     *  the same string value (e.g., TAG_APERTURE replaced with TAG_F_NUMBER, but both have value "FNumber"). We use the deprecated versions
-     *  to avoid complicating the code (we'd still have to read the deprecated values for older devices).
+    /** Transfers device exif info. Should only be called if request.remove_device_exif == Request.RemoveDeviceExif.OFF.
      */
-    private void setExif(final Request request, ExifInterface exif, ExifInterface exif_new) throws IOException {
+    private void transferDeviceExif(ExifInterface exif, ExifInterface exif_new) {
         if( MyDebug.LOG )
-            Log.d(TAG, "setExif");
+            Log.d(TAG, "transferDeviceExif");
 
         if( MyDebug.LOG )
             Log.d(TAG, "read back EXIF data");
+
         String exif_aperture = exif.getAttribute(ExifInterface.TAG_F_NUMBER); // previously TAG_APERTURE
-        String exif_datetime = exif.getAttribute(ExifInterface.TAG_DATETIME);
         String exif_exposure_time = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
         String exif_flash = exif.getAttribute(ExifInterface.TAG_FLASH);
         String exif_focal_length = exif.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
-        String exif_gps_altitude = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE);
-        String exif_gps_altitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF);
-        String exif_gps_datestamp = exif.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
-        String exif_gps_latitude = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
-        String exif_gps_latitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
-        String exif_gps_longitude = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-        String exif_gps_longitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
-        String exif_gps_processing_method = exif.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD);
-        String exif_gps_timestamp = exif.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
-        // leave width/height, as this may have changed! similarly TAG_IMAGE_LENGTH?
+        // leave TAG_IMAGE_WIDTH/TAG_IMAGE_LENGTH, as this may have changed!
         //noinspection deprecation
         String exif_iso = exif.getAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS); // previously TAG_ISO
         String exif_make = exif.getAttribute(ExifInterface.TAG_MAKE);
         String exif_model = exif.getAttribute(ExifInterface.TAG_MODEL);
         // leave orientation - since we rotate bitmaps to account for orientation, we don't want to write it to the saved image!
         String exif_white_balance = exif.getAttribute(ExifInterface.TAG_WHITE_BALANCE);
-
-        String exif_datetime_digitized;
-        String exif_subsec_time;
-        String exif_subsec_time_dig;
-        String exif_subsec_time_orig;
-        {
-            // tags that are new in Android M - note we skip tags unlikely to be relevant for camera photos
-            // update, now available in all Android versions thanks to using AndroidX ExifInterface
-            exif_datetime_digitized = exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED);
-            exif_subsec_time = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME);
-            exif_subsec_time_dig = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED); // previously TAG_SUBSEC_TIME_DIG
-            exif_subsec_time_orig = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL); // previously TAG_SUBSEC_TIME_ORIG
-        }
 
         String exif_aperture_value;
         String exif_brightness_value;
@@ -2937,7 +2948,6 @@ public class ImageSaver extends Thread {
         String exif_compressed_bits_per_pixel;
         String exif_compression;
         String exif_contrast;
-        String exif_datetime_original;
         String exif_device_setting_description;
         String exif_digital_zoom_ratio;
         String exif_exposure_bias_value;
@@ -2980,7 +2990,6 @@ public class ImageSaver extends Thread {
             exif_compressed_bits_per_pixel = exif.getAttribute(ExifInterface.TAG_COMPRESSED_BITS_PER_PIXEL);
             exif_compression = exif.getAttribute(ExifInterface.TAG_COMPRESSION);
             exif_contrast = exif.getAttribute(ExifInterface.TAG_CONTRAST);
-            exif_datetime_original = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL);
             exif_device_setting_description = exif.getAttribute(ExifInterface.TAG_DEVICE_SETTING_DESCRIPTION);
             exif_digital_zoom_ratio = exif.getAttribute(ExifInterface.TAG_DIGITAL_ZOOM_RATIO);
             // unclear if we should transfer TAG_EXIF_VERSION - don't want to risk conficting with whatever ExifInterface writes itself
@@ -3003,7 +3012,7 @@ public class ImageSaver extends Thread {
             // don't care about TAG_GPS_MAP_DATUM?
             exif_gps_measure_mode = exif.getAttribute(ExifInterface.TAG_GPS_MEASURE_MODE);
             // don't care about TAG_GPS_SATELLITES?
-            // don't care about TAG_GPS_SPEED, TAG_GPS_SPEED_REF, TAG_GPS_STATUS, TAG_GPS_TRACK, TAG_GPS_TRACK_REF, TAG_GPS_VERSION_ID
+            // don't care about TAG_GPS_STATUS, TAG_GPS_TRACK, TAG_GPS_TRACK_REF, TAG_GPS_VERSION_ID
             exif_image_description = exif.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
             // unclear what TAG_IMAGE_UNIQUE_ID, TAG_INTEROPERABILITY_INDEX are
             // TAG_ISO_SPEED_RATINGS same as TAG_ISO
@@ -3040,36 +3049,26 @@ public class ImageSaver extends Thread {
             // don't care about TAG_Y_*?
         }
 
+        String exif_photographic_sensitivity = exif.getAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY);
+        String exif_sensitivity_type = exif.getAttribute(ExifInterface.TAG_SENSITIVITY_TYPE);
+        String exif_standard_output_sensitivity = exif.getAttribute(ExifInterface.TAG_STANDARD_OUTPUT_SENSITIVITY);
+        String exif_recommended_exposure_index = exif.getAttribute(ExifInterface.TAG_RECOMMENDED_EXPOSURE_INDEX);
+        String exif_iso_speed = exif.getAttribute(ExifInterface.TAG_ISO_SPEED);
+        String exif_custom_rendered = exif.getAttribute(ExifInterface.TAG_CUSTOM_RENDERED);
+        String exif_lens_specification = exif.getAttribute(ExifInterface.TAG_LENS_SPECIFICATION);
+        String exif_lens_name = exif.getAttribute(ExifInterface.TAG_LENS_MAKE);
+        String exif_lens_model = exif.getAttribute(ExifInterface.TAG_LENS_MODEL);
+
         if( MyDebug.LOG )
             Log.d(TAG, "now write new EXIF data");
         if( exif_aperture != null )
             exif_new.setAttribute(ExifInterface.TAG_F_NUMBER, exif_aperture);
-        if( exif_datetime != null )
-            exif_new.setAttribute(ExifInterface.TAG_DATETIME, exif_datetime);
         if( exif_exposure_time != null )
             exif_new.setAttribute(ExifInterface.TAG_EXPOSURE_TIME, exif_exposure_time);
         if( exif_flash != null )
             exif_new.setAttribute(ExifInterface.TAG_FLASH, exif_flash);
         if( exif_focal_length != null )
             exif_new.setAttribute(ExifInterface.TAG_FOCAL_LENGTH, exif_focal_length);
-        if( exif_gps_altitude != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, exif_gps_altitude);
-        if( exif_gps_altitude_ref != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF, exif_gps_altitude_ref);
-        if( exif_gps_datestamp != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_DATESTAMP, exif_gps_datestamp);
-        if( exif_gps_latitude != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_LATITUDE, exif_gps_latitude);
-        if( exif_gps_latitude_ref != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, exif_gps_latitude_ref);
-        if( exif_gps_longitude != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, exif_gps_longitude);
-        if( exif_gps_longitude_ref != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, exif_gps_longitude_ref);
-        if( exif_gps_processing_method != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD, exif_gps_processing_method);
-        if( exif_gps_timestamp != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP, exif_gps_timestamp);
         if( exif_iso != null )
             //noinspection deprecation
             exif_new.setAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS, exif_iso);
@@ -3079,17 +3078,6 @@ public class ImageSaver extends Thread {
             exif_new.setAttribute(ExifInterface.TAG_MODEL, exif_model);
         if( exif_white_balance != null )
             exif_new.setAttribute(ExifInterface.TAG_WHITE_BALANCE, exif_white_balance);
-
-        {
-            if( exif_datetime_digitized != null )
-                exif_new.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, exif_datetime_digitized);
-            if( exif_subsec_time != null )
-                exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME, exif_subsec_time);
-            if( exif_subsec_time_dig != null )
-                exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED, exif_subsec_time_dig);
-            if( exif_subsec_time_orig != null )
-                exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, exif_subsec_time_orig);
-        }
 
         {
             if( exif_aperture_value != null )
@@ -3108,8 +3096,6 @@ public class ImageSaver extends Thread {
                 exif_new.setAttribute(ExifInterface.TAG_COMPRESSION, exif_compression);
             if( exif_contrast != null )
                 exif_new.setAttribute(ExifInterface.TAG_CONTRAST, exif_contrast);
-            if( exif_datetime_original != null )
-                exif_new.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, exif_datetime_original);
             if( exif_device_setting_description != null )
                 exif_new.setAttribute(ExifInterface.TAG_DEVICE_SETTING_DESCRIPTION, exif_device_setting_description);
             if( exif_digital_zoom_ratio != null )
@@ -3174,8 +3160,329 @@ public class ImageSaver extends Thread {
                 exif_new.setAttribute(ExifInterface.TAG_USER_COMMENT, exif_user_comment);
         }
 
-        modifyExif(exif_new, request.type == Request.Type.JPEG, request.using_camera2, request.using_camera_extensions, request.current_date, request.store_location, request.location, request.store_geo_direction, request.geo_direction, request.custom_tag_artist, request.custom_tag_copyright, request.level_angle, request.pitch_angle, request.store_ypr);
-        setDateTimeExif(exif_new);
+        if( exif_photographic_sensitivity != null )
+            exif_new.setAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, exif_photographic_sensitivity);
+        if( exif_sensitivity_type != null )
+            exif_new.setAttribute(ExifInterface.TAG_SENSITIVITY_TYPE, exif_sensitivity_type);
+        if( exif_standard_output_sensitivity != null )
+            exif_new.setAttribute(ExifInterface.TAG_STANDARD_OUTPUT_SENSITIVITY, exif_standard_output_sensitivity);
+        if( exif_recommended_exposure_index != null )
+            exif_new.setAttribute(ExifInterface.TAG_RECOMMENDED_EXPOSURE_INDEX, exif_recommended_exposure_index);
+        if( exif_iso_speed != null )
+            exif_new.setAttribute(ExifInterface.TAG_ISO_SPEED, exif_iso_speed);
+        if( exif_custom_rendered != null )
+            exif_new.setAttribute(ExifInterface.TAG_CUSTOM_RENDERED, exif_custom_rendered);
+        if( exif_lens_specification != null )
+            exif_new.setAttribute(ExifInterface.TAG_LENS_SPECIFICATION, exif_lens_specification);
+        if( exif_lens_name != null )
+            exif_new.setAttribute(ExifInterface.TAG_LENS_MAKE, exif_lens_name);
+        if( exif_lens_model != null )
+            exif_new.setAttribute(ExifInterface.TAG_LENS_MODEL, exif_lens_model);
+
+    }
+
+    /** Transfers device exif info related to date and time.
+     */
+    private void transferDeviceExifDateTime(ExifInterface exif, ExifInterface exif_new) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "transferDeviceExifDateTime");
+
+        // tags related to date and time
+
+        String exif_datetime = exif.getAttribute(ExifInterface.TAG_DATETIME);
+        String exif_datetime_original = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL);
+        String exif_datetime_digitized = exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED);
+        String exif_subsec_time = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME);
+        String exif_subsec_time_orig = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL); // previously TAG_SUBSEC_TIME_ORIG
+        String exif_subsec_time_dig = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED); // previously TAG_SUBSEC_TIME_DIG
+        String exif_offset_time = exif.getAttribute(ExifInterface.TAG_OFFSET_TIME);
+        String exif_offset_time_orig = exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL);
+        String exif_offset_time_dig = exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED);
+
+        if( exif_datetime != null )
+            exif_new.setAttribute(ExifInterface.TAG_DATETIME, exif_datetime);
+        if( exif_datetime_original != null )
+            exif_new.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, exif_datetime_original);
+        if( exif_datetime_digitized != null )
+            exif_new.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, exif_datetime_digitized);
+        if( exif_subsec_time != null )
+            exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME, exif_subsec_time);
+        if( exif_subsec_time_orig != null )
+            exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, exif_subsec_time_orig);
+        if( exif_subsec_time_dig != null )
+            exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED, exif_subsec_time_dig);
+        if( exif_offset_time != null )
+            exif_new.setAttribute(ExifInterface.TAG_OFFSET_TIME, exif_offset_time);
+        if( exif_offset_time_orig != null )
+            exif_new.setAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL, exif_offset_time_orig);
+        if( exif_offset_time_dig != null )
+            exif_new.setAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED, exif_offset_time_dig);
+
+    }
+
+    /** Transfers device exif info related to gps location.
+     */
+    private void transferDeviceExifGPS(ExifInterface exif, ExifInterface exif_new) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "transferDeviceExifGPS");
+
+        // tags for gps info
+
+        String exif_gps_processing_method = exif.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD);
+        String exif_gps_latitude = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+        String exif_gps_latitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+        String exif_gps_longitude = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+        String exif_gps_longitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+        String exif_gps_altitude = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE);
+        String exif_gps_altitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF);
+        String exif_gps_datestamp = exif.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
+        String exif_gps_timestamp = exif.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
+        String exif_gps_speed = exif.getAttribute(ExifInterface.TAG_GPS_SPEED);
+        String exif_gps_speed_ref = exif.getAttribute(ExifInterface.TAG_GPS_SPEED_REF);
+
+        if( exif_gps_processing_method != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD, exif_gps_processing_method);
+        if( exif_gps_latitude != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_LATITUDE, exif_gps_latitude);
+        if( exif_gps_latitude_ref != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, exif_gps_latitude_ref);
+        if( exif_gps_longitude != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, exif_gps_longitude);
+        if( exif_gps_longitude_ref != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, exif_gps_longitude_ref);
+        if( exif_gps_altitude != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, exif_gps_altitude);
+        if( exif_gps_altitude_ref != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF, exif_gps_altitude_ref);
+        if( exif_gps_datestamp != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DATESTAMP, exif_gps_datestamp);
+        if( exif_gps_timestamp != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP, exif_gps_timestamp);
+        if( exif_gps_speed != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_SPEED, exif_gps_speed);
+        if( exif_gps_speed_ref != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_SPEED_REF, exif_gps_speed_ref);
+    }
+
+    /** Explicitly removes tags based on the RemoveDeviceExif option.
+     *  Note that in theory this method is unnecessary: we implement the RemoveDeviceExif options
+     *  (if not OFF) by resaving the JPEG via a bitmap, and then limiting what Exif tags are
+     *  transferred across. This method is for extra paranoia: first to reduce the risk of future
+     *  bugs, secondly just in case saving via a bitmap does ever add exif tags.
+     */
+    private void removeExifTags(ExifInterface exif_new, final Request request) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "removeExifTags");
+
+        if( request.remove_device_exif != Request.RemoveDeviceExif.OFF ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "remove exif tags");
+            exif_new.setAttribute(ExifInterface.TAG_F_NUMBER, null);
+            exif_new.setAttribute(ExifInterface.TAG_EXPOSURE_TIME, null);
+            exif_new.setAttribute(ExifInterface.TAG_FLASH, null);
+            exif_new.setAttribute(ExifInterface.TAG_FOCAL_LENGTH, null);
+            exif_new.setAttribute(ExifInterface.TAG_IMAGE_WIDTH, null);
+            exif_new.setAttribute(ExifInterface.TAG_IMAGE_LENGTH, null);
+            //noinspection deprecation
+            exif_new.setAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS, null);
+            exif_new.setAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, null);
+            exif_new.setAttribute(ExifInterface.TAG_MAKE, null);
+            exif_new.setAttribute(ExifInterface.TAG_MODEL, null);
+            exif_new.setAttribute(ExifInterface.TAG_WHITE_BALANCE, null);
+            exif_new.setAttribute(ExifInterface.TAG_APERTURE_VALUE, null);
+            exif_new.setAttribute(ExifInterface.TAG_BRIGHTNESS_VALUE, null);
+            exif_new.setAttribute(ExifInterface.TAG_CFA_PATTERN, null);
+            exif_new.setAttribute(ExifInterface.TAG_COLOR_SPACE, null);
+            exif_new.setAttribute(ExifInterface.TAG_COMPONENTS_CONFIGURATION, null);
+            exif_new.setAttribute(ExifInterface.TAG_COMPRESSED_BITS_PER_PIXEL, null);
+            exif_new.setAttribute(ExifInterface.TAG_COMPRESSION, null);
+            exif_new.setAttribute(ExifInterface.TAG_CONTRAST, null);
+            exif_new.setAttribute(ExifInterface.TAG_DEVICE_SETTING_DESCRIPTION, null);
+            exif_new.setAttribute(ExifInterface.TAG_DIGITAL_ZOOM_RATIO, null);
+            exif_new.setAttribute(ExifInterface.TAG_EXPOSURE_BIAS_VALUE, null);
+            exif_new.setAttribute(ExifInterface.TAG_EXPOSURE_INDEX, null);
+            exif_new.setAttribute(ExifInterface.TAG_EXPOSURE_MODE, null);
+            exif_new.setAttribute(ExifInterface.TAG_EXPOSURE_PROGRAM, null);
+            exif_new.setAttribute(ExifInterface.TAG_FLASH_ENERGY, null);
+            exif_new.setAttribute(ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM, null);
+            exif_new.setAttribute(ExifInterface.TAG_FOCAL_PLANE_RESOLUTION_UNIT, null);
+            exif_new.setAttribute(ExifInterface.TAG_FOCAL_PLANE_X_RESOLUTION, null);
+            exif_new.setAttribute(ExifInterface.TAG_FOCAL_PLANE_Y_RESOLUTION, null);
+            exif_new.setAttribute(ExifInterface.TAG_GAIN_CONTROL, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_AREA_INFORMATION, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DEST_BEARING, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DEST_BEARING_REF, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DEST_DISTANCE, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DEST_DISTANCE_REF, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DEST_LATITUDE, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DEST_LATITUDE_REF, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DEST_LONGITUDE, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DEST_LONGITUDE_REF, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DIFFERENTIAL, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DOP, null);
+            if( !request.store_geo_direction ) {
+                exif_new.setAttribute(ExifInterface.TAG_GPS_IMG_DIRECTION, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_IMG_DIRECTION_REF, null);
+            }
+            exif_new.setAttribute(ExifInterface.TAG_GPS_MAP_DATUM, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_MEASURE_MODE, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_SATELLITES, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_STATUS, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_TRACK, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_TRACK_REF, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_VERSION_ID, null);
+            exif_new.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, null);
+            exif_new.setAttribute(ExifInterface.TAG_IMAGE_UNIQUE_ID, null);
+            exif_new.setAttribute(ExifInterface.TAG_INTEROPERABILITY_INDEX, null);
+            exif_new.setAttribute(ExifInterface.TAG_JPEG_INTERCHANGE_FORMAT, null);
+            exif_new.setAttribute(ExifInterface.TAG_JPEG_INTERCHANGE_FORMAT_LENGTH, null);
+            exif_new.setAttribute(ExifInterface.TAG_LIGHT_SOURCE, null);
+            exif_new.setAttribute(ExifInterface.TAG_MAKER_NOTE, null);
+            exif_new.setAttribute(ExifInterface.TAG_MAX_APERTURE_VALUE, null);
+            exif_new.setAttribute(ExifInterface.TAG_METERING_MODE, null);
+            exif_new.setAttribute(ExifInterface.TAG_OECF, null);
+            exif_new.setAttribute(ExifInterface.TAG_PHOTOMETRIC_INTERPRETATION, null);
+            exif_new.setAttribute(ExifInterface.TAG_PIXEL_X_DIMENSION, null);
+            exif_new.setAttribute(ExifInterface.TAG_PIXEL_Y_DIMENSION, null);
+            exif_new.setAttribute(ExifInterface.TAG_PLANAR_CONFIGURATION, null);
+            exif_new.setAttribute(ExifInterface.TAG_PRIMARY_CHROMATICITIES, null);
+            exif_new.setAttribute(ExifInterface.TAG_REFERENCE_BLACK_WHITE, null);
+            exif_new.setAttribute(ExifInterface.TAG_RESOLUTION_UNIT, null);
+            exif_new.setAttribute(ExifInterface.TAG_ROWS_PER_STRIP, null);
+            exif_new.setAttribute(ExifInterface.TAG_SAMPLES_PER_PIXEL, null);
+            exif_new.setAttribute(ExifInterface.TAG_SATURATION, null);
+            exif_new.setAttribute(ExifInterface.TAG_SCENE_CAPTURE_TYPE, null);
+            exif_new.setAttribute(ExifInterface.TAG_SCENE_TYPE, null);
+            exif_new.setAttribute(ExifInterface.TAG_SENSING_METHOD, null);
+            exif_new.setAttribute(ExifInterface.TAG_SHARPNESS, null);
+            exif_new.setAttribute(ExifInterface.TAG_SHUTTER_SPEED_VALUE, null);
+            exif_new.setAttribute(ExifInterface.TAG_SOFTWARE, null);
+            exif_new.setAttribute(ExifInterface.TAG_SPATIAL_FREQUENCY_RESPONSE, null);
+            exif_new.setAttribute(ExifInterface.TAG_SPECTRAL_SENSITIVITY, null);
+            exif_new.setAttribute(ExifInterface.TAG_STRIP_BYTE_COUNTS, null);
+            exif_new.setAttribute(ExifInterface.TAG_STRIP_OFFSETS, null);
+            exif_new.setAttribute(ExifInterface.TAG_SUBJECT_AREA, null);
+            exif_new.setAttribute(ExifInterface.TAG_SUBJECT_DISTANCE, null);
+            exif_new.setAttribute(ExifInterface.TAG_SUBJECT_DISTANCE_RANGE, null);
+            exif_new.setAttribute(ExifInterface.TAG_SUBJECT_LOCATION, null);
+            exif_new.setAttribute(ExifInterface.TAG_THUMBNAIL_IMAGE_WIDTH, null);
+            exif_new.setAttribute(ExifInterface.TAG_THUMBNAIL_IMAGE_LENGTH, null);
+            exif_new.setAttribute(ExifInterface.TAG_TRANSFER_FUNCTION, null);
+            if( !request.store_ypr ) {
+                exif_new.setAttribute(ExifInterface.TAG_USER_COMMENT, null);
+            }
+            exif_new.setAttribute(ExifInterface.TAG_WHITE_POINT, null);
+            exif_new.setAttribute(ExifInterface.TAG_X_RESOLUTION, null);
+            exif_new.setAttribute(ExifInterface.TAG_Y_CB_CR_COEFFICIENTS, null);
+            exif_new.setAttribute(ExifInterface.TAG_Y_CB_CR_POSITIONING, null);
+            exif_new.setAttribute(ExifInterface.TAG_Y_CB_CR_SUB_SAMPLING, null);
+            exif_new.setAttribute(ExifInterface.TAG_Y_RESOLUTION, null);
+            if( !(request.custom_tag_artist != null && request.custom_tag_artist.length() > 0) ) {
+                exif_new.setAttribute(ExifInterface.TAG_ARTIST, null);
+            }
+            if( !(request.custom_tag_copyright != null && request.custom_tag_copyright.length() > 0) ) {
+                exif_new.setAttribute(ExifInterface.TAG_COPYRIGHT, null);
+            }
+
+            exif_new.setAttribute(ExifInterface.TAG_BITS_PER_SAMPLE, null);
+            exif_new.setAttribute(ExifInterface.TAG_EXIF_VERSION, null);
+            exif_new.setAttribute(ExifInterface.TAG_FLASHPIX_VERSION, null);
+            exif_new.setAttribute(ExifInterface.TAG_GAMMA, null);
+            exif_new.setAttribute(ExifInterface.TAG_RELATED_SOUND_FILE, null);
+            exif_new.setAttribute(ExifInterface.TAG_SENSITIVITY_TYPE, null);
+            exif_new.setAttribute(ExifInterface.TAG_STANDARD_OUTPUT_SENSITIVITY, null);
+            exif_new.setAttribute(ExifInterface.TAG_RECOMMENDED_EXPOSURE_INDEX, null);
+            exif_new.setAttribute(ExifInterface.TAG_ISO_SPEED, null);
+            exif_new.setAttribute(ExifInterface.TAG_ISO_SPEED_LATITUDE_YYY, null);
+            exif_new.setAttribute(ExifInterface.TAG_ISO_SPEED_LATITUDE_ZZZ, null);
+            exif_new.setAttribute(ExifInterface.TAG_FILE_SOURCE, null);
+            exif_new.setAttribute(ExifInterface.TAG_CUSTOM_RENDERED, null);
+            exif_new.setAttribute(ExifInterface.TAG_CAMERA_OWNER_NAME, null);
+            exif_new.setAttribute(ExifInterface.TAG_BODY_SERIAL_NUMBER, null);
+            exif_new.setAttribute(ExifInterface.TAG_LENS_SPECIFICATION, null);
+            exif_new.setAttribute(ExifInterface.TAG_LENS_MAKE, null);
+            exif_new.setAttribute(ExifInterface.TAG_LENS_MODEL, null);
+            exif_new.setAttribute(ExifInterface.TAG_LENS_SERIAL_NUMBER, null);
+            exif_new.setAttribute(ExifInterface.TAG_GPS_H_POSITIONING_ERROR, null);
+            exif_new.setAttribute(ExifInterface.TAG_DNG_VERSION, null);
+            exif_new.setAttribute(ExifInterface.TAG_DEFAULT_CROP_SIZE, null);
+            exif_new.setAttribute(ExifInterface.TAG_ORF_THUMBNAIL_IMAGE, null);
+            exif_new.setAttribute(ExifInterface.TAG_ORF_PREVIEW_IMAGE_START, null);
+            exif_new.setAttribute(ExifInterface.TAG_ORF_PREVIEW_IMAGE_LENGTH, null);
+            exif_new.setAttribute(ExifInterface.TAG_ORF_ASPECT_FRAME, null);
+            exif_new.setAttribute(ExifInterface.TAG_RW2_SENSOR_BOTTOM_BORDER, null);
+            exif_new.setAttribute(ExifInterface.TAG_RW2_SENSOR_LEFT_BORDER, null);
+            exif_new.setAttribute(ExifInterface.TAG_RW2_SENSOR_RIGHT_BORDER, null);
+            exif_new.setAttribute(ExifInterface.TAG_RW2_SENSOR_TOP_BORDER, null);
+            exif_new.setAttribute(ExifInterface.TAG_RW2_ISO, null);
+            exif_new.setAttribute(ExifInterface.TAG_RW2_JPG_FROM_RAW, null);
+            exif_new.setAttribute(ExifInterface.TAG_XMP, null);
+            exif_new.setAttribute(ExifInterface.TAG_NEW_SUBFILE_TYPE, null);
+            exif_new.setAttribute(ExifInterface.TAG_SUBFILE_TYPE, null);
+
+            if( request.remove_device_exif != Request.RemoveDeviceExif.KEEP_DATETIME ) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "remove datetime tags");
+                exif_new.setAttribute(ExifInterface.TAG_DATETIME, null);
+                exif_new.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, null);
+                exif_new.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, null);
+                exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME, null);
+                exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, null);
+                exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED, null);
+                exif_new.setAttribute(ExifInterface.TAG_OFFSET_TIME, null);
+                exif_new.setAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL, null);
+                exif_new.setAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED, null);
+            }
+
+            if( !request.store_location ) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "remove gps tags");
+                exif_new.setAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_LATITUDE, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_DATESTAMP, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_SPEED, null);
+                exif_new.setAttribute(ExifInterface.TAG_GPS_SPEED_REF, null);
+            }
+        }
+    }
+
+    /** Transfers exif tags from exif to exif_new, and then applies any extra Exif tags according to the preferences in the request.
+     *  Note that we use several ExifInterface tags that are now deprecated in API level 23 and 24. These are replaced with new tags that have
+     *  the same string value (e.g., TAG_APERTURE replaced with TAG_F_NUMBER, but both have value "FNumber"). We use the deprecated versions
+     *  to avoid complicating the code (we'd still have to read the deprecated values for older devices).
+     */
+    private void setExif(final Request request, ExifInterface exif, ExifInterface exif_new) throws IOException {
+        if( MyDebug.LOG )
+            Log.d(TAG, "setExif");
+
+        if( request.remove_device_exif == Request.RemoveDeviceExif.OFF ) {
+            transferDeviceExif(exif, exif_new);
+        }
+
+        if( request.remove_device_exif == Request.RemoveDeviceExif.OFF || request.remove_device_exif == Request.RemoveDeviceExif.KEEP_DATETIME ) {
+            transferDeviceExifDateTime(exif, exif_new);
+        }
+
+        if( request.remove_device_exif == Request.RemoveDeviceExif.OFF || request.store_location ) {
+            // If geotagging is enabled, we explicitly override the remove_device_exif setting.
+            // Arguably we don't need an if statement here at all - but if there was some device strangely
+            // setting GPS tags even when we haven't set them, it's better to remove them if the user has
+            // requested RemoveDeviceExif.OFF.
+            transferDeviceExifGPS(exif, exif_new);
+        }
+
+        modifyExif(exif_new, request.remove_device_exif, request.type == Request.Type.JPEG, request.using_camera2, request.using_camera_extensions, request.current_date, request.store_location, request.location, request.store_geo_direction, request.geo_direction, request.custom_tag_artist, request.custom_tag_copyright, request.level_angle, request.pitch_angle, request.store_ypr);
+        if( request.remove_device_exif == Request.RemoveDeviceExif.OFF || request.remove_device_exif == Request.RemoveDeviceExif.KEEP_DATETIME ) {
+            setDateTimeExif(exif_new);
+        }
+
+        removeExifTags(exif_new, request); // must be last, before saving attributes
         exif_new.saveAttributes();
     }
 
@@ -3294,8 +3601,11 @@ public class ImageSaver extends Thread {
                 storageUtils.clearLastMediaScanned();
             }
 
+            // n.b., at time of writing, remove_device_exif will always be OFF for RAW, but have added the code for future proofing
+            boolean hasnoexifdatetime = request.remove_device_exif != Request.RemoveDeviceExif.OFF && request.remove_device_exif != Request.RemoveDeviceExif.KEEP_DATETIME;
+
             if( saveUri == null ) {
-                storageUtils.broadcastFile(picFile, true, false, raw_only);
+                storageUtils.broadcastFile(picFile, true, false, raw_only, hasnoexifdatetime, null);
             }
             else if( use_media_store ) {
                 if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
@@ -3313,11 +3623,11 @@ public class ImageSaver extends Thread {
 
                 if( raw_only ) {
                     // we also want to save the uri - we can use the media uri directly, rather than having to scan it
-                    storageUtils.setLastMediaScanned(saveUri, true);
+                    storageUtils.setLastMediaScanned(saveUri, true, hasnoexifdatetime, saveUri);
                 }
             }
             else {
-                storageUtils.broadcastUri(saveUri, true, false, raw_only, false);
+                storageUtils.broadcastUri(saveUri, true, false, raw_only, hasnoexifdatetime, false);
             }
         }
         catch(FileNotFoundException e) {
@@ -3533,17 +3843,26 @@ public class ImageSaver extends Thread {
     private void updateExif(Request request, File picFile, Uri saveUri) throws IOException {
         if( MyDebug.LOG )
             Log.d(TAG, "updateExif: " + picFile);
-        if( request.store_geo_direction || request.store_ypr || hasCustomExif(request.custom_tag_artist, request.custom_tag_copyright) || request.using_camera_extensions ) {
+        if( request.store_geo_direction || request.store_ypr || hasCustomExif(request.custom_tag_artist, request.custom_tag_copyright) ||
+                request.using_camera_extensions || // when using camera extensions, we need to call modifyExif() to fix up various missing tags
+                needGPSExifFix(request.type == Request.Type.JPEG, request.using_camera2, request.store_location) ) {
             long time_s = System.currentTimeMillis();
             if( MyDebug.LOG )
                 Log.d(TAG, "add additional exif info");
             try {
                 ExifInterfaceHolder exif_holder = createExifInterface(picFile, saveUri);
+                if( MyDebug.LOG )
+                    Log.d(TAG, "*** time after create exif: " + (System.currentTimeMillis() - time_s));
                 try {
                     ExifInterface exif = exif_holder.getExif();
                     if( exif != null ) {
-                        modifyExif(exif, request.type == Request.Type.JPEG, request.using_camera2, request.using_camera_extensions, request.current_date, request.store_location, request.location, request.store_geo_direction, request.geo_direction, request.custom_tag_artist, request.custom_tag_copyright, request.level_angle, request.pitch_angle, request.store_ypr);
+                        modifyExif(exif, request.remove_device_exif, request.type == Request.Type.JPEG, request.using_camera2, request.using_camera_extensions, request.current_date, request.store_location, request.location, request.store_geo_direction, request.geo_direction, request.custom_tag_artist, request.custom_tag_copyright, request.level_angle, request.pitch_angle, request.store_ypr);
+
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "*** time after modifyExif: " + (System.currentTimeMillis() - time_s));
                         exif.saveAttributes();
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "*** time after saveAttributes: " + (System.currentTimeMillis() - time_s));
                     }
                 }
                 finally {
@@ -3559,29 +3878,6 @@ public class ImageSaver extends Thread {
             if( MyDebug.LOG )
                 Log.d(TAG, "*** time to add additional exif info: " + (System.currentTimeMillis() - time_s));
         }
-        else if( needGPSTimestampHack(request.type == Request.Type.JPEG, request.using_camera2, request.store_location) ) {
-            if( MyDebug.LOG )
-                Log.d(TAG, "remove GPS timestamp hack");
-            try {
-                ExifInterfaceHolder exif_holder = createExifInterface(picFile, saveUri);
-                try {
-                    ExifInterface exif = exif_holder.getExif();
-                    if( exif != null ) {
-                        fixGPSTimestamp(exif, request.current_date);
-                        exif.saveAttributes();
-                    }
-                }
-                finally {
-                    exif_holder.close();
-                }
-            }
-            catch(NoClassDefFoundError exception) {
-                // have had Google Play crashes from new ExifInterface() elsewhere for Galaxy Ace4 (vivalto3g), Galaxy S Duos3 (vivalto3gvn), so also catch here just in case
-                if( MyDebug.LOG )
-                    Log.e(TAG, "exif orientation NoClassDefFoundError");
-                exception.printStackTrace();
-            }
-        }
         else {
             if( MyDebug.LOG )
                 Log.d(TAG, "no exif data to update for: " + picFile);
@@ -3589,8 +3885,9 @@ public class ImageSaver extends Thread {
     }
 
     /** Makes various modifications to the exif data, if necessary.
+     *  Any fix-ups should respect the setting of RemoveDeviceExif!
      */
-    private void modifyExif(ExifInterface exif, boolean is_jpeg, boolean using_camera2, boolean using_camera_extensions, Date current_date, boolean store_location, Location location, boolean store_geo_direction, double geo_direction, String custom_tag_artist, String custom_tag_copyright, double level_angle, double pitch_angle, boolean store_ypr) {
+    private void modifyExif(ExifInterface exif, Request.RemoveDeviceExif remove_device_exif, boolean is_jpeg, boolean using_camera2, boolean using_camera_extensions, Date current_date, boolean store_location, Location location, boolean store_geo_direction, double geo_direction, String custom_tag_artist, String custom_tag_copyright, double level_angle, double pitch_angle, boolean store_ypr) {
         if( MyDebug.LOG )
             Log.d(TAG, "modifyExif");
         setGPSDirectionExif(exif, store_geo_direction, geo_direction);
@@ -3600,20 +3897,30 @@ public class ImageSaver extends Thread {
                 geo_angle += 360.0f;
             }
             String encoding = "ASCII\0\0\0";
+            // fine to ignore request.remove_device_exif, as this is a separate user option
             //exif.setAttribute(ExifInterface.TAG_USER_COMMENT,"Yaw:" + geo_angle + ",Pitch:" + pitch_angle + ",Roll:" + level_angle);
             exif.setAttribute(ExifInterface.TAG_USER_COMMENT,encoding + "Yaw:" + geo_angle + ",Pitch:" + pitch_angle + ",Roll:" + level_angle);
             if( MyDebug.LOG )
                 Log.d(TAG, "UserComment: " + exif.getAttribute(ExifInterface.TAG_USER_COMMENT));
         }
         setCustomExif(exif, custom_tag_artist, custom_tag_copyright);
+
+        if( store_location && ( !exif.hasAttribute(ExifInterface.TAG_GPS_LATITUDE) || !exif.hasAttribute(ExifInterface.TAG_GPS_LATITUDE) ) ) {
+            // We need this when using camera extensions (since Camera API doesn't support location for camera extensions).
+            // But some devices (e.g., Pixel 6 Pro with Camera2 API) seem to not store location data, so we always check if we need to add it.
+            // fine to ignore request.remove_device_exif, as this is a separate user option
+            if( MyDebug.LOG )
+                Log.d(TAG, "store location"); // don't log location for privacy reasons!
+            exif.setGpsInfo(location);
+        }
+
         if( using_camera_extensions ) {
-            addDateTimeExif(exif, current_date);
-            if( store_location ) {
-                // also need to store geotagging, since Camera API doesn't support doing this for camera extensions
-                exif.setGpsInfo(location);
+            if( remove_device_exif == Request.RemoveDeviceExif.OFF || remove_device_exif == Request.RemoveDeviceExif.KEEP_DATETIME ) {
+                addDateTimeExif(exif, current_date);
             }
         }
-        else if( needGPSTimestampHack(is_jpeg, using_camera2, store_location) ) {
+        else if( needGPSExifFix(is_jpeg, using_camera2, store_location) ) {
+            // fine to ignore request.remove_device_exif, as this is a separate user option
             fixGPSTimestamp(exif, current_date);
         }
     }
@@ -3632,6 +3939,7 @@ public class ImageSaver extends Thread {
             String GPSImgDirection_string = Math.round(geo_angle*100) + "/100";
             if( MyDebug.LOG )
                 Log.d(TAG, "GPSImgDirection_string: " + GPSImgDirection_string);
+            // fine to ignore request.remove_device_exif, as this is a separate user option
             exif.setAttribute(ExifInterface.TAG_GPS_IMG_DIRECTION, GPSImgDirection_string);
             exif.setAttribute(ExifInterface.TAG_GPS_IMG_DIRECTION_REF, "M");
         }
@@ -3655,12 +3963,14 @@ public class ImageSaver extends Thread {
         if( custom_tag_artist != null && custom_tag_artist.length() > 0 ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "apply TAG_ARTIST: " + custom_tag_artist);
+            // fine to ignore request.remove_device_exif, as this is a separate user option
             exif.setAttribute(ExifInterface.TAG_ARTIST, custom_tag_artist);
         }
         if( custom_tag_copyright != null && custom_tag_copyright.length() > 0 ) {
-            exif.setAttribute(ExifInterface.TAG_COPYRIGHT, custom_tag_copyright);
             if( MyDebug.LOG )
                 Log.d(TAG, "apply TAG_COPYRIGHT: " + custom_tag_copyright);
+            // fine to ignore request.remove_device_exif, as this is a separate user option
+            exif.setAttribute(ExifInterface.TAG_COPYRIGHT, custom_tag_copyright);
         }
     }
 
@@ -3676,10 +3986,17 @@ public class ImageSaver extends Thread {
             Log.d(TAG, "setDateTimeExif");
         String exif_datetime = exif.getAttribute(ExifInterface.TAG_DATETIME);
         if( exif_datetime != null ) {
-            if( MyDebug.LOG )
+            if( MyDebug.LOG ) {
                 Log.d(TAG, "write datetime tags: " + exif_datetime);
+                Log.d(TAG, "TAG_DATETIME_ORIGINAL was: " + exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
+                Log.d(TAG, "TAG_DATETIME_DIGITIZED was: " + exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
+            }
             exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, exif_datetime);
             exif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, exif_datetime);
+            if( MyDebug.LOG ) {
+                Log.d(TAG, "TAG_DATETIME_ORIGINAL is now: " + exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
+                Log.d(TAG, "TAG_DATETIME_DIGITIZED is now: " + exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
+            }
         }
     }
 
@@ -3754,7 +4071,12 @@ public class ImageSaver extends Thread {
             Log.d(TAG, "fixGPSTimestamp exit");
     }
 
-    private boolean needGPSTimestampHack(boolean is_jpeg, boolean using_camera2, boolean store_location) {
+    /** Whether we need to fix up issues with location.
+     *  See comments in fixGPSTimestamp(), where some devices with Camera2 need fixes for TAG_GPS_DATESTAMP and TAG_GPS_TIMESTAMP.
+     *  Also some devices (e.g. Pixel 6 Pro) have problem that location is not stored in images with Camera2 API, so we need to
+     *  enter modifyExif() to add it if not present.
+     */
+    private boolean needGPSExifFix(boolean is_jpeg, boolean using_camera2, boolean store_location) {
         if( is_jpeg && using_camera2 ) {
             return store_location;
         }

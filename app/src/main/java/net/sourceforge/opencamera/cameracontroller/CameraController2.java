@@ -76,7 +76,6 @@ public class CameraController2 extends CameraController {
     private CameraDevice camera;
     private final String cameraIdS;
 
-    private final boolean is_oneplus;
     private final boolean is_samsung;
     private final boolean is_samsung_s7; // Galaxy S7 or Galaxy S7 Edge
     private final boolean is_samsung_galaxy_s;
@@ -180,7 +179,10 @@ public class CameraController2 extends CameraController {
     private CaptureRequest.Builder previewBuilder;
     private boolean previewIsVideoMode;
     private AutoFocusCallback autofocus_cb;
+    private long autofocus_time_ms = -1; // time we set autofocus_cb to non-null
+    private static final long autofocus_timeout_c = 1000; // timeout for calling autofocus_cb (applies for both auto and continuous focus)
     private boolean capture_follows_autofocus_hint;
+    private boolean ready_for_capture;
     private FaceDetectionListener face_detection_listener;
     private int last_faces_detected = -1;
     private final Object open_camera_lock = new Object(); // lock to wait for camera to be opened from CameraDevice.StateCallback
@@ -214,7 +216,6 @@ public class CameraController2 extends CameraController {
     private boolean dummy_capture_hack = false;
     //private boolean dummy_capture_hack = true; // test
 
-    private boolean optimise_ae_for_dro = false;
     private boolean want_raw;
     //private boolean want_raw = true;
     private int max_raw_images;
@@ -266,7 +267,6 @@ public class CameraController2 extends CameraController {
     private long precapture_state_change_time_ms = -1; // time we changed state for precapture modes
     private static final long precapture_start_timeout_c = 2000;
     private static final long precapture_done_timeout_c = 3000;
-    private boolean ready_for_capture;
 
     private boolean use_fake_precapture; // see CameraController.setUseCamera2FakeFlash() for details - this is the user/application setting, see use_fake_precapture_mode for whether fake precapture is enabled (as we may do this for other purposes, e.g., front screen flash)
     private boolean use_fake_precapture_mode; // true if either use_fake_precapture is true, or we're temporarily using fake precapture mode (e.g., for front screen flash or exposure bracketing)
@@ -1465,7 +1465,8 @@ public class CameraController2 extends CameraController {
                 // or strange behaviour where an old image appears when the user next takes a photo
                 Log.e(TAG, "no picture callback available");
                 Image image = reader.acquireNextImage();
-                image.close();
+                if( image != null )
+                    image.close();
                 return;
             }
             if( skip_next_image ) {
@@ -1473,7 +1474,8 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "skipping image");
                 skip_next_image = false;
                 Image image = reader.acquireNextImage();
-                image.close();
+                if( image != null )
+                    image.close();
                 return;
             }
 
@@ -1482,6 +1484,11 @@ public class CameraController2 extends CameraController {
             boolean call_takePhotoCompleted = false;
 
             Image image = reader.acquireNextImage();
+            if( image == null ) {
+                // can happen if camera closed whilst taking photo - this happens in testTakePhotoAutoFocusReleaseDuringPhoto() on Pixel 6 Pro
+                Log.e(TAG, "onImageAvailable: image is null");
+                return;
+            }
             if( MyDebug.LOG )
                 Log.d(TAG, "image timestamp: " + image.getTimestamp());
             ByteBuffer buffer = image.getPlanes()[0].getBuffer();
@@ -1900,7 +1907,8 @@ public class CameraController2 extends CameraController {
                 // or strange behaviour where an old image appears when the user next takes a photo
                 Log.e(TAG, "no picture callback available");
                 Image this_image = reader.acquireNextImage();
-                this_image.close();
+                if( this_image != null )
+                    this_image.close();
                 return;
             }
             if( skip_next_image ) {
@@ -1908,12 +1916,17 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "skipping image");
                 skip_next_image = false;
                 Image image = reader.acquireNextImage();
-                image.close();
+                if( image != null )
+                    image.close();
                 return;
             }
             synchronized( background_camera_lock ) {
                 // see comment above in setCaptureResult() for why we synchronize
                 Image image = reader.acquireNextImage();
+                if( image == null ) {
+                    Log.e(TAG, "RAW onImageAvailable: image is null");
+                    return;
+                }
                 images.add(image);
             }
             processImage();
@@ -1982,12 +1995,11 @@ public class CameraController2 extends CameraController {
         this.preview_error_cb = preview_error_cb;
         this.camera_error_cb = camera_error_cb;
 
-        this.is_oneplus = Build.MANUFACTURER.toLowerCase(Locale.US).contains("oneplus");
+        //this.is_oneplus = Build.MANUFACTURER.toLowerCase(Locale.US).contains("oneplus");
         this.is_samsung = Build.MANUFACTURER.toLowerCase(Locale.US).contains("samsung");
         this.is_samsung_s7 = Build.MODEL.toLowerCase(Locale.US).contains("sm-g93");
         this.is_samsung_galaxy_s = is_samsung && Build.MODEL.toLowerCase(Locale.US).contains("sm-g");
         if( MyDebug.LOG ) {
-            Log.d(TAG, "is_oneplus: " + is_oneplus);
             Log.d(TAG, "is_samsung: " + is_samsung);
             Log.d(TAG, "is_samsung_s7: " + is_samsung_s7);
             Log.d(TAG, "is_samsung_galaxy_s: " + is_samsung_galaxy_s);
@@ -2489,7 +2501,101 @@ public class CameraController2 extends CameraController {
     public String getAPI() {
         return "Camera2 (Android L)";
     }
-    
+
+    /** Computes the zoom ratios to use, for devices that support zoom.
+     * @param ratios   List to be filled with zoom ratios.
+     * @param min_zoom Minimum zoom supported.
+     * @param max_zoom Maximum zoom supported.
+     * @return         Index of ratios list that is for 1x zoom.
+     */
+    public static int computeZoomRatios(List<Integer> ratios, float min_zoom, float max_zoom) {
+        int zoom_value_1x;
+
+        // prepare zoom rations > 1x
+        // set 20 steps per 2x factor
+        final double scale_factor_c = 1.0352649238413775043477881942112;
+        List<Integer> zoom_ratios_above_one = new ArrayList<>();
+        double zoom = scale_factor_c;
+        while( zoom < max_zoom - 1.0e-5f ) {
+            int zoom_ratio = (int)(zoom*100);
+            zoom_ratios_above_one.add(zoom_ratio);
+            zoom *= scale_factor_c;
+        }
+        int max_zoom_ratio = (int)(max_zoom*100);
+        if( zoom_ratios_above_one.size() == 0 || zoom_ratios_above_one.get(zoom_ratios_above_one.size()-1) != max_zoom_ratio ) {
+            zoom_ratios_above_one.add(max_zoom_ratio);
+        }
+        int n_steps_above_one = zoom_ratios_above_one.size();
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "n_steps_above_one: " + n_steps_above_one);
+        }
+
+        // now populate full zoom ratios
+
+        // add minimum zoom
+        ratios.add((int)(min_zoom*100));
+        if( ratios.get(0)/100.0f < min_zoom ) {
+            // fix for rounding down to less than the min_zoom
+            // e.g. if min_zoom = 0.666, we'd have stored a zoom ratio of 66 which then would
+            // convert back to 0.66
+            ratios.set(0, ratios.get(0) + 1);
+        }
+
+        if( ratios.get(0) < 100 ) {
+            int n_steps_below_one = Math.max(1, n_steps_above_one/5);
+            // if the min zoom is < 1.0, we add multiple entries for 1x zoom, when using the zoom
+            // seekbar it's easy for the user to zoom to exactly 1x
+            int n_steps_one = Math.max(1, n_steps_above_one/10);
+            if( MyDebug.LOG ) {
+                Log.d(TAG, "n_steps_below_one: " + n_steps_below_one);
+                Log.d(TAG, "n_steps_one: " + n_steps_one);
+            }
+
+            // add rest of zoom values < 1.0f
+            zoom = min_zoom;
+            final double scale_factor = Math.pow(1.0f / min_zoom, 1.0/(double)n_steps_below_one);
+            if( MyDebug.LOG ) {
+                Log.d(TAG, "scale_factor for below 1.0x: " + scale_factor);
+            }
+            for(int i=0;i<n_steps_below_one-1;i++) {
+                zoom *= scale_factor;
+                int zoom_ratio = (int)(zoom*100);
+                if( zoom_ratio > ratios.get(0) ) {
+                    // on some devices (e.g., Pixel 6 Pro), the second entry would equal the first entry, due to the rounding fix above
+                    ratios.add(zoom_ratio);
+                }
+            }
+
+            // add values for 1.0f (we add repeated values so for cameras with min_zoom < 1x, the zoom seekbar will snap to 1x)
+            zoom_value_1x = ratios.size();
+            for(int i=0;i<n_steps_one;i++)
+                ratios.add(100);
+        }
+        else {
+            zoom_value_1x = 0;
+        }
+
+        // add zoom values > 1.0f
+        int n_steps_power_two = Math.max(1, (int)(0.5f+n_steps_above_one/15.0f));
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "n_steps_power_two: " + n_steps_power_two);
+        }
+        for(int zoom_ratio : zoom_ratios_above_one) {
+            ratios.add(zoom_ratio);
+
+            if( zoom_ratio != zoom_ratios_above_one.get(zoom_ratios_above_one.size()-1) && zoom_ratio % 100 == 0 ) {
+                int zoom_ratio_int = zoom_ratio/100;
+                if( zoom_ratio_int != 0 && (zoom_ratio_int & (zoom_ratio_int-1)) == 0 ) {
+                    // is power of 2 that isn't the max zoom
+                    for(int i=0;i<n_steps_power_two-1;i++)
+                        ratios.add(zoom_ratio);
+                }
+            }
+        }
+
+        return zoom_value_1x;
+    }
+
     @Override
     public CameraFeatures getCameraFeatures() throws CameraControllerException {
         if( MyDebug.LOG )
@@ -2568,80 +2674,11 @@ public class CameraController2 extends CameraController {
             Log.d(TAG, "max_zoom: " + max_zoom);
         }
         if( camera_features.is_zoom_supported ) {
-            float zoom_max_min_ratio = max_zoom / min_zoom;
-            // set 20 steps per 2x factor
-            final int steps_per_2x_factor = 20;
-            int n_steps = (int)( (steps_per_2x_factor * Math.log(zoom_max_min_ratio + 1.0e-11)) / Math.log(2.0));
-            if( MyDebug.LOG ) {
-                Log.d(TAG, "n_steps: " + n_steps);
-            }
 
-            camera_features.zoom_ratios = new ArrayList<>();
+            List<Integer> ratios = new ArrayList<>();
+            this.zoom_value_1x = computeZoomRatios(ratios, min_zoom, max_zoom);
 
-            // add minimum zoom
-            camera_features.zoom_ratios.add((int)(min_zoom*100));
-            if( camera_features.zoom_ratios.get(0)/100.0f < min_zoom ) {
-                // fix for rounding down to less than the min_zoom
-                // e.g. if min_zoom = 0.666, we'd have stored a zoom ratio of 66 which then would
-                // convert back to 0.66
-                camera_features.zoom_ratios.set(0, camera_features.zoom_ratios.get(0) + 1);
-            }
-
-            if( camera_features.zoom_ratios.get(0) < 100 ) {
-                int n_steps_below_one = Math.max(1, n_steps/5);
-                // if the min zoom is < 1.0, we add multiple entries for 1x zoom, when using the zoom
-                // seekbar it's easy for the user to zoom to exactly 1x
-                int n_steps_one = Math.max(1, n_steps/20);
-                if( MyDebug.LOG ) {
-                    Log.d(TAG, "n_steps_below_one: " + n_steps_below_one);
-                    Log.d(TAG, "n_steps_one: " + n_steps_one);
-                }
-
-                // add rest of zoom values < 1.0f
-                double zoom = min_zoom;
-                final double scale_factor = Math.pow(1.0f / min_zoom, 1.0/(double)n_steps_below_one);
-                if( MyDebug.LOG ) {
-                    Log.d(TAG, "scale_factor for below 1.0x: " + scale_factor);
-                }
-                for(int i=0;i<n_steps_below_one-1;i++) {
-                    zoom *= scale_factor;
-                    int zoom_ratio = (int)(zoom*100);
-                    if( zoom_ratio > camera_features.zoom_ratios.get(0) ) {
-                        // on some devices (e.g., Pixel 6 Pro), the second entry would equal the first entry, due to the rounding fix above
-                        camera_features.zoom_ratios.add(zoom_ratio);
-                    }
-                }
-
-                // add values for 1.0f
-                zoom_value_1x = camera_features.zoom_ratios.size();
-                for(int i=0;i<n_steps_one;i++)
-                    camera_features.zoom_ratios.add(100);
-            }
-            else {
-                zoom_value_1x = 0;
-            }
-
-            final int n_steps_above_one = Math.max(1, n_steps - camera_features.zoom_ratios.size());
-            if( MyDebug.LOG ) {
-                Log.d(TAG, "n_steps_above_one: " + n_steps_above_one);
-            }
-
-            // add zoom values > 1.0f
-            double zoom = 1.0f;
-            final double scale_factor = Math.pow(max_zoom, 1.0/(double)n_steps_above_one);
-            if( MyDebug.LOG ) {
-                Log.d(TAG, "scale_factor for above 1.0x: " + scale_factor);
-            }
-            for(int i=0;i<n_steps_above_one-1;i++) {
-                zoom *= scale_factor;
-                int zoom_ratio = (int)(zoom*100);
-                camera_features.zoom_ratios.add(zoom_ratio);
-            }
-
-            // add maximum zoom
-            int zoom_ratio = (int)(max_zoom*100);
-            camera_features.zoom_ratios.add(zoom_ratio);
-
+            camera_features.zoom_ratios = ratios;
             camera_features.max_zoom = camera_features.zoom_ratios.size()-1;
             this.zoom_ratios = camera_features.zoom_ratios;
             if( MyDebug.LOG ) {
@@ -3021,13 +3058,27 @@ public class CameraController2 extends CameraController {
         }
 
         if( characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) ) {
+            int [] supported_flash_modes_arr = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES); // Android format
+            List<Integer> supported_flash_modes = new ArrayList<>();
+            for(Integer supported_flash_mode : supported_flash_modes_arr)
+                supported_flash_modes.add(supported_flash_mode);
+
             camera_features.supported_flash_values = new ArrayList<>();
+            // also resort as well as converting
+
+            // documentation for CONTROL_AE_AVAILABLE_MODES says the following modes are always supported:
             camera_features.supported_flash_values.add("flash_off");
             camera_features.supported_flash_values.add("flash_auto");
             camera_features.supported_flash_values.add("flash_on");
             camera_features.supported_flash_values.add("flash_torch");
+
             if( !use_fake_precapture ) {
-                camera_features.supported_flash_values.add("flash_red_eye");
+                if( supported_flash_modes.contains(CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE) ) {
+                    camera_features.supported_flash_values.add("flash_red_eye");
+                    if( MyDebug.LOG ) {
+                        Log.d(TAG, " supports flash_red_eye");
+                    }
+                }
             }
         }
         else if( (getFacing() == Facing.FACING_FRONT) ) {
@@ -3203,6 +3254,10 @@ public class CameraController2 extends CameraController {
 
     public boolean shouldCoverPreview() {
         return !has_received_frame;
+    }
+
+    public void resetCoverPreview() {
+        this.has_received_frame = false;
     }
 
     private String convertSceneMode(int value2) {
@@ -4224,6 +4279,12 @@ public class CameraController2 extends CameraController {
                 Log.e(TAG, "no camera");
             return;
         }
+        if( sessionType == (enabled ? SessionType.SESSIONTYPE_EXTENSION : SessionType.SESSIONTYPE_NORMAL) && this.camera_extension == (enabled ? extension : 0) ) {
+            // quick exit
+            if( MyDebug.LOG )
+                Log.d(TAG, "    no change");
+            return;
+        }
         if( hasCaptureSession() ) {
             // can only call this when captureSession not created - as it affects how we create the imageReader
             if( MyDebug.LOG )
@@ -4363,29 +4424,6 @@ public class CameraController2 extends CameraController {
         if( burst_type == BurstType.BURSTTYPE_CONTINUOUS )
             return 0; // total burst size is unknown
         return n_burst_total;
-    }
-
-    @Override
-    public void setOptimiseAEForDRO(boolean optimise_ae_for_dro) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "setOptimiseAEForDRO: " + optimise_ae_for_dro);
-        if( is_oneplus ) {
-            // OnePlus 3T has preview corruption / camera freezing problems when using manual shutter speeds.
-            // So best not to modify auto-exposure for DRO.
-            this.optimise_ae_for_dro = false;
-            if( MyDebug.LOG )
-                Log.d(TAG, "don't modify ae for OnePlus");
-        }
-        else if( is_samsung ) {
-            // At least some Samsung devices (e.g., Galaxy S10e on Android 11) give better results in auto mode
-            // than manual mode, so we're better off staying in auto mode.
-            this.optimise_ae_for_dro = false;
-            if( MyDebug.LOG )
-                Log.d(TAG, "don't modify ae for Samsung");
-        }
-        else {
-            this.optimise_ae_for_dro = optimise_ae_for_dro;
-        }
     }
 
     @Override
@@ -6196,6 +6234,7 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "skip af trigger due to continuous mode");
                 this.capture_follows_autofocus_hint = capture_follows_autofocus_hint;
                 this.autofocus_cb = cb;
+                this.autofocus_time_ms = System.currentTimeMillis();
                 return;
             }
             else if( is_video_high_speed ) {
@@ -6209,6 +6248,7 @@ public class CameraController2 extends CameraController {
                 // need to update the callback!
                 this.capture_follows_autofocus_hint = capture_follows_autofocus_hint;
                 this.autofocus_cb = cb;
+                this.autofocus_time_ms = System.currentTimeMillis();
                 return;
             }*/
             CaptureRequest.Builder afBuilder = previewBuilder;
@@ -6232,6 +6272,7 @@ public class CameraController2 extends CameraController {
             precapture_state_change_time_ms = -1;
             this.capture_follows_autofocus_hint = capture_follows_autofocus_hint;
             this.autofocus_cb = cb;
+            this.autofocus_time_ms = System.currentTimeMillis();
             try {
                 if( use_fake_precapture_mode ) {
                     boolean want_flash = false;
@@ -6291,6 +6332,7 @@ public class CameraController2 extends CameraController {
                 precapture_state_change_time_ms = -1;
                 push_autofocus_cb = autofocus_cb;
                 autofocus_cb = null;
+                this.autofocus_time_ms = -1;
                 this.capture_follows_autofocus_hint = false;
             }
             afBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE); // ensure set back to idle
@@ -6352,6 +6394,7 @@ public class CameraController2 extends CameraController {
             }
             previewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
             this.autofocus_cb = null;
+            this.autofocus_time_ms = -1;
             this.capture_follows_autofocus_hint = false;
             state = STATE_NORMAL;
             precapture_state_change_time_ms = -1;
@@ -6377,62 +6420,6 @@ public class CameraController2 extends CameraController {
             BLOCK_FOR_EXTENSIONS();
         }
         this.continuous_focus_move_callback = cb;
-    }
-
-    static public double getScaleForExposureTime(long exposure_time, long fixed_exposure_time, long scaled_exposure_time, double full_exposure_time_scale) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "getScaleForExposureTime");
-        double alpha = (exposure_time - fixed_exposure_time) / (double) (scaled_exposure_time - fixed_exposure_time);
-        if( alpha < 0.0 )
-            alpha = 0.0;
-        else if( alpha > 1.0 )
-            alpha = 1.0;
-        if( MyDebug.LOG ) {
-            Log.d(TAG, "exposure_time: " + exposure_time);
-            Log.d(TAG, "alpha: " + alpha);
-        }
-        // alpha==0 means exposure_time_scale==1; alpha==1 means exposure_time_scale==full_exposure_time_scale
-        return (1.0 - alpha) + alpha * full_exposure_time_scale;
-    }
-
-    /** Sets up a builder to have manual exposure time, if supported. The exposure time will be
-     *  clamped to the allowed values, and manual ISO will also be set based on the current ISO value.
-     */
-    private void setManualExposureTime(CaptureRequest.Builder stillBuilder, long exposure_time, boolean set_iso, int new_iso) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "setManualExposureTime: " + exposure_time);
-        Range<Integer> iso_range = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE); // may be null on some devices
-        if( this.supports_exposure_time && iso_range != null ) {
-            if( exposure_time < min_exposure_time )
-                exposure_time = min_exposure_time;
-            if( exposure_time > max_exposure_time )
-                exposure_time = max_exposure_time;
-            if (MyDebug.LOG) {
-                Log.d(TAG, "exposure_time: " + exposure_time);
-            }
-            stillBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_OFF);
-            {
-                // set ISO
-                int iso = 800;
-                if( set_iso )
-                    iso = new_iso;
-                else if( capture_result_has_iso )
-                    iso = capture_result_iso;
-                // see https://sourceforge.net/p/opencamera/tickets/321/ - some devices may have auto ISO that's
-                // outside of the allowed manual iso range!
-                iso = Math.max(iso, iso_range.getLower());
-                iso = Math.min(iso, iso_range.getUpper());
-                if( MyDebug.LOG ) {
-                    Log.d(TAG, "iso: " + iso);
-                }
-                stillBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, iso );
-            }
-            if( capture_result_has_frame_duration  )
-                stillBuilder.set(CaptureRequest.SENSOR_FRAME_DURATION, capture_result_frame_duration);
-            else
-                stillBuilder.set(CaptureRequest.SENSOR_FRAME_DURATION, 1000000000L/30);
-            stillBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposure_time);
-        }
     }
 
     private void takePictureAfterPrecapture() {
@@ -6495,22 +6482,10 @@ public class CameraController2 extends CameraController {
                     stillBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
                     test_fake_flash_photo++;
                 }
-                if( !camera_settings.has_iso && this.optimise_ae_for_dro && capture_result_has_exposure_time && (camera_settings.flash_value.equals("flash_off") || camera_settings.flash_value.equals("flash_auto") || camera_settings.flash_value.equals("flash_frontscreen_auto") ) ) {
-                    final double full_exposure_time_scale = Math.pow(2.0, -0.5);
-                    final long fixed_exposure_time = 1000000000L/60; // we only scale the exposure time at all if it's less than this value
-                    final long scaled_exposure_time = 1000000000L/120; // we only scale the exposure time by the full_exposure_time_scale if the exposure time is less than this value
-                    long exposure_time = capture_result_exposure_time;
-                    if( exposure_time <= fixed_exposure_time ) {
-                        double exposure_time_scale = getScaleForExposureTime(exposure_time, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale);
-                        exposure_time *= exposure_time_scale;
-                        if( MyDebug.LOG ) {
-                            Log.d(TAG, "reduce exposure shutter speed further, was: " + exposure_time);
-                            Log.d(TAG, "exposure_time_scale: " + exposure_time_scale);
-                        }
-                        modified_from_camera_settings = true;
-                        setManualExposureTime(stillBuilder, exposure_time, false, 0);
-                    }
-                }
+                // Versions previous to 1.51 would switch to manual mode and underexpose in bright scenes; however on more modern devices such as Samsung and
+                // Pixels, this means that we lose the benefit of manufacturer algorithms creating a worse result. So we're better off staying in auto mode.
+                // (Even on old versions, we didn't do this on OnePlus devices due to OnePlus 3T having preview corruption / camera freezing problems when
+                // using manual shutter speeds.)
                 //stillBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                 //stillBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
                 if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && sessionType != SessionType.SESSIONTYPE_EXTENSION ) {
@@ -6737,9 +6712,13 @@ public class CameraController2 extends CameraController {
                 }
                 int n_dummy_requests = 0;
 
-                CaptureRequest.Builder stillBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL);
+                CaptureRequest.Builder stillBuilder = camera.createCaptureRequest((burst_type == BurstType.BURSTTYPE_EXPO || camera_settings.has_iso) ? CameraDevice.TEMPLATE_MANUAL : CameraDevice.TEMPLATE_STILL_CAPTURE);
                 // Needs to be TEMPLATE_MANUAL! Otherwise first image in burst may come out incorrectly (on Pixel 6 Pro,
-                // the first image incorrectly had HDR+ applied, which we don't want here).
+                // the first image incorrectly had HDR+ applied, which we don't want here). Also problem on Pixel 6 Pro
+                // where manual exposure is ignored when longer than the preview exposure.
+                // Update: but only when doing burst for expo bracketing, not focus bracketing (unless actually doing that
+                // in manual mode)! (Only manual exposure should use TEMPLATE_MANUAL, otherwise focus bracketing images
+                // come out underexposed on Pixel 6 Pro).
                 // n.b., don't set RequestTagType.CAPTURE here - we only do it for the last of the burst captures (see below)
                 camera_settings.setupBuilder(stillBuilder, true);
 
@@ -7024,7 +7003,7 @@ public class CameraController2 extends CameraController {
                 try {
                     modified_from_camera_settings = true;
                     //setRepeatingRequest(requests.get(0));
-                    if( use_expo_fast_burst && burst_type == BurstType.BURSTTYPE_EXPO ) { // alway use slow burst for focus bracketing
+                    if( use_expo_fast_burst && burst_type == BurstType.BURSTTYPE_EXPO ) { // always use slow burst for focus bracketing
                         if( MyDebug.LOG )
                             Log.d(TAG, "using fast burst");
                         int sequenceId = captureSession.captureBurst(requests, previewCaptureCallback, handler);
@@ -7101,8 +7080,10 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "imageReader surface: " + imageReader.getSurface().toString());
                 }
 
-                CaptureRequest.Builder stillBuilder = camera.createCaptureRequest(previewIsVideoMode ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : CameraDevice.TEMPLATE_STILL_CAPTURE);
-                stillBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CaptureRequest.CONTROL_CAPTURE_INTENT_STILL_CAPTURE);
+                CaptureRequest.Builder stillBuilder = camera.createCaptureRequest(previewIsVideoMode ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : camera_settings.has_iso ? CameraDevice.TEMPLATE_MANUAL : CameraDevice.TEMPLATE_STILL_CAPTURE);
+                // N.B., takePictureBurst() not currently called if previewIsVideoMode==true, but have put this code here for possible future use.
+                // Important to use TEMPLATE_MANUAL for manual exposure: this fixes bug on Pixel 6 Pro where manual exposure is ignored when longer than the
+                // preview exposure time (e.g. for fast burst).
                 // n.b., don't set RequestTagType.CAPTURE here - we only do it for the last of the burst captures (see below)
                 camera_settings.setupBuilder(stillBuilder, true);
                 if( use_fake_precapture_mode && fake_precapture_torch_performed ) {
@@ -7169,59 +7150,22 @@ public class CameraController2 extends CameraController {
                             if( MyDebug.LOG )
                                 Log.d(TAG, "optimise for dark scene");
                             n_burst = noise_reduction_low_light ? N_IMAGES_NR_DARK_LOW_LIGHT : N_IMAGES_NR_DARK;
-                            // OnePlus 3T at least has bug where manual ISO can't be set to above 800, so dark images end up too dark -
-                            // so no point enabling this code, which is meant to brighten the scene, not make it darker!
-                            if( !camera_settings.has_iso && !is_oneplus ) {
-                                long exposure_time = noise_reduction_low_light ? 1000000000L/3 : 1000000000L/10;
-                                if(  capture_result_exposure_time < exposure_time ) {
-                                    if( MyDebug.LOG )
-                                        Log.d(TAG, "also set long exposure time");
-                                    modified_from_camera_settings = true;
-
-                                    boolean set_new_iso = false;
-                                    int new_iso = 0;
-                                    {
-                                        // ISO*exposure should be a constant
-                                        set_new_iso = true;
-                                        new_iso = (int)((capture_result_iso * capture_result_exposure_time)/exposure_time);
-                                        // but don't make ISO too low
-                                        new_iso = Math.max(new_iso, capture_result_iso/2);
-                                        new_iso = Math.max(new_iso, 1100);
-                                        if( MyDebug.LOG )
-                                            Log.d(TAG, "... and set iso to " + new_iso);
-                                    }
-
-                                    setManualExposureTime(stillBuilder, exposure_time, set_new_iso, new_iso);
-                                }
-                                else {
-                                    if( MyDebug.LOG )
-                                        Log.d(TAG, "no need to extend exposure time for dark scene, already long enough: " + exposure_time);
-                                }
-                            }
+                            // Versions previous to 1.51 would switch to manual mode and overexpose in bright scenes; however on more modern devices such as Samsung and
+                            // Pixels, this means that we lose the benefit of manufacturer algorithms creating a worse result. So we're better off staying in auto mode.
+                            // (Even on old versions, we didn't do this for OnePlus devices, due to bug on OnePlus 3T where manual mode can't be set above 800, so this
+                            // would cause images to come out too dark.)
                         }
                         else if( capture_result_has_exposure_time ) {
-                            //final double full_exposure_time_scale = 0.5;
-                            final double full_exposure_time_scale = Math.pow(2.0, -0.5);
-                            final long fixed_exposure_time = 1000000000L/60; // we only scale the exposure time at all if it's less than this value
-                            final long scaled_exposure_time = 1000000000L/120; // we only scale the exposure time by the full_exposure_time_scale if the exposure time is less than this value
+                            final long fixed_exposure_time = 1000000000L/60;
                             long exposure_time = capture_result_exposure_time;
                             if( exposure_time <= fixed_exposure_time ) {
                                 if( MyDebug.LOG )
                                     Log.d(TAG, "optimise for bright scene");
                                 //n_burst = 2;
                                 n_burst = 3;
-                                // At least some Samsung devices (e.g., Galaxy S10e on Android 11) give better results in auto mode
-                                // than manual mode, so we're better off staying in auto mode.
-                                if( !camera_settings.has_iso && !is_samsung ) {
-                                    double exposure_time_scale = getScaleForExposureTime(exposure_time, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale);
-                                    exposure_time *= exposure_time_scale;
-                                    if( MyDebug.LOG ) {
-                                        Log.d(TAG, "reduce exposure shutter speed further, was: " + exposure_time);
-                                        Log.d(TAG, "exposure_time_scale: " + exposure_time_scale);
-                                    }
-                                    modified_from_camera_settings = true;
-                                    setManualExposureTime(stillBuilder, exposure_time, false, 0);
-                                }
+                                // Versions previous to 1.51 would switch to manual mode and underexpose in bright scenes; however on more modern devices such as
+                                // Samsung and Pixels, this means that we lose the benefit of manufacturer algorithms creating a worse result. So we're better off
+                                // staying in auto mode.
                             }
                         }
                     }
@@ -8231,7 +8175,10 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "CONTROL_AWB_STATE = " + awb_state);
             }*/
 
-            if( af_state != null && af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN ) {
+            boolean autofocus_timeout = autofocus_time_ms != -1 && System.currentTimeMillis() > autofocus_time_ms + autofocus_timeout_c;
+            if( MyDebug.LOG && autofocus_timeout )
+                Log.d(TAG, "autofocus timeout!");
+            if( af_state != null && af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN && !autofocus_timeout ) {
                 /*if( MyDebug.LOG )
                     Log.d(TAG, "not ready for capture: " + af_state);*/
                 ready_for_capture = false;
@@ -8262,6 +8209,7 @@ public class CameraController2 extends CameraController {
                         }
                         autofocus_cb.onAutoFocus(focus_success);
                         autofocus_cb = null;
+                        autofocus_time_ms = -1;
                         capture_follows_autofocus_hint = false;
                     }
                 }
@@ -8297,11 +8245,12 @@ public class CameraController2 extends CameraController {
                         autofocus_cb.onAutoFocus(false);
                         autofocus_cb = null;
                     }
+                    autofocus_time_ms = -1;
                     capture_follows_autofocus_hint = false;
                 }
-                else if( af_state != last_af_state ) {
+                else if( af_state != last_af_state || autofocus_timeout ) {
                     // check for autofocus completing
-                    if( af_state == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || af_state == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED /*||
+                    if( autofocus_timeout || af_state == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || af_state == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED /*||
                             af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED || af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED*/
                     ) {
                         boolean focus_success = af_state == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED;
@@ -8365,6 +8314,7 @@ public class CameraController2 extends CameraController {
                             autofocus_cb.onAutoFocus(focus_success);
                             autofocus_cb = null;
                         }
+                        autofocus_time_ms = -1;
                         capture_follows_autofocus_hint = false;
                     }
                 }
