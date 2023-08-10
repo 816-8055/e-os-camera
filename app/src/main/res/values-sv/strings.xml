@@ -169,9 +169,11 @@
     <string name="preference_textstamp">Anpassad text</string>
     <string name="preference_textstamp_summary">Stämpla foton med en anpassad text</string>
     <string name="preference_stamp_fontsize">Typssnittsstorlek</string>
-    <string name="preference_stamp_fontsize_summary">Typssnittsstorlek som används vid stämpling av text på foton</string>
+    <string name="preference_stamp_fontsize_summary">Typssnittsstorlek som används vid stämpling av text på foton
+\n%s</string>
     <string name="preference_stamp_font_color">Typsnittsfärg</string>
-    <string name="preference_stamp_font_color_summary">Typssnittsfärg som används vid stämpling av text på foton</string>
+    <string name="preference_stamp_font_color_summary">Typssnittsfärg som används vid stämpling av text på foton
+\n%s</string>
     <string name="preference_stamp_style">Textstil</string>
     <string name="preference_stamp_style_summary">Stil som används vid stämpling av text på foton
 \n%s</string>
@@ -914,4 +916,16 @@
     <string name="preference_stamp_geo_address_summary">Om möjligt, hämta adress från GPS-plats (för fotostämpel eller videoundertexter). Observera att om detta är aktiverat kräver detta att enheten skickar platsdata över internet till en tredje part för att konvertera GPS-koordinater till en adress. Se https://developer.android.com/reference/android/location/Geocoder . Denna funktion ger inga garantier på tillgänglighet eller noggrannhet. Resultatet är en bästa gissning och garanterar inte att den kommer vara meningsfull eller korrekt.
 \n%s</string>
     <string name="preference_camera2_dummy_capture_hack_summary">Försök att aktivera detta om din enhet har problem vid tagning av foto med HDR- eller exponeringsfotoläge (om exponeringsbilder genererar samma exponeringar). Endast relevant om snabb HDR-/exponeringsalternativet nedan också är aktiverat.</string>
+    <string name="preference_remove_device_exif">Ta bort enhetens EXIF-data</string>
+    <string name="preference_remove_device_exif_off">Ta inte bort enhetens EXIF-data</string>
+    <string name="preference_remove_device_exif_on">Ta bort enhetens EXIF-data</string>
+    <string name="preference_remove_device_exif_keep_datetime">Ta bort förutom datum/tid</string>
+    <string name="preference_hdr_tonemapping">HDR-tonmappning</string>
+    <string name="preference_hdr_tonemapping_summary">Algoritm som används för tonmappning i HDR-fotoläge
+\n%s</string>
+    <string name="preference_hdr_tonemapping_clamp">Enkel klämning</string>
+    <string name="preference_hdr_tonemapping_exponential">Exponentiell</string>
+    <string name="preference_hdr_tonemapping_default">Standard</string>
+    <string name="preference_remove_device_exif_summary">Huruvida enhetens EXIF-metadata ska tas bort från JPEG-bilder. Detta kommer inte ta bort exif-taggar för andra inställningar som applicerar EXIF-metadata (t.ex. plats/geotaggning). Dessa andra alternativ är fristående och kommer åsidosätta denna inställning. RAW/DNG och videor påverkas inte.
+\n%s</string>
 </resources>
