@@ -627,8 +627,10 @@
     <string name="preference_stamp_timeformat">Snið tímamerkis</string>
     <string name="preference_stamp_gpsformat">Snið GPS-merkis</string>
     <string name="preference_textstamp_summary">Stimplaðu ljósmyndir með sérsniðnum texta</string>
-    <string name="preference_stamp_fontsize_summary">Stærð leturs þegar texti er stimplaður á myndir</string>
-    <string name="preference_stamp_font_color_summary">Litur leturs þegar texti er stimplaður á myndir</string>
+    <string name="preference_stamp_fontsize_summary">Stærð leturs þegar texti er stimplaður á myndir
+\n%s</string>
+    <string name="preference_stamp_font_color_summary">Litur leturs þegar texti er stimplaður á myndir
+\n%s</string>
     <string name="preference_stamp_style_summary">Stíll sem á að nota þegar texti er stimplaður á myndir
 \n%s</string>
     <string name="auto_level_disable">Gera sjálfvirka aðlögun halla óvirka</string>
@@ -914,4 +916,13 @@
 \n%s</string>
     <string name="preference_camera2_dummy_capture_hack">Virkja bráðabirgðaviðgerð á töku HDR/mislýsinga</string>
     <string name="preference_camera2_dummy_capture_hack_summary">Prófaðu að virkja þetta ef tækið þitt á í erfiðleikum með að taka myndir í HDR- eða mislýsingarham (t.d. ef mislýstu myndirnar koma út með sömu lýsingu). Hefur enga þýðingu nema kosturinn \"Virkja hraðar runur við HDR/mislýsingu\" sé einnig virkur.</string>
+    <string name="preference_hdr_tonemapping">HDR-litatónavörpun</string>
+    <string name="preference_hdr_tonemapping_exponential">Veldisvöxtur</string>
+    <string name="preference_hdr_tonemapping_default">Sjálfgefið</string>
+    <string name="preference_remove_device_exif">Fjarlægja EXIF-gögn tækis</string>
+    <string name="preference_remove_device_exif_on">Fjarlægja EXIF-gögn tækis</string>
+    <string name="preference_remove_device_exif_keep_datetime">Fjarlægja nema dagsetningu/tíma</string>
+    <string name="preference_remove_device_exif_off">Ekki fjarlægja EXIF-gögn tækis</string>
+    <string name="preference_hdr_tonemapping_summary">Reiknirit fyrir litatónavörpun í HDR-ljósmyndaham
+\n%s</string>
 </resources>
