@@ -461,7 +461,7 @@
     <string name="feet_abbreviation">ft</string>
     <string name="preference_show_whats_new">Visa dialogen Vad är nytt</string>
     <string name="preference_show_whats_new_summary">Om information ska visas för nya funktioner och förbättringar när applikationen har uppdaterats</string>
-    <string name="preference_screen_processing_settings">Bearbetar inställningar …</string>
+    <string name="preference_screen_processing_settings">Bearbetningsinställningar …</string>
     <string name="preference_noise_reduction_mode">Brusreduceringsalgoritm</string>
     <string name="noise_reduction_mode_default">Standard</string>
     <string name="noise_reduction_mode_off">Av</string>
