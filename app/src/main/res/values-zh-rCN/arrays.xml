@@ -5,7 +5,7 @@
         <item>无穷远</item>
         <item>微距</item>
         <item>锁定焦点</item>
-        <item>手工对焦</item>
+        <item>手动对焦</item>
         <item>固定对焦</item>
         <item>EDOF对焦</item>
         <item>持续对焦</item>
@@ -79,12 +79,12 @@
         <item>double</item>
     </string-array>
     <string-array name="preference_volume_keys_entries">
-        <item>对焦 (或开始/停止录像)</item>
+        <item>拍照(或开始/停止录像)</item>
         <item>对焦</item>
         <item>放大/缩小</item>
-        <item>更改曝光水平</item>
-        <item>切换自动稳定开/关</item>
-        <item>更改设备音量</item>
+        <item>曝光等级</item>
+        <item>自动水平(开/关)</item>
+        <item>设备音量</item>
         <item>什么都不做</item>
         </string-array>
     <string-array name="preference_volume_keys_values">
@@ -241,5 +241,13 @@
         <item>audio_default</item>
         <item>audio_mono</item>
         <item>audio_stereo</item>
+    </string-array>
+    <string-array name="preference_save_zulu_time_entries">
+        <item>本地时间</item>
+        <item>UTC (祖鲁)</item>
+    </string-array>
+    <string-array name="preference_front_camera_mirror_entries">
+        <item>不镜像</item>
+        <item>镜像</item>
     </string-array>
 </resources>
