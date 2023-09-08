@@ -925,4 +925,7 @@
     <string name="preference_remove_device_exif_off">Ekki fjarlægja EXIF-gögn tækis</string>
     <string name="preference_hdr_tonemapping_summary">Reiknirit fyrir litatónavörpun í HDR-ljósmyndaham
 \n%s</string>
+    <string name="preference_hdr_tonemapping_clamp">Einföld afmörkun (clamp)</string>
+    <string name="preference_remove_device_exif_summary">Hvort eigi að fjarlægja EXIF-lýsigögn tækis úr JPEG-myndum. Þetta mun ekki fjarlægja EXIF-merki sem koma frá öðrum þeim stillingum sem nota EXIF-lýsigögn (t.d. staðsetning/hnit). Þær stillingar virka sjálfstætt og mynu taka yfir þessa stillinu. Hefur ekki áhrif á RAW/DNG og myndskeið.
+\n%s</string>
 </resources>
