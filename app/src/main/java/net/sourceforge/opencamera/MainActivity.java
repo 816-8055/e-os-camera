@@ -435,6 +435,11 @@ public class MainActivity extends AppCompatActivity {
             cameraIdentifier.init();
         }
 
+        String[] ignoredCameraIDs = getResources().getStringArray(R.array.config_ignoredCameraIds);
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "ignoredCameraIDs: " + Arrays.toString(ignoredCameraIDs));
+        }
+
         // Setup multi-camera buttons (must be done after creating preview so we know which Camera API is being used,
         // and before initialising on-screen visibility).
         // We only allow the separate icon for switching cameras if:
@@ -462,6 +467,9 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 for(String cameraId: camerafinder.getAllCameraIdList()) {
+                    if (Arrays.stream(ignoredCameraIDs).anyMatch(id -> id.equals(cameraId))) {
+                        continue;
+                    }
                     int id = Integer.parseInt(cameraId);
                     cameraCharacteristics = camerafinder.getCameraCharacteristics(id);
                     Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
@@ -486,6 +494,10 @@ public class MainActivity extends AppCompatActivity {
             this.front_camera_ids = new ArrayList<>();
             this.other_camera_ids = new ArrayList<>();
             for (int i = 0; i < n_cameras; i++) {
+                String currentCameraID = String.valueOf(i);
+                if (Arrays.stream(ignoredCameraIDs).anyMatch(id -> id.equals(currentCameraID))) {
+                    continue;
+                }
                 switch (preview.getCameraControllerManager().getFacing(i)) {
                     case FACING_BACK:
                         back_camera_ids.add(i);
