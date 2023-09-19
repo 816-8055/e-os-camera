@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Camera</string>
+    <string name="app_name">Appareil photo</string>
     <string name="action_settings">Paramètres</string>
     <string name="action_popup">Fenêtre de paramètres</string>
     <string name="intro_ok">OK (Ce message ne s\'affichera plus)</string>
@@ -113,10 +113,10 @@
     <string name="preference_save_photo_prefix_summary">Le préfixe est utilisé pour le nom de fichier des photos</string>
     <string name="preference_save_video_prefix">Préfixe du nom de la vidéo</string>
     <string name="preference_save_video_prefix_summary">Le préfixe est utilisé pour le nom de fichier des vidéos</string>
-    <string name="preference_show_when_locked">Afficher Camera quand vérouillé</string>
-    <string name="preference_show_when_locked_summary">Si activé, Camera s\'affichera toujours au-dessus de l\'écran de verrouillage (vous devrez toujours déverrouiller pour accéder aux paramètres, galerie, etc.)</string>
+    <string name="preference_show_when_locked">Afficher l\'Appareil photo quand verrouillé</string>
+    <string name="preference_show_when_locked_summary">Si activé, l\'Appareil photo s\'affichera toujours au-dessus de l\'écran de verrouillage (vous devrez toujours déverrouiller pour accéder aux paramètres, galerie, etc.)</string>
     <string name="preference_startup_focus">Faire un focus auto au démarrage</string>
-    <string name="preference_startup_focus_summary">Activer ou non la mise au point automatique au démarrage d\'Camera. Si vous avez un problème de flash qui s\'allume au démarrage, désactivez cette option</string>
+    <string name="preference_startup_focus_summary">Activer ou non la mise au point automatique au démarrage de l\'Appareil photo. Si vous avez un problème de flash qui s\'allume au démarrage, désactivez cette option</string>
     <string name="preference_lock_video">Verr. l\'écran lors de l\'enregistrement vidéo</string>
     <string name="preference_lock_video_summary">Lors de l\'enregistrement vidéo, l\'interface graphique sera verrouillée pour éviter d\'arrêter accidentellement l\'enregistrement. Balayez l\'écran pour déverrouiller. Notez que l\'enregistrement vidéo sera toujours arrêté si l\'application passe en arrière-plan ou si l\'écran est occulté.</string>
     <string name="preference_rotate_preview">Pivoter l\'aperçu</string>
@@ -161,7 +161,7 @@
     <string name="preference_take_photo_border">Afficher une bordure lors prise photo</string>
     <string name="preference_take_photo_border_summary">Affiche une bordure à l\'écran pour indiquer la prise d\'une photo</string>
     <string name="preference_keep_display_on">Garder l\'écran allumé</string>
-    <string name="preference_keep_display_on_summary">Si activé, l\'appareil ne se mettra pas en veille tant qu\'Camera sera actif</string>
+    <string name="preference_keep_display_on_summary">Si activé, l\'appareil ne se mettra pas en veille tant que l\'interface utilisateur de l\'Appareil photo sera actif</string>
     <string name="preference_max_brightness">Forcer la luminosité maximale</string>
     <string name="preference_max_brightness_summary">Force l\'affichage de l\'écran à être au maximum de sa luminosité, plutôt qu\'à la valeur par défaut de l\'appareil</string>
     <string name="preference_category_camera_quality">Paramètres photo et vidéo</string>
