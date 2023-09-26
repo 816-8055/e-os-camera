@@ -1540,6 +1540,8 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         }
 
         setupDependencies();
+
+        ((MainActivity)getActivity()).enableSettingsOnBackPressedCallback(true);
     }
 
 
@@ -1746,6 +1748,10 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         if( MyDebug.LOG )
             Log.d(TAG, "onDestroy");
         super.onDestroy();
+
+        // in theory this shouldn't be needed (if user presses back to exit settings, we'll have already disabled the callback),
+        // but just in case the preference fragment is closed for a different reason
+        ((MainActivity)getActivity()).enableSettingsOnBackPressedCallback(false);
 
         // dismiss open dialogs - see comment for dialogs for why we do this
         for(AlertDialog dialog : dialogs) {

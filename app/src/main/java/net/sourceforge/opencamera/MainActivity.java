@@ -42,6 +42,7 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.renderscript.RenderScript;
 import android.speech.tts.TextToSpeech;
+
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Spanned;
@@ -67,6 +68,7 @@ import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -844,6 +846,16 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         }).start();
+
+        // handle on back behaviour
+        settingsOnBackPressedCallback = new SettingsOnBackPressedCallback(false);
+        this.getOnBackPressedDispatcher().addCallback(this, settingsOnBackPressedCallback);
+        popupOnBackPressedCallback = new PopupOnBackPressedCallback(false);
+        this.getOnBackPressedDispatcher().addCallback(this, popupOnBackPressedCallback);
+        pausePreviewOnBackPressedCallback = new PausePreviewOnBackPressedCallback(false);
+        this.getOnBackPressedDispatcher().addCallback(this, pausePreviewOnBackPressedCallback);
+        screenLockOnBackPressedCallback = new ScreenLockOnBackPressedCallback(false);
+        this.getOnBackPressedDispatcher().addCallback(this, screenLockOnBackPressedCallback);
 
         // create notification channel - only needed on Android 8+
         // update: notifications now removed due to needing permissions on Android 13+
@@ -3026,12 +3038,17 @@ public class MainActivity extends AppCompatActivity {
     public void openSettings() {
         if( MyDebug.LOG )
             Log.d(TAG, "openSettings");
-        closePopup();
+        closePopup(); // important to close the popup to avoid confusing with back button callbacks
         preview.cancelTimer(); // best to cancel any timer, in case we take a photo while settings window is open, or when changing settings
         preview.cancelRepeat(); // similarly cancel the auto-repeat mode!
         preview.stopVideo(false); // important to stop video, as we'll be changing camera parameters when the settings window closes
         applicationInterface.stopPanorama(true); // important to stop panorama recording, as we might end up as we'll be changing camera parameters when the settings window closes
         stopAudioListeners();
+        // close back handler callbacks (so back button is enabled again when going to settings) - in theory shouldn't be needed as all of these should
+        // be disabled now, but just in case:
+        this.enablePopupOnBackPressedCallback(false);
+        this.enablePausePreviewOnBackPressedCallback(false);
+        this.enableScreenLockOnBackPressedCallback(false);
 
         Bundle bundle = new Bundle();
         bundle.putInt("cameraId", this.preview.getCameraId());
@@ -3649,7 +3666,139 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
+    private SettingsOnBackPressedCallback settingsOnBackPressedCallback;
+
+    private class SettingsOnBackPressedCallback extends OnBackPressedCallback {
+        public SettingsOnBackPressedCallback(boolean enabled) {
+            super(enabled);
+        }
+
+        @Override
+        public void handleOnBackPressed() {
+            if( MyDebug.LOG )
+                Log.d(TAG, "SettingsOnBackPressedCallback.handleOnBackPressed");
+            if( settingsIsOpen() ) {
+                settingsClosing();
+                // we still want the back button to take effect (we have a callback to know when the back button is pressed during
+                // settings, so we can call settingsClosing())
+                this.setEnabled(false); // need to disable this so we don't get this callback just being called again
+                MainActivity.this.onBackPressed();
+            }
+        }
+    }
+
+    public void enableSettingsOnBackPressedCallback(boolean enabled) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "enableSettingsOnBackPressedCallback: " + enabled);
+        if( settingsOnBackPressedCallback != null ) {
+            settingsOnBackPressedCallback.setEnabled(enabled);
+        }
+    }
+
+    private PopupOnBackPressedCallback popupOnBackPressedCallback;
+
+    private class PopupOnBackPressedCallback extends OnBackPressedCallback {
+        public PopupOnBackPressedCallback(boolean enabled) {
+            super(enabled);
+        }
+
+        @Override
+        public void handleOnBackPressed() {
+            if( MyDebug.LOG )
+                Log.d(TAG, "PopupOnBackPressedCallback.handleOnBackPressed");
+            if( popupIsOpen() ) {
+                // close popup will disable the PopupOnBackPressedCallback, so no need to do it here
+                closePopup();
+            }
+            else {
+                // shouldn't be here (if popup isn't open, this callback shouldn't be enabled), but just in case
+                if( MyDebug.LOG )
+                    Log.e(TAG, "PopupOnBackPressedCallback was enabled but popup menu not open?!");
+                this.setEnabled(false);
+                MainActivity.this.onBackPressed();
+            }
+        }
+    }
+
+    public void enablePopupOnBackPressedCallback(boolean enabled) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "enablePopupOnBackPressedCallback: " + enabled);
+        if( popupOnBackPressedCallback != null ) {
+            popupOnBackPressedCallback.setEnabled(enabled);
+        }
+    }
+
+    private PausePreviewOnBackPressedCallback pausePreviewOnBackPressedCallback;
+
+    private class PausePreviewOnBackPressedCallback extends OnBackPressedCallback {
+        public PausePreviewOnBackPressedCallback(boolean enabled) {
+            super(enabled);
+        }
+
+        @Override
+        public void handleOnBackPressed() {
+            if( MyDebug.LOG )
+                Log.d(TAG, "PausePreviewOnBackPressedCallback.handleOnBackPressed");
+
+            if( preview != null && preview.isPreviewPaused() ) {
+                // starting the preview will disable the PausePreviewOnBackPressedCallback, so no need to do it here
+                if( MyDebug.LOG )
+                    Log.d(TAG, "preview was paused, so unpause it");
+                preview.startCameraPreview();
+            }
+            else {
+                // shouldn't be here (if preview isn't paused, this callback shouldn't be enabled), but just in case
+                if( MyDebug.LOG )
+                    Log.e(TAG, "PausePreviewOnBackPressedCallback was enabled but preview not paused?!");
+                this.setEnabled(false);
+                MainActivity.this.onBackPressed();
+            }
+        }
+    }
+
+    public void enablePausePreviewOnBackPressedCallback(boolean enabled) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "enablePausePreviewOnBackPressedCallback: " + enabled);
+        if( pausePreviewOnBackPressedCallback != null ) {
+            pausePreviewOnBackPressedCallback.setEnabled(enabled);
+        }
+    }
+
+    private ScreenLockOnBackPressedCallback screenLockOnBackPressedCallback;
+
+    private class ScreenLockOnBackPressedCallback extends OnBackPressedCallback {
+        public ScreenLockOnBackPressedCallback(boolean enabled) {
+            super(enabled);
+        }
+
+        @Override
+        public void handleOnBackPressed() {
+            if( MyDebug.LOG )
+                Log.d(TAG, "ScreenLockOnBackPressedCallback.handleOnBackPressed");
+
+            if( screen_is_locked ) {
+                preview.showToast(screen_locked_toast, R.string.screen_is_locked);
+            }
+            else {
+                // shouldn't be here (if screen isn't locked, this callback shouldn't be enabled), but just in case
+                if( MyDebug.LOG )
+                    Log.e(TAG, "ScreenLockOnBackPressedCallback was enabled but screen isn't locked?!");
+                this.setEnabled(false);
+                MainActivity.this.onBackPressed();
+            }
+        }
+    }
+
+    private void enableScreenLockOnBackPressedCallback(boolean enabled) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "enableScreenLockOnBackPressedCallback: " + enabled);
+        if( screenLockOnBackPressedCallback != null ) {
+            screenLockOnBackPressedCallback.setEnabled(enabled);
+        }
+    }
+
+    // should no longer use onBackPressed() - instead use OnBackPressedCallback, for upcoming changes in Android 14+ (predictive back gestures)
+    /*@Override
     public void onBackPressed() {
         if( MyDebug.LOG )
             Log.d(TAG, "onBackPressed");
@@ -3657,6 +3806,7 @@ public class MainActivity extends AppCompatActivity {
             preview.showToast(screen_locked_toast, R.string.screen_is_locked);
             return;
         }
+
         if( settingsIsOpen() ) {
             settingsClosing();
         }
@@ -3673,7 +3823,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         super.onBackPressed();
-    }
+    }*/
 
     /** Whether to allow the application to show under the navigation bar, or not.
      *  Arguably we could enable this all the time, but in practice we only enable for cases when
@@ -5445,6 +5595,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         screen_is_locked = true;
+        this.enableScreenLockOnBackPressedCallback(true); // also disable back button
     }
 
     /** Unlock the screen (see lockScreen()).
@@ -5452,6 +5603,7 @@ public class MainActivity extends AppCompatActivity {
     void unlockScreen() {
         findViewById(R.id.locker).setOnTouchListener(null);
         screen_is_locked = false;
+        this.enableScreenLockOnBackPressedCallback(false); // reenable back button
     }
 
     /** Whether the screen is locked (see lockScreen()).

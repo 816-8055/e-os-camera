@@ -2629,6 +2629,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
     @Override
     public void onFailedStartPreview() {
         main_activity.getPreview().showToast(null, R.string.failed_to_start_camera_preview);
+        main_activity.enablePausePreviewOnBackPressedCallback(false); // reenable standard back button behaviour (in case preview was paused due to option to pause preview after taking a photo)
     }
 
     @Override
@@ -2710,11 +2711,13 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         if( paused ) {
             shareButton.setVisibility(View.VISIBLE);
             trashButton.setVisibility(View.VISIBLE);
+            main_activity.enablePausePreviewOnBackPressedCallback(true); // so that pressing back button instead unpauses the preview
         }
         else {
             shareButton.setVisibility(View.GONE);
             trashButton.setVisibility(View.GONE);
             this.clearLastImages();
+            main_activity.enablePausePreviewOnBackPressedCallback(false); // reenable standard back button behaviour
         }
     }
 

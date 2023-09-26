@@ -2559,6 +2559,9 @@ public class MainUI {
     public void closePopup() {
         if (MyDebug.LOG)
             Log.d(TAG, "close popup");
+
+        main_activity.enablePopupOnBackPressedCallback(false);
+
         if (popupIsOpen()) {
             clearRemoteControlForPopup(); // must be called before we set popup_view_is_open to false; and before clearSelectionState() so we know which highlighting to disable
             clearSelectionState();
@@ -2773,6 +2776,8 @@ public class MainUI {
 
         if (MyDebug.LOG)
             Log.d(TAG, "open popup");
+
+        main_activity.enablePopupOnBackPressedCallback(true); // so that back button will close the popup instead of exiting the application
 
         closeExposureUI();
         main_activity.getPreview().cancelTimer(); // best to cancel any timer, in case we take a photo while settings window is open, or when changing settings
