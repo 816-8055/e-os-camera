@@ -1716,13 +1716,12 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         }
     }
 
-    public void onResume() {
-        super.onResume();
+    static void setBackground(Fragment fragment) {
         // prevent fragment being transparent
         // note, setting color here only seems to affect the "main" preference fragment screen, and not sub-screens
         // note, on Galaxy Nexus Android 4.3 this sets to black rather than the dark grey that the background theme should be (and what the sub-screens use); works okay on Nexus 7 Android 5
         // we used to use a light theme for the PreferenceFragment, but mixing themes in same activity seems to cause problems (e.g., for EditTextPreference colors)
-        TypedArray array = getActivity().getTheme().obtainStyledAttributes(new int[] {
+        TypedArray array = fragment.getActivity().getTheme().obtainStyledAttributes(new int[] {
                 android.R.attr.colorBackground
         });
         int backgroundColor = array.getColor(0, Color.BLACK);
@@ -1732,8 +1731,14 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
 			int b = (backgroundColor >> 0) & 0xFF;
 			Log.d(TAG, "backgroundColor: " + r + " , " + g + " , " + b);
 		}*/
-        getView().setBackgroundColor(backgroundColor);
+        fragment.getView().setBackgroundColor(backgroundColor);
         array.recycle();
+    }
+
+    public void onResume() {
+        super.onResume();
+
+        setBackground(this);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getActivity());
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
