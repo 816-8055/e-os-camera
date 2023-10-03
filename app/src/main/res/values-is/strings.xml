@@ -301,7 +301,7 @@
     <string name="preferences_build_version">Byggingarútgáfa</string>
     <string name="preferences_authors">Höfundar</string>
     <string name="preferences_source_code">Grunnkóði</string>
-    <string name="preferences_licence">Leyfi</string>
+    <string name="preferences_licence">Notkunarleyfi</string>
     <string name="preferences_service_terms">Þjónustuskilmálar</string>
     <string name="back_button_label">Til baka</string>
     <string name="next_button_label">Næsta</string>
