@@ -550,7 +550,7 @@ public class HDRProcessor {
 
         // perform auto-alignment
         // if assume_sorted if false, this function will also sort the allocations and bitmaps from darkest to brightest.
-        BrightnessDetails brightnessDetails = autoAlignment(offsets_x, offsets_y, allocations, width, height, bitmaps, base_bitmap, assume_sorted, sort_cb, true, false, 1, true, 1, width, height, time_s);
+        BrightnessDetails brightnessDetails = autoAlignment(offsets_x, offsets_y, allocations, width, height, bitmaps, base_bitmap, assume_sorted, sort_cb, true, 1, true, 1, width, height, time_s);
         int median_brightness = brightnessDetails.median_brightness;
         if( MyDebug.LOG ) {
             Log.d(TAG, "### time after autoAlignment: " + (System.currentTimeMillis() - time_s));
@@ -1345,7 +1345,6 @@ public class HDRProcessor {
         }
 
         {
-            boolean floating_point_align;
             // perform auto-alignment
             List<Bitmap> align_bitmaps = new ArrayList<>();
             Allocation [] allocations = new Allocation[2];
@@ -1409,7 +1408,6 @@ public class HDRProcessor {
                 align_bitmaps.add(bitmap_new_align);
                 allocations[0] = allocation_avg_align;
                 allocations[1] = allocation_new_align;
-                floating_point_align = false;
                 if( MyDebug.LOG )
                     Log.d(TAG, "### time after creating allocations for autoalignment: " + (System.currentTimeMillis() - time_s));
             }
@@ -1417,7 +1415,7 @@ public class HDRProcessor {
             // misalignment more likely in "dark" images with more images and/or longer exposures
             // using max_align_scale=2 needed to prevent misalignment in testAvg51; also helps testAvg14
             boolean wider = sceneIsLowLight(iso, exposure_time);
-            autoAlignment(offsets_x, offsets_y, allocations, alignment_width, alignment_height, align_bitmaps, 0, true, null, false, floating_point_align, 1, crop_to_centre, wider ? 2 : 1, full_alignment_width, full_alignment_height, time_s);
+            autoAlignment(offsets_x, offsets_y, allocations, alignment_width, alignment_height, align_bitmaps, 0, true, null, false, 1, crop_to_centre, wider ? 2 : 1, full_alignment_width, full_alignment_height, time_s);
 
             /*
             // compute allocation_diffs
@@ -1755,7 +1753,7 @@ public class HDRProcessor {
             allocations[i] = Allocation.createFromBitmap(rs, bitmaps.get(i));
         }
 
-        autoAlignment(offsets_x, offsets_y, allocations, width, height, bitmaps, base_bitmap, true, null, use_mtb, false, 1, false, max_align_scale, width, height, 0);
+        autoAlignment(offsets_x, offsets_y, allocations, width, height, bitmaps, base_bitmap, true, null, use_mtb, 1, false, max_align_scale, width, height, 0);
 
         for(int i=0;i<allocations.length;i++) {
             if( allocations[i] != null ) {
@@ -1782,11 +1780,10 @@ public class HDRProcessor {
      * @param assume_sorted If assume_sorted if false, and use_mtb is true, this function will also
      *                      sort the allocations and bitmaps from darkest to brightest.
      * @param use_mtb       Whether to align based on the median threshold bitmaps or not.
-     * @param floating_point If true, the first allocation is in floating point (F32_3) format.
      * @param max_align_scale If larger than 1, start from a larger start area.
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private BrightnessDetails autoAlignment(int [] offsets_x, int [] offsets_y, Allocation [] allocations, int width, int height, List<Bitmap> bitmaps, int base_bitmap, boolean assume_sorted, SortCallback sort_cb, boolean use_mtb, boolean floating_point, int min_step_size, boolean crop_to_centre, int max_align_scale, int full_width, int full_height, long time_s) {
+    private BrightnessDetails autoAlignment(int [] offsets_x, int [] offsets_y, Allocation [] allocations, int width, int height, List<Bitmap> bitmaps, int base_bitmap, boolean assume_sorted, SortCallback sort_cb, boolean use_mtb, int min_step_size, boolean crop_to_centre, int max_align_scale, int full_width, int full_height, long time_s) {
         if( MyDebug.LOG ) {
             Log.d(TAG, "autoAlignment");
             Log.d(TAG, "width: " + width);
@@ -1994,10 +1991,7 @@ public class HDRProcessor {
             if( use_mtb )
                 createMTBScript.forEach_create_mtb(allocations[i], launch_options);
             else {
-                if( floating_point && i == 0 )
-                    createMTBScript.forEach_create_greyscale_f(allocations[i], launch_options);
-                else
-                    createMTBScript.forEach_create_greyscale(allocations[i], launch_options);
+                createMTBScript.forEach_create_greyscale(allocations[i], launch_options);
             }
             if( MyDebug.LOG )
                 Log.d(TAG, "time after createMTBScript: " + (System.currentTimeMillis() - time_s));
