@@ -9,31 +9,10 @@
 
 <link rel="stylesheet" href="stylesheet.css" type="text/css">
 
-<!-- EU cookie law, needed for analytics and adsense -->
-<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
-<script type="text/javascript">
-    window.cookieconsent_options = {
-        "message":"This website uses cookies, including for Google Analytics and to display ads",
-        "dismiss":"Got it!",
-        "learnMore":"More info",
-        "link":"privacy_oc.html",
-        "theme":"dark-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-<!-- End Cookie Consent plugin -->
-
-<!-- Google Analytics -->
-<!-- anonymize_ip is set: unclear if this is needed for EU GDPR, but just in case -->
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-38364448-5"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-38364448-5', { 'anonymize_ip': true });
-</script>
+<!-- don't show cookie consent popup on this page - as we don't want to use cookies at all -->
+<!-- similarly important not to have anything like adsense or analytics that require any kind of EU
+consent, see https://support.google.com/adsense/answer/10961370?sjid=9188374021042041432-EU
+-->
 
 </head>
 
@@ -47,8 +26,10 @@
 <p>&lt; <small><a href="index.html">Main Page.</a></small></p>
 
 <!-- note this page is linked to inside of Open Camera, so be careful of changing the link -->
+<!-- also remember to update the URL in Google Adsense, see https://support.google.com/adsense/answer/10961370 -->
 <!-- also linked from the cookie popup, other pages on this site, and Google Play store listing -->
 <!-- if changing this, remember to consider if the in-application privacy policy needs updating -->
+<!-- also consider if the adsense EU consent needs changing (e.g., if cookies are being used for additional purposes -->
 
 <p>Open Camera is developed by Mark Harman.</p>
 
@@ -98,16 +79,20 @@ of taking photos and recording videos, to fulfil its purpose as a camera. Microp
     <a href="mailto:mark.harman.apps@gmail.com?subject=Open%20Camera%20privacy%20policy">mark.harman.apps@gmail.com</a>.</p>
 
 <!-- from https://support.google.com/adsense/answer/1348695?hl=en-GB , for adsense -->
-<p>Although Open Camera is ad-free, the Open Camera website has ads via Google Adsense: Third party vendors, including Google, use cookies to
+<p>Although the Open Camera application is ad-free, the Open Camera website has ads via Google Adsense: Third party vendors, including Google, use cookies to
 serve ads based on a user's previous visits to this website or other websites. Google's use of advertising cookies enables it and
 its partners to serve ads based on people's visit to this sites and/or other sites on the Internet. You may opt out of personalised
 advertising by visiting <a href="https://www.google.co.uk/settings/ads">Google's Ads Settings.</a> The cookies of other third-party
 vendors or ad networks may also be used to serve ads. You can opt out of some third-party vendors' uses of cookies for personalised advertising by visiting
 <a href="http://www.aboutads.info/choices/">www.aboutads.info</a>.</p>
 
-<p><b>Update:</b> I have instructed Google to not display personalised ads to users in the EEA.</p>
+<!--<p><b>Update:</b> I have instructed Google to not display personalised ads to users in the EEA.</p>-->
 
 <p>Note that cookies are still used for serving even non-personalised ads.</p>
+
+<p>In countries where the GDPR is applicable, Google's Consent Management Platform (CMP) is used to obtain consent. In such
+countries, you may update your choice by either clicking on the privacy and cookie link at the bottom of other pages on this
+site that serve ads, or click "Revoke or change cookie consent" from the <a href="index.html#contents">site menu</a>.</p>
 
 <p>The Open Camera website also uses <a href="https://analytics.google.com">Google Analytics</a> which uses cookies, please see their
 <a href="https://support.google.com/analytics/answer/6004245">Privacy Policy</a> for more details.</p>
