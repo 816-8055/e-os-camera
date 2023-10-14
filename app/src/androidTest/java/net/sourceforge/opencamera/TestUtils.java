@@ -368,7 +368,7 @@ public class TestUtils {
      */
     @SdkSuppress(minSdkVersion = Build.VERSION_CODES.LOLLIPOP)
     public static HistogramDetails checkHistogram(MainActivity activity, Bitmap bitmap) {
-        int [] histogram = activity.getApplicationInterface().getHDRProcessor().computeHistogram(bitmap, true);
+        int [] histogram = activity.getApplicationInterface().getHDRProcessor().computeHistogram(bitmap, HDRProcessor.HistogramType.HISTOGRAM_TYPE_INTENSITY);
         assertEquals(256, histogram.length);
         int total = 0;
         for(int i=0;i<histogram.length;i++) {

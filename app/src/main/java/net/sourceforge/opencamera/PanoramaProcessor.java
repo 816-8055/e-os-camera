@@ -2365,9 +2365,9 @@ public class PanoramaProcessor {
                 saveBitmap(bitmap_r, "exposure_bitmap_r.jpg");
             }*/
 
-            int [] histo_l = hdrProcessor.computeHistogram(bitmap_l, false);
+            int [] histo_l = hdrProcessor.computeHistogram(bitmap_l, HDRProcessor.HistogramType.HISTOGRAM_TYPE_VALUE);
             HDRProcessor.HistogramInfo histogramInfo_l = hdrProcessor.getHistogramInfo(histo_l);
-            int [] histo_r = hdrProcessor.computeHistogram(bitmap_r, false);
+            int [] histo_r = hdrProcessor.computeHistogram(bitmap_r, HDRProcessor.HistogramType.HISTOGRAM_TYPE_VALUE);
             HDRProcessor.HistogramInfo histogramInfo_r = hdrProcessor.getHistogramInfo(histo_r);
 
             float brightness_scale = ((float)Math.max(histogramInfo_r.median_brightness, 1)) / (float)Math.max(histogramInfo_l.median_brightness, 1);
@@ -2417,7 +2417,7 @@ public class PanoramaProcessor {
         float mean_equalised_brightness = 0.0f; // mean of the brightnesses if all adjusted to match exposure of the first image
         for(int i=0;i<bitmaps.size();i++) {
             Bitmap bitmap = bitmaps.get(i);
-            int [] histo = hdrProcessor.computeHistogram(bitmap, false);
+            int [] histo = hdrProcessor.computeHistogram(bitmap, HDRProcessor.HistogramType.HISTOGRAM_TYPE_VALUE);
             HDRProcessor.HistogramInfo histogramInfo = hdrProcessor.getHistogramInfo(histo);
             histogramInfos.add(histogramInfo);
             mean_median_brightness += histogramInfo.median_brightness;

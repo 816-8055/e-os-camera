@@ -2714,22 +2714,44 @@ public class HDRProcessor {
         return histogramAllocation;
     }
 
+    public enum HistogramType {
+        HISTOGRAM_TYPE_RGB,
+        HISTOGRAM_TYPE_LUMINANCE,
+        HISTOGRAM_TYPE_VALUE,
+        HISTOGRAM_TYPE_INTENSITY,
+        HISTOGRAM_TYPE_LIGHTNESS
+    }
+
     /**
-     * @param avg If true, compute the color value as the average of the rgb values. If false,
-     *            compute the color value as the maximum of the rgb values.
+     * @param type The type of histogram to compute.
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public int [] computeHistogram(Bitmap bitmap, boolean avg) {
+    public int [] computeHistogram(Bitmap bitmap, HistogramType type) {
         if( MyDebug.LOG ) {
             Log.d(TAG, "computeHistogram [bitmap]");
-            Log.d(TAG, "avg: " + avg);
+            Log.d(TAG, "type: " + type);
         }
         long time_s = System.currentTimeMillis();
         initRenderscript();
         Allocation allocation_in = Allocation.createFromBitmap(rs, bitmap);
         if( MyDebug.LOG )
             Log.d(TAG, "time after createFromBitmap: " + (System.currentTimeMillis() - time_s));
-        int [] histogram = computeHistogram(allocation_in, bitmap.getWidth(), bitmap.getHeight(), avg, false);
+        boolean avg;
+        switch( type ) {
+            case HISTOGRAM_TYPE_RGB:
+            case HISTOGRAM_TYPE_LUMINANCE:
+            case HISTOGRAM_TYPE_LIGHTNESS:
+                throw new RuntimeException("histogram type not supported by this function: " + type);
+            case HISTOGRAM_TYPE_VALUE:
+                avg = false;
+                break;
+            case HISTOGRAM_TYPE_INTENSITY:
+                avg = true;
+                break;
+            default:
+                throw new RuntimeException("unknown histogram type: " + type);
+        }
+        int [] histogram = computeHistogramRS(allocation_in, bitmap.getWidth(), bitmap.getHeight(), avg, false);
         allocation_in.destroy();
         freeScripts();
         if( MyDebug.LOG ) {
