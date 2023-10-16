@@ -740,7 +740,7 @@
     <string name="photo_mode_noise_reduction">BR</string>
     <string name="preference_category_stamp">Fotostämpel</string>
     <string name="preference_hdr_save_expo">Spara alla bilder för HDR-läge</string>
-    <string name="preference_hdr_save_expo_summary">Om aktiverat, när HDR-fotoläge används, kommer de tre basbilderna sparas precis som det slutgiltiga HDR-fotot. Observera kommer göra det långsammare att spara, speciellt om alternativ som \"Stämpla foton\" eller Auto-nivå också används.</string>
+    <string name="preference_hdr_save_expo_summary">Om aktiverat, när HDR-fotoläge används, kommer de tre basbilderna sparas precis som det slutgiltiga HDR-fotot. Observera att detta kommer att göra det långsammare att spara, speciellt om alternativ som \"Stämpla foton\" eller Auto-nivå också används.</string>
     <string name="permission_rationale_storage">Läs- och skrivbehörighet till filer och media krävs för att spara filer så som foton och videor</string>
     <string name="permission_rationale_record_audio">Mikrofonbehörighet krävs för att spela in video med ljud och för att kunna använda \"Ljudkontroll\"-alternativen</string>
     <string name="permission_rationale_location">Platsbehörighet krävs för geotagging (lagra platsdata i foton och videor, inklusive stämpel och undertexters alternativ). Platsbehörighet krävs också (åtminstone för Android 11 och tidigare) för att ansluta till Bluetooth LE fjärrkontrollsenheter.</string>
