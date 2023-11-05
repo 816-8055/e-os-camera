@@ -492,7 +492,7 @@
     <string name="preference_video_bitrate_default">Standaard</string>
     <string name="preference_record_audio_src_default">Standaard audiobron</string>
     <string name="preference_record_audio_src_mic">Externe microfoon</string>
-    <string name="preference_video_log_off">Uit</string>
+    <string name="preference_video_log_off">Standaard</string>
     <string name="saf_permission_failed_open_image">Afbeelding kan niet geopend worden</string>
     <string name="preference_ghost_image_off">Uit</string>
     <string name="anti_banding_off">Uit</string>
