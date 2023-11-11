@@ -1318,6 +1318,7 @@ public class PopupView extends LinearLayout {
                 Log.d(TAG, "addButtonOptionsToPopup time 2: " + (System.nanoTime() - debug_time));
 
             final float scale = context.getResources().getDisplayMetrics().density;
+            final float scale_font = context.getResources().getDisplayMetrics().scaledDensity;
             if( MyDebug.LOG )
                 Log.d(TAG, "addButtonOptionsToPopup time 2.04: " + (System.nanoTime() - debug_time));
             int actual_max_per_row = supported_options.size();
@@ -1479,7 +1480,7 @@ public class PopupView extends LinearLayout {
                     params.width = button_width;
                     // be careful of making the height too smaller, as harder to touch buttons; remember that this also affects the
                     // ISO buttons on exposure panel, and not just the main popup!
-                    params.height = (int) (55 * scale + 0.5f); // convert dps to pixels
+                    params.height = (int) (55 * ((resource != -1) ? scale : scale_font) + 0.5f); // convert dps to pixels
                 }
                 view.setLayoutParams(params);
 
