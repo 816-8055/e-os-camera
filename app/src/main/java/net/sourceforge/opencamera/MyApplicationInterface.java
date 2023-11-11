@@ -3116,7 +3116,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
     }
 
     public int drawTextWithBackground(Canvas canvas, Paint paint, String text, int foreground, int background, int location_x, int location_y, Alignment alignment_y, String ybounds_text, Shadow shadow, Rect bounds) {
-        final float scale = getContext().getResources().getDisplayMetrics().density;
+        final float scale = getContext().getResources().getDisplayMetrics().scaledDensity; // important to use scaledDensity for scaling font sizes
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(background);
         paint.setAlpha(64);

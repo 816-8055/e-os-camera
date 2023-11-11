@@ -128,7 +128,8 @@ public class DrawPreview {
     private final RectF draw_rect = new RectF();
     private final int [] gui_location = new int[2];
     private final static DecimalFormat decimalFormat = new DecimalFormat("#0.0");
-    private final float scale;
+    private final float scale_font; // SP scaling
+    private final float scale_dp; // DP scaling
     private final float stroke_width; // stroke_width used for various UI elements
     private Calendar calendar;
     private DateFormat dateFormatTimeInstance;
@@ -272,9 +273,10 @@ public class DrawPreview {
         p.setAntiAlias(true);
         p.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         p.setStrokeCap(Paint.Cap.ROUND);
-        scale = getContext().getResources().getDisplayMetrics().density;
+        scale_dp = getContext().getResources().getDisplayMetrics().density;
+        scale_font = getContext().getResources().getDisplayMetrics().scaledDensity;
         //noinspection PointlessArithmeticExpression
-        this.stroke_width = (1.0f * scale + 0.5f); // convert dps to pixels
+        this.stroke_width = (1.0f * scale_dp + 0.5f); // convert dps to pixels
         p.setStrokeWidth(this.stroke_width);
 
         location_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ic_gps_fixed_white_48dp);
@@ -857,7 +859,7 @@ public class DrawPreview {
                 canvas.drawLine(3.0f * canvas.getWidth() / 4.0f, 0.0f, 3.0f * canvas.getWidth() / 4.0f, canvas.getHeight() - 1.0f, p);
                 canvas.drawLine(0.0f, canvas.getHeight() / 2.0f, canvas.getWidth() - 1.0f, canvas.getHeight() / 2.0f, p);
                 p.setColor(Color.WHITE);
-                int crosshairs_radius = (int) (20 * scale + 0.5f); // convert dps to pixels
+                int crosshairs_radius = (int) (20 * scale_dp + 0.5f); // convert dps to pixels
 
                 canvas.drawLine(canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f - crosshairs_radius, canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f + crosshairs_radius, p);
                 canvas.drawLine(canvas.getWidth() / 2.0f - crosshairs_radius, canvas.getHeight() / 2.0f, canvas.getWidth() / 2.0f + crosshairs_radius, canvas.getHeight() / 2.0f, p);
@@ -1104,13 +1106,13 @@ public class DrawPreview {
         int ui_rotation = preview.getUIRotation();
 
         // set up text etc for the multiple lines of "info" (time, free mem, etc)
-        p.setTextSize(12.6f * scale + 0.5f); // convert dps to pixels
+        p.setTextSize(12.6f * scale_font + 0.5f); // convert dps to pixels
         p.setTextAlign(Paint.Align.LEFT);
         int location_x = top_x;
         int location_y = top_y;
-        final int gap_x = (int) (8 * scale + 0.5f); // convert dps to pixels
-        final int gap_y = (int) (0 * scale + 0.5f); // convert dps to pixels
-        final int icon_gap_y = (int) (2 * scale + 0.5f); // convert dps to pixels
+        final int gap_x = (int) (8 * scale_font + 0.5f); // convert dps to pixels
+        final int gap_y = (int) (0 * scale_font + 0.5f); // convert dps to pixels
+        final int icon_gap_y = (int) (2 * scale_dp + 0.5f); // convert dps to pixels
         if( ui_rotation == 90 || ui_rotation == 270 ) {
             // n.b., this is only for when lock_to_landscape==true, so we don't look at device_ui_rotation
             int diff = canvas.getWidth() - canvas.getHeight();
@@ -1118,7 +1120,7 @@ public class DrawPreview {
             location_y -= diff/2;
         }
         if( device_ui_rotation == 90 ) {
-            location_y = canvas.getHeight() - location_y - (int) (20 * scale + 0.5f);
+            location_y = canvas.getHeight() - location_y - (int) (20 * scale_font + 0.5f);
         }
         boolean align_right = false;
         if( device_ui_rotation == 180 ) {
@@ -1232,8 +1234,8 @@ public class DrawPreview {
         }
 
         // Now draw additional info on the lower left corner if needed
-        int y_offset = (int) (27 * scale + 0.5f);
-        p.setTextSize(24 * scale + 0.5f); // convert dps to pixels
+        int y_offset = (int) (27 * scale_font + 0.5f);
+        p.setTextSize(24 * scale_font + 0.5f); // convert dps to pixels
         if (OSDLine1 != null && OSDLine1.length() > 0) {
             applicationInterface.drawTextWithBackground(canvas, p, OSDLine1,
                     Color.WHITE, Color.BLACK,  location_x, bottom_y - y_offset,
@@ -1244,7 +1246,7 @@ public class DrawPreview {
                     Color.WHITE, Color.BLACK, location_x, bottom_y,
                     MyApplicationInterface.Alignment.ALIGNMENT_BOTTOM, null, MyApplicationInterface.Shadow.SHADOW_OUTLINE);
         }
-        p.setTextSize(12.6f * scale + 0.5f); // Restore text size
+        p.setTextSize(12.6f * scale_font + 0.5f); // Restore text size
 
         if( camera_controller != null && show_iso_pref ) {
             if( iso_exposure_string == null || time_ms > last_iso_exposure_time + 500 ) {
@@ -1316,13 +1318,13 @@ public class DrawPreview {
         }
 
         // padding to align with earlier text
-        final int flash_padding = (int) (1 * scale + 0.5f); // convert dps to pixels
+        final int flash_padding = (int) (1 * scale_font + 0.5f); // convert dps to pixels
 
         if( camera_controller != null ) {
             // draw info icons
 
             int location_x2 = location_x - flash_padding;
-            final int icon_size = (int) (16 * scale + 0.5f); // convert dps to pixels
+            final int icon_size = (int) (16 * scale_dp + 0.5f); // convert dps to pixels
             if( device_ui_rotation == 180 ) {
                 location_x2 = location_x - icon_size + flash_padding;
             }
@@ -1586,8 +1588,8 @@ public class DrawPreview {
                 if( histogram != null ) {
 					/*if( MyDebug.LOG )
 						Log.d(TAG, "histogram length: " + histogram.length);*/
-                    final int histogram_width = (int) (histogram_width_dp * scale + 0.5f); // convert dps to pixels
-                    final int histogram_height = (int) (histogram_height_dp * scale + 0.5f); // convert dps to pixels
+                    final int histogram_width = (int) (histogram_width_dp * scale_dp + 0.5f); // convert dps to pixels
+                    final int histogram_height = (int) (histogram_height_dp * scale_dp + 0.5f); // convert dps to pixels
                     // n.b., if changing the histogram_height, remember to update focus_seekbar and
                     // focus_bracketing_target_seekbar margins in activity_main.xml
                     int location_x2 = location_x - flash_padding;
@@ -1731,8 +1733,8 @@ public class DrawPreview {
 			/*canvas.drawText("PREVIEW", canvas.getWidth() / 2,
 					canvas.getHeight() / 2, p);*/
 
-            int gap_y = (int) (20 * scale + 0.5f); // convert dps to pixels
-            int text_y = (int) (16 * scale + 0.5f); // convert dps to pixels
+            int gap_y = (int) (20 * scale_font + 0.5f); // convert dps to pixels
+            int text_y = (int) (16 * scale_font + 0.5f); // convert dps to pixels
             boolean avoid_ui = false;
             // fine tuning to adjust placement of text with respect to the GUI, depending on orientation
             if( ui_placement == MainUI.UIPlacement.UIPLACEMENT_TOP && ( device_ui_rotation == 0 || device_ui_rotation == 180 ) ) {
@@ -1829,16 +1831,16 @@ public class DrawPreview {
             boolean draw_geo_direction = has_geo_direction && show_geo_direction_pref;
             if( draw_angle ) {
                 int color = Color.WHITE;
-                p.setTextSize(14 * scale + 0.5f); // convert dps to pixels
+                p.setTextSize(14 * scale_font + 0.5f); // convert dps to pixels
                 int pixels_offset_x;
                 if( draw_geo_direction ) {
-                    pixels_offset_x = - (int) (35 * scale + 0.5f); // convert dps to pixels
+                    pixels_offset_x = - (int) (35 * scale_font + 0.5f); // convert dps to pixels
                     p.setTextAlign(Paint.Align.LEFT);
                 }
                 else {
                     //p.setTextAlign(Paint.Align.CENTER);
                     // slightly better for performance to use Align.LEFT, due to avoid measureText() call in drawTextWithBackground()
-                    pixels_offset_x = - (int) ((level_angle<0 ? 16 : 14) * scale + 0.5f); // convert dps to pixels
+                    pixels_offset_x = - (int) ((level_angle<0 ? 16 : 14) * scale_font + 0.5f); // convert dps to pixels
                     p.setTextAlign(Paint.Align.LEFT);
                 }
                 if( Math.abs(level_angle) <= close_level_angle ) {
@@ -1876,16 +1878,16 @@ public class DrawPreview {
             }
             if( draw_geo_direction ) {
                 int color = Color.WHITE;
-                p.setTextSize(14 * scale + 0.5f); // convert dps to pixels
+                p.setTextSize(14 * scale_font + 0.5f); // convert dps to pixels
                 int pixels_offset_x;
                 if( draw_angle ) {
-                    pixels_offset_x = (int) (10 * scale + 0.5f); // convert dps to pixels
+                    pixels_offset_x = (int) (10 * scale_font + 0.5f); // convert dps to pixels
                     p.setTextAlign(Paint.Align.LEFT);
                 }
                 else {
                     //p.setTextAlign(Paint.Align.CENTER);
                     // slightly better for performance to use Align.LEFT, due to avoid measureText() call in drawTextWithBackground()
-                    pixels_offset_x = - (int) (14 * scale + 0.5f); // convert dps to pixels
+                    pixels_offset_x = - (int) (14 * scale_font + 0.5f); // convert dps to pixels
                     p.setTextAlign(Paint.Align.LEFT);
                 }
                 float geo_angle = (float)Math.toDegrees(geo_direction);
@@ -1900,7 +1902,7 @@ public class DrawPreview {
                 if( MyDebug.LOG )
                     Log.d(TAG, "remaining_time: " + remaining_time);
                 if( remaining_time > 0 ) {
-                    p.setTextSize(42 * scale + 0.5f); // convert dps to pixels
+                    p.setTextSize(42 * scale_font + 0.5f); // convert dps to pixels
                     p.setTextAlign(Paint.Align.CENTER);
                     String time_s;
                     if( remaining_time < 60 ) {
@@ -1918,7 +1920,7 @@ public class DrawPreview {
                 String time_s = getTimeStringFromSeconds(video_time/1000);
             	/*if( MyDebug.LOG )
 					Log.d(TAG, "video_time: " + video_time + " " + time_s);*/
-                p.setTextSize(14 * scale + 0.5f); // convert dps to pixels
+                p.setTextSize(14 * scale_font + 0.5f); // convert dps to pixels
                 p.setTextAlign(Paint.Align.CENTER);
                 int pixels_offset_y = 2*text_y; // avoid overwriting the zoom
                 int color = Color.rgb(244, 67, 54); // Red 500
@@ -1961,8 +1963,8 @@ public class DrawPreview {
                     //applicationInterface.drawTextWithBackground(canvas, p, "" + max_amp, color, Color.BLACK, canvas.getWidth() / 2, text_base_y - pixels_offset_y);
 
                     pixels_offset_y += text_y; // allow extra space
-                    int amp_width = (int) (160 * scale + 0.5f); // convert dps to pixels
-                    int amp_height = (int) (10 * scale + 0.5f); // convert dps to pixels
+                    int amp_width = (int) (160 * scale_dp + 0.5f); // convert dps to pixels
+                    int amp_height = (int) (10 * scale_dp + 0.5f); // convert dps to pixels
                     int amp_x = (canvas.getWidth() - amp_width)/2;
                     p.setColor(Color.WHITE);
                     p.setStyle(Paint.Style.STROKE);
@@ -1992,7 +1994,7 @@ public class DrawPreview {
                 if( camera_controller.isCapturingBurst() ) {
                     int n_burst_taken = camera_controller.getNBurstTaken() + 1;
                     int n_burst_total = camera_controller.getBurstTotal();
-                    p.setTextSize(14 * scale + 0.5f); // convert dps to pixels
+                    p.setTextSize(14 * scale_font + 0.5f); // convert dps to pixels
                     p.setTextAlign(Paint.Align.CENTER);
                     int pixels_offset_y = 2*text_y; // avoid overwriting the zoom
                     if( device_ui_rotation == 0 && applicationInterface.getPhotoMode() == MyApplicationInterface.PhotoMode.FocusBracketing ) {
@@ -2010,7 +2012,7 @@ public class DrawPreview {
                     long exposure_time = camera_controller.getExposureTime();
                     if( exposure_time >= 500000000L ) {
                         if( ((int)(time_ms / 500)) % 2 == 0 ) {
-                            p.setTextSize(14 * scale + 0.5f); // convert dps to pixels
+                            p.setTextSize(14 * scale_font + 0.5f); // convert dps to pixels
                             p.setTextAlign(Paint.Align.CENTER);
                             int pixels_offset_y = 2*text_y; // avoid overwriting the zoom
                             int color = Color.rgb(244, 67, 54); // Red 500
@@ -2021,7 +2023,7 @@ public class DrawPreview {
             }
             else if( image_queue_full ) {
                 if( ((int)(time_ms / 500)) % 2 == 0 ) {
-                    p.setTextSize(14 * scale + 0.5f); // convert dps to pixels
+                    p.setTextSize(14 * scale_font + 0.5f); // convert dps to pixels
                     p.setTextAlign(Paint.Align.CENTER);
                     int pixels_offset_y = 2 * text_y; // avoid overwriting the zoom
                     int n_images_to_save = applicationInterface.getImageSaver().getNRealImagesToSave();
@@ -2035,7 +2037,7 @@ public class DrawPreview {
                 // only show when actually zoomed in - or out!
                 if( zoom_ratio < 1.0f - 1.0e-5f || zoom_ratio > 1.0f + 1.0e-5f ) {
                     // Convert the dps to pixels, based on density scale
-                    p.setTextSize(14 * scale + 0.5f); // convert dps to pixels
+                    p.setTextSize(14 * scale_font + 0.5f); // convert dps to pixels
                     p.setTextAlign(Paint.Align.CENTER);
                     applicationInterface.drawTextWithBackground(canvas, p, getZoomText(zoom_ratio), Color.WHITE, Color.BLACK, canvas.getWidth() / 2, text_base_y - text_y - 100, MyApplicationInterface.Alignment.ALIGNMENT_BOTTOM, ybounds_text, MyApplicationInterface.Shadow.SHADOW_OUTLINE);
                 }
@@ -2048,9 +2050,9 @@ public class DrawPreview {
 				Log.d(TAG, "width " + canvas.getWidth() + " height " + canvas.getHeight());
 			}*/
             p.setColor(Color.WHITE);
-            p.setTextSize(14 * scale + 0.5f); // convert dps to pixels
+            p.setTextSize(14 * scale_font + 0.5f); // convert dps to pixels
             p.setTextAlign(Paint.Align.CENTER);
-            int pixels_offset = (int) (20 * scale + 0.5f); // convert dps to pixels
+            int pixels_offset = (int) (20 * scale_font + 0.5f); // convert dps to pixels
             if( preview.hasPermissions() ) {
                 if( preview.openCameraFailed() ) {
                     canvas.drawText(getContext().getResources().getString(R.string.failed_to_open_camera_1), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f, p);
@@ -2068,8 +2070,8 @@ public class DrawPreview {
             //canvas.drawRect(0.0f, 0.0f, canvas.getWidth(), canvas.getHeight(), p);
         }
 
-        int top_x = (int) (5 * scale + 0.5f); // convert dps to pixels
-        int top_y = (int) (15 * scale + 0.5f); // convert dps to pixels
+        int top_x = (int) (5 * scale_font + 0.5f); // convert dps to pixels
+        int top_y = (int) (15 * scale_font + 0.5f); // convert dps to pixels
         View top_icon = main_activity.getMainUI().getTopIcon();
         if( top_icon != null ) {
             if( last_top_icon_shift_time == 0 || time_ms > last_top_icon_shift_time + 1000 ) {
@@ -2112,8 +2114,8 @@ public class DrawPreview {
         }
 
         int battery_x = top_x;
-        int battery_y = top_y + (int) (5 * scale + 0.5f);
-        int battery_width = (int) (5 * scale + 0.5f); // convert dps to pixels
+        int battery_y = top_y + (int) (5 * scale_dp + 0.5f);
+        int battery_width = (int) (5 * scale_dp + 0.5f); // convert dps to pixels
         int battery_height = 4*battery_width;
         if( ui_rotation == 90 || ui_rotation == 270 ) {
             // n.b., this is only for when lock_to_landscape==true, so we don't look at device_ui_rotation
@@ -2157,7 +2159,7 @@ public class DrawPreview {
                     p.setAlpha(255);
                 }
             }
-            top_x += (int) (10 * scale + 0.5f); // convert dps to pixels
+            top_x += (int) (10 * scale_dp + 0.5f); // convert dps to pixels
         }
 
         onDrawInfoLines(canvas, top_x, top_y, text_base_y, device_ui_rotation, time_ms);
@@ -2208,8 +2210,8 @@ public class DrawPreview {
             // n.b., must draw this without the standard canvas rotation
             // lines should be shorter in portrait
             int radius_dps = (device_ui_rotation == 90 || device_ui_rotation == 270) ? 60 : 80;
-            int radius = (int) (radius_dps * scale + 0.5f); // convert dps to pixels
-            int o_radius = (int) (10 * scale + 0.5f); // convert dps to pixels
+            int radius = (int) (radius_dps * scale_dp + 0.5f); // convert dps to pixels
+            int o_radius = (int) (10 * scale_dp + 0.5f); // convert dps to pixels
             double angle = - preview.getOrigLevelAngle();
             // see http://android-developers.blogspot.co.uk/2010/09/one-screen-turn-deserves-another.html
             int rotation = main_activity.getDisplayRotation(false);
@@ -2244,7 +2246,7 @@ public class DrawPreview {
             }
 
             final int line_alpha = 160;
-            float hthickness = (0.5f * scale + 0.5f); // convert dps to pixels
+            float hthickness = (0.5f * scale_dp + 0.5f); // convert dps to pixels
             float shadow_radius = hthickness;
             shadow_radius = Math.max(shadow_radius, 1.0f);
             p.setStyle(Paint.Style.FILL);
@@ -2332,7 +2334,7 @@ public class DrawPreview {
             if( has_pitch_angle && show_pitch_lines_pref ) {
                 // lines should be shorter in portrait
                 int pitch_radius_dps = (device_ui_rotation == 90 || device_ui_rotation == 270) ? 80 : 100;
-                int pitch_radius = (int) (pitch_radius_dps * scale + 0.5f); // convert dps to pixels
+                int pitch_radius = (int) (pitch_radius_dps * scale_dp + 0.5f); // convert dps to pixels
                 int angle_step = getAngleStep();
                 for(int latitude_angle=-90;latitude_angle<=90;latitude_angle+=angle_step) {
                     double this_angle = pitch_angle - latitude_angle;
@@ -2370,7 +2372,7 @@ public class DrawPreview {
                 // lines should be longer in portrait - n.b., this is opposite to behaviour of pitch lines, as
                 // geo lines are drawn perpendicularly
                 int geo_radius_dps = (device_ui_rotation == 90 || device_ui_rotation == 270) ? 100 : 80;
-                int geo_radius = (int) (geo_radius_dps * scale + 0.5f); // convert dps to pixels
+                int geo_radius = (int) (geo_radius_dps * scale_dp + 0.5f); // convert dps to pixels
                 float geo_angle = (float)Math.toDegrees(geo_direction);
                 int angle_step = getAngleStep();
                 for(int longitude_angle=0;longitude_angle<360;longitude_angle+=angle_step) {
@@ -2546,8 +2548,8 @@ public class DrawPreview {
                 float frac = ((float)dt) / (float)length;
                 float pos_x = canvas.getWidth()/2.0f;
                 float pos_y = canvas.getHeight()/2.0f;
-                float min_radius = (40 * scale + 0.5f); // convert dps to pixels
-                float max_radius = (60 * scale + 0.5f); // convert dps to pixels
+                float min_radius = (40 * scale_dp + 0.5f); // convert dps to pixels
+                float max_radius = (60 * scale_dp + 0.5f); // convert dps to pixels
                 float radius;
                 if( frac < 0.5f ) {
                     float alpha = frac*2.0f;
@@ -2574,8 +2576,8 @@ public class DrawPreview {
 
         if( preview.isFocusWaiting() || preview.isFocusRecentSuccess() || preview.isFocusRecentFailure() ) {
             long time_since_focus_started = preview.timeSinceStartedAutoFocus();
-            float min_radius = (40 * scale + 0.5f); // convert dps to pixels
-            float max_radius = (45 * scale + 0.5f); // convert dps to pixels
+            float min_radius = (40 * scale_dp + 0.5f); // convert dps to pixels
+            float max_radius = (45 * scale_dp + 0.5f); // convert dps to pixels
             float radius = min_radius;
             if( time_since_focus_started > 0 ) {
                 final long length = 500;
@@ -2767,7 +2769,7 @@ public class DrawPreview {
             p.setColor(Color.WHITE);
             p.setStyle(Paint.Style.STROKE);
             p.setStrokeWidth(stroke_width);
-            float this_stroke_width = (5.0f * scale + 0.5f); // convert dps to pixels
+            float this_stroke_width = (5.0f * scale_dp + 0.5f); // convert dps to pixels
             p.setStrokeWidth(this_stroke_width);
             canvas.drawRect(0.0f, 0.0f, canvas.getWidth(), canvas.getHeight(), p);
             p.setStyle(Paint.Style.FILL); // reset
@@ -2913,8 +2915,8 @@ public class DrawPreview {
                         //applicationInterface.drawTextWithBackground(canvas, p, "not upright", Color.WHITE, Color.BLACK, canvas.getWidth()/2, canvas.getHeight()/2, MyApplicationInterface.Alignment.ALIGNMENT_CENTRE, null, true);
                         canvas.save();
                         canvas.rotate(ui_rotation, canvas.getWidth()/2.0f, canvas.getHeight()/2.0f);
-                        final int icon_size = (int) (64 * scale + 0.5f); // convert dps to pixels
-                        final int cy_offset = (int) (80 * scale + 0.5f); // convert dps to pixels
+                        final int icon_size = (int) (64 * scale_dp + 0.5f); // convert dps to pixels
+                        final int cy_offset = (int) (80 * scale_dp + 0.5f); // convert dps to pixels
                         int cx = canvas.getWidth()/2, cy = canvas.getHeight()/2 - cy_offset;
                         icon_dest.set(cx - icon_size/2, cy - icon_size/2, cx + icon_size/2, cy + icon_size/2);
 					/*p.setStyle(Paint.Style.FILL);
@@ -2978,7 +2980,7 @@ public class DrawPreview {
         else {
             p.setAlpha(127);
         }
-        float radius = (radius_dp * scale + 0.5f); // convert dps to pixels
+        float radius = (radius_dp * scale_dp + 0.5f); // convert dps to pixels
         float cx = canvas.getWidth()/2.0f + distance_x;
         float cy = canvas.getHeight()/2.0f + distance_y;
 
