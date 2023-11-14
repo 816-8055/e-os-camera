@@ -303,6 +303,79 @@ public class PanoramaProcessor {
         return bitmap;
     }
 
+    private void computeInterpolatedBestPath(int [] interpolated_best_path, int width, int height, int blend_width, int [] best_path, int best_path_n_x) {
+        float best_path_y_scale = best_path.length/(float)height;
+        for(int y=0;y<height;y++) {
+            if( false )
+            {
+                // no interpolation:
+                int best_path_y_index = (int)((y+0.5f)*best_path_y_scale);
+                int best_path_value = best_path[best_path_y_index];
+                //interpolated_best_path[y] = (int)((best_path_value+1) * best_path_x_width + 0.5f);
+                float alpha = best_path_value / (best_path_n_x-1.0f);
+                float frac = (1.0f - alpha) * 0.25f + alpha * 0.75f;
+                interpolated_best_path[y] = (int)(frac*width + 0.5f);
+                    /*if( MyDebug.LOG ) {
+                        Log.d(TAG, "    interpolated_best_path[" + y + "]: " + interpolated_best_path[y] + " (best_path_value " + best_path_value + ")");
+                    }*/
+            }
+            //if( false )
+            {
+                // linear interpolation
+                float best_path_y_index = ((y+0.5f)*best_path_y_scale);
+                float best_path_value;
+                if( best_path_y_index <= 0.5f ) {
+                    best_path_value = best_path[0];
+                }
+                else if( best_path_y_index >= best_path.length-1+0.5f ) {
+                    best_path_value = best_path[best_path.length-1];
+                }
+                else {
+                    best_path_y_index -= 0.5f;
+                    int best_path_y_index_i = (int)best_path_y_index;
+                    float linear_alpha = best_path_y_index - best_path_y_index_i;
+                    //float alpha = linear_alpha;
+                    //final float edge_length = 0.25f;
+                    final float edge_length = 0.1f;
+                    float alpha;
+                    if( linear_alpha < edge_length )
+                        alpha = 0.0f;
+                    else if( linear_alpha > 1.0f-edge_length )
+                        alpha = 1.0f;
+                    else
+                        alpha = (linear_alpha - edge_length) / (1.0f - 2.0f*edge_length);
+                    int prev_best_path = best_path[best_path_y_index_i];
+                    int next_best_path = best_path[best_path_y_index_i+1];
+                    best_path_value = (1.0f-alpha) * prev_best_path + alpha * next_best_path;
+                        /*if( MyDebug.LOG ) {
+                            Log.d(TAG, "    alpha: " + alpha);
+                            Log.d(TAG, "    prev_best_path: " + prev_best_path);
+                            Log.d(TAG, "    next_best_path: " + next_best_path);
+                        }*/
+                }
+                //interpolated_best_path[y] = (int)((best_path_value+1) * best_path_x_width + 0.5f);
+                float alpha = best_path_value / (best_path_n_x-1.0f);
+                float frac = (1.0f - alpha) * 0.25f + alpha * 0.75f;
+                interpolated_best_path[y] = (int)(frac*width + 0.5f);
+                    /*if( MyDebug.LOG ) {
+                        Log.d(TAG, "    interpolated_best_path[" + y + "]: " + interpolated_best_path[y] + " (best_path_value " + best_path_value + ")");
+                    }*/
+            }
+            if( interpolated_best_path[y] - blend_width/2 < 0 ) {
+                Log.e(TAG, "    interpolated_best_path[" + y + "]: " + interpolated_best_path[y]);
+                Log.e(TAG, "    blend_width: " + blend_width);
+                Log.e(TAG, "    width: " + width);
+                throw new RuntimeException("blend window runs off left hand size");
+            }
+            else if( interpolated_best_path[y] + blend_width/2 > width ) {
+                Log.e(TAG, "    interpolated_best_path[" + y + "]: " + interpolated_best_path[y]);
+                Log.e(TAG, "    blend_width: " + blend_width);
+                Log.e(TAG, "    width: " + width);
+                throw new RuntimeException("blend window runs off right hand size");
+            }
+        }
+    }
+
     /** Updates every allocation in pyramid0 to be a blend from the left hand of pyramid0 to the
      *  right hand of pyramid1.
      *  Note that the width of the blend region will be half of the width of each image.
@@ -379,7 +452,6 @@ public class PanoramaProcessor {
 
             //float best_path_x_width = width / (best_path_n_x+1.0f); // width of each "bucket" for the best paths
             //blend_width = Math.min(blend_width, (int)(2.0f*best_path_x_width+0.5f));
-            float best_path_y_scale = best_path.length/(float)height;
             /*if( MyDebug.LOG ) {
                 Log.d(TAG, "i = " + i);
                 Log.d(TAG, "    width: " + width);
@@ -390,75 +462,7 @@ public class PanoramaProcessor {
             }*/
 
             // compute interpolated_best_path
-            for(int y=0;y<height;y++) {
-                if( false )
-                {
-                    // no interpolation:
-                    int best_path_y_index = (int)((y+0.5f)*best_path_y_scale);
-                    int best_path_value = best_path[best_path_y_index];
-                    //interpolated_best_path[y] = (int)((best_path_value+1) * best_path_x_width + 0.5f);
-                    float alpha = best_path_value / (best_path_n_x-1.0f);
-                    float frac = (1.0f - alpha) * 0.25f + alpha * 0.75f;
-                    interpolated_best_path[y] = (int)(frac*width + 0.5f);
-                    /*if( MyDebug.LOG ) {
-                        Log.d(TAG, "    interpolated_best_path[" + y + "]: " + interpolated_best_path[y] + " (best_path_value " + best_path_value + ")");
-                    }*/
-                }
-                //if( false )
-                {
-                    // linear interpolation
-                    float best_path_y_index = ((y+0.5f)*best_path_y_scale);
-                    float best_path_value;
-                    if( best_path_y_index <= 0.5f ) {
-                        best_path_value = best_path[0];
-                    }
-                    else if( best_path_y_index >= best_path.length-1+0.5f ) {
-                        best_path_value = best_path[best_path.length-1];
-                    }
-                    else {
-                        best_path_y_index -= 0.5f;
-                        int best_path_y_index_i = (int)best_path_y_index;
-                        float linear_alpha = best_path_y_index - best_path_y_index_i;
-                        //float alpha = linear_alpha;
-                        //final float edge_length = 0.25f;
-                        final float edge_length = 0.1f;
-                        float alpha;
-                        if( linear_alpha < edge_length )
-                            alpha = 0.0f;
-                        else if( linear_alpha > 1.0f-edge_length )
-                            alpha = 1.0f;
-                        else
-                            alpha = (linear_alpha - edge_length) / (1.0f - 2.0f*edge_length);
-                        int prev_best_path = best_path[best_path_y_index_i];
-                        int next_best_path = best_path[best_path_y_index_i+1];
-                        best_path_value = (1.0f-alpha) * prev_best_path + alpha * next_best_path;
-                        /*if( MyDebug.LOG ) {
-                            Log.d(TAG, "    alpha: " + alpha);
-                            Log.d(TAG, "    prev_best_path: " + prev_best_path);
-                            Log.d(TAG, "    next_best_path: " + next_best_path);
-                        }*/
-                    }
-                    //interpolated_best_path[y] = (int)((best_path_value+1) * best_path_x_width + 0.5f);
-                    float alpha = best_path_value / (best_path_n_x-1.0f);
-                    float frac = (1.0f - alpha) * 0.25f + alpha * 0.75f;
-                    interpolated_best_path[y] = (int)(frac*width + 0.5f);
-                    /*if( MyDebug.LOG ) {
-                        Log.d(TAG, "    interpolated_best_path[" + y + "]: " + interpolated_best_path[y] + " (best_path_value " + best_path_value + ")");
-                    }*/
-                }
-                if( interpolated_best_path[y] - blend_width/2 < 0 ) {
-                    Log.e(TAG, "    interpolated_best_path[" + y + "]: " + interpolated_best_path[y]);
-                    Log.e(TAG, "    blend_width: " + blend_width);
-                    Log.e(TAG, "    width: " + width);
-                    throw new RuntimeException("blend window runs off left hand size");
-                }
-                else if( interpolated_best_path[y] + blend_width/2 > width ) {
-                    Log.e(TAG, "    interpolated_best_path[" + y + "]: " + interpolated_best_path[y]);
-                    Log.e(TAG, "    blend_width: " + blend_width);
-                    Log.e(TAG, "    width: " + width);
-                    throw new RuntimeException("blend window runs off right hand size");
-                }
-            }
+            computeInterpolatedBestPath(interpolated_best_path, width, height, blend_width, best_path, best_path_n_x);
             interpolatedbestPathAllocation.copyFrom(interpolated_best_path);
 
             script.invoke_setBlendWidth(blend_width, width);
