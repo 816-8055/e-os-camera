@@ -1,11 +1,7 @@
 package net.sourceforge.opencamera;
 
 import android.graphics.Bitmap;
-import android.os.Build;
-import android.renderscript.Allocation;
 import android.util.Log;
-
-import androidx.annotation.RequiresApi;
 
 public class JavaImageProcessing {
     private static final String TAG = "JavaImageProcessing";
@@ -19,11 +15,6 @@ public class JavaImageProcessing {
          *               the pixels array is of size this_width*this_height.
          */
         void apply(CachedBitmap output, int thread_index, int [] pixels, int off_x, int off_y, int this_width, int this_height);
-        /**
-         * @param pixels An array of pixels for the subset being operated on. I.e., pixels[0] represents the input pixel at (off_x, off_y), and
-         *               the pixels array is of size 4*this_width*this_height.
-         */
-        void apply(CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height);
         /**
          * @param pixels An array of pixels for the subset being operated on. I.e., pixels[0] represents the input pixel at (off_x, off_y), and
          *               the pixels array is of size 4*this_width*this_height.
@@ -86,41 +77,19 @@ public class JavaImageProcessing {
         }
     }
 
-    /** Encapsulates either a Bitmap or Allocation, together with caching of pixels.
+    /** Encapsulates a Bitmap, together with caching of pixels.
      *  This differs to FastAccessBitmap in that CachedBitmap requires the caller to actually do the
      *  caching.
      */
     static class CachedBitmap {
         private final Bitmap bitmap;
-        private final Allocation allocation;
-        private final boolean floating_point; // for allocation
         private final int [] cache_pixels_i;
-        private final float [] cache_pixels_f;
         private final byte [] cache_pixels_b;
 
         CachedBitmap(Bitmap bitmap, int cache_width, int cache_height) {
             this.bitmap = bitmap;
-            this.allocation = null;
-            this.floating_point = false;
             this.cache_pixels_i = new int[cache_width*cache_height];
             this.cache_pixels_b = null;
-            this.cache_pixels_f = null;
-        }
-
-        CachedBitmap(Allocation allocation, boolean floating_point, int cache_width, int cache_height) {
-            this.bitmap = null;
-            this.allocation = allocation;
-            this.floating_point = floating_point;
-            this.cache_pixels_i = null;
-            if( floating_point ) {
-                // floating point means element type is F32_3, but we haven't enabled AutoPadding, so the padding is part of the array
-                this.cache_pixels_f = new float[4*cache_width*cache_height];
-                this.cache_pixels_b = null;
-            }
-            else {
-                this.cache_pixels_f = null;
-                this.cache_pixels_b = new byte[4*cache_width*cache_height];
-            }
         }
 
         int [] getCachedPixelsI() {
@@ -130,15 +99,10 @@ public class JavaImageProcessing {
         byte [] getCachedPixelsB() {
             return this.cache_pixels_b;
         }
-
-        float [] getCachedPixelsF() {
-            return this.cache_pixels_f;
-        }
     }
 
     /** Generic thread to apply a Java function to a bunch of pixels.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private static class ApplyFunctionThread extends Thread {
         private final int thread_index;
         private final ApplyFunctionInterface function;
@@ -181,27 +145,6 @@ public class JavaImageProcessing {
                 this.input = null;
         }
 
-        ApplyFunctionThread(int thread_index, ApplyFunctionInterface function, Allocation allocation, boolean floating_point, int start_x, int start_y, int stop_x, int stop_y) {
-            super("ApplyFunctionThread");
-            /*if( MyDebug.LOG ) {
-                Log.d(TAG, "    thread_index: " + thread_index);
-                Log.d(TAG, "    start_x: " + start_x);
-                Log.d(TAG, "    start_y: " + start_y);
-                Log.d(TAG, "    stop_x: " + stop_x);
-                Log.d(TAG, "    stop_y: " + stop_y);
-            }*/
-            this.thread_index = thread_index;
-            this.function = function;
-            this.start_x = start_x;
-            this.start_y = start_y;
-            this.stop_x = stop_x;
-            this.stop_y = stop_y;
-            this.chunk_size = getChunkSize(start_y, stop_y);
-            /*if( MyDebug.LOG )
-                Log.d(TAG, "chunk_size: " + chunk_size);*/
-            this.input = new CachedBitmap(allocation, floating_point, stop_x-start_x, chunk_size);
-        }
-
         void setOutput(Bitmap bitmap, int output_start_x, int output_start_y) {
             /*if( MyDebug.LOG ) {
                 Log.d(TAG, "    output_start_x: " + output_start_x);
@@ -210,12 +153,6 @@ public class JavaImageProcessing {
             this.output = new CachedBitmap(bitmap, stop_x-start_x, chunk_size);
             this.output_start_x = output_start_x;
             this.output_start_y = output_start_y;
-        }
-
-        void setOutput(Allocation allocation, boolean floating_point) {
-            this.output = new CachedBitmap(allocation, floating_point, stop_x-start_x, chunk_size);
-            this.output_start_x = start_x;
-            this.output_start_y = start_y;
         }
 
         public void run() {
@@ -253,18 +190,6 @@ public class JavaImageProcessing {
                         Log.d(TAG, "### ApplyFunctionThread: time after reading pixels: " + (System.currentTimeMillis() - time_s));*/
                     function.apply(output, thread_index, input.cache_pixels_i, start_x, this_start_y, width, this_height);
                 }
-                else if( input.floating_point ) {
-                    input.allocation.copy2DRangeTo(start_x, this_start_y, width, this_height, input.cache_pixels_f);
-                    /*if( MyDebug.LOG )
-                        Log.d(TAG, "### ApplyFunctionThread: time after reading pixels: " + (System.currentTimeMillis() - time_s));*/
-                    function.apply(output, thread_index, input.cache_pixels_f, start_x, this_start_y, width, this_height);
-                }
-                else {
-                    input.allocation.copy2DRangeTo(start_x, this_start_y, width, this_height, input.cache_pixels_b);
-                    /*if( MyDebug.LOG )
-                        Log.d(TAG, "### ApplyFunctionThread: time after reading pixels: " + (System.currentTimeMillis() - time_s));*/
-                    function.apply(output, thread_index, input.cache_pixels_b, start_x, this_start_y, width, this_height);
-                }
                 /*if( MyDebug.LOG )
                     Log.d(TAG, "### ApplyFunctionThread: time after apply: " + (System.currentTimeMillis() - time_s));*/
 
@@ -279,12 +204,6 @@ public class JavaImageProcessing {
                         }*/
                         output.bitmap.setPixels(output.cache_pixels_i, 0, width, output_start_x, this_start_y+output_shift_y, width, this_height);
                     }
-                    else if( output.floating_point ) {
-                        output.allocation.copy2DRangeFrom(output_start_x, this_start_y+output_shift_y, width, this_height, output.cache_pixels_f);
-                    }
-                    else {
-                        output.allocation.copy2DRangeFrom(output_start_x, this_start_y+output_shift_y, width, this_height, output.cache_pixels_b);
-                    }
                 }
 
                 this_start_y = this_stop_y;
@@ -294,14 +213,12 @@ public class JavaImageProcessing {
 
     /** Applies a function to the specified pixels of the supplied bitmap.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public static void applyFunction(ApplyFunctionInterface function, Bitmap bitmap, Bitmap output, int start_x, int start_y, int stop_x, int stop_y) {
         applyFunction(function, bitmap, output, start_x, start_y, stop_x, stop_y, start_x, start_y);
     }
 
     /** Applies a function to the specified pixels of the supplied bitmap.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     static void applyFunction(ApplyFunctionInterface function, Bitmap bitmap, Bitmap output, int start_x, int start_y, int stop_x, int stop_y, int output_start_x, int output_start_y) {
         if( MyDebug.LOG )
             Log.d(TAG, "applyFunction [bitmap]");
@@ -344,56 +261,6 @@ public class JavaImageProcessing {
 
         //function.init(1);
         //ApplyFunctionThread thread = new ApplyFunctionThread(0, function, bitmap, start_x, start_y, stop_x, stop_y);
-        //thread.run();
-
-        if( MyDebug.LOG )
-            Log.d(TAG, "applyFunction time: " + (System.currentTimeMillis() - time_s));
-    }
-
-    /** Applies a function to the specified pixels of the supplied allocation.
-     */
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    static void applyFunction(ApplyFunctionInterface function, Allocation allocation, boolean floating_point, Allocation output, int start_x, int start_y, int stop_x, int stop_y) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "applyFunction [allocation]");
-        long time_s = System.currentTimeMillis();
-
-        int height = stop_y-start_y;
-        if( MyDebug.LOG )
-            Log.d(TAG, "height: " + height);
-        //final int n_threads = 1;
-        final int n_threads = height >= 16 ? 4 : 1;
-        function.init(n_threads);
-        ApplyFunctionThread [] threads = new ApplyFunctionThread[n_threads];
-        int st_indx = 0;
-        for(int i=0;i<n_threads;i++) {
-            int nd_indx = (((i+1)*height)/n_threads);
-            /*if( MyDebug.LOG )
-                Log.d(TAG, "thread " + i + " from " + st_indx + " to " + nd_indx);*/
-            threads[i] = new ApplyFunctionThread(i, function, allocation, floating_point, start_x, start_y+st_indx, stop_x, start_y+nd_indx);
-            if( output != null )
-                threads[i].setOutput(output, floating_point);
-            st_indx = nd_indx;
-        }
-        if( MyDebug.LOG )
-            Log.d(TAG, "start threads");
-        for(int i=0;i<n_threads;i++) {
-            threads[i].start();
-        }
-        if( MyDebug.LOG )
-            Log.d(TAG, "wait for threads to complete");
-        try {
-            for(int i=0;i<n_threads;i++) {
-                threads[i].join();
-            }
-        }
-        catch(InterruptedException e) {
-            Log.e(TAG, "applyFunction threads interrupted");
-            throw new RuntimeException(e);
-        }
-
-        //function.init(1);
-        //ApplyFunctionThread thread = new ApplyFunctionThread(0, function, allocation, floating_point, start_x, start_y, stop_x, stop_y);
         //thread.run();
 
         if( MyDebug.LOG )

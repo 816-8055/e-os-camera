@@ -8438,7 +8438,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     Log.d(TAG, "time after getBitmap: " + (System.currentTimeMillis() - debug_time));
 
                 Allocation allocation_in = null;
-                if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+                if( !HDRProcessor.use_renderscript ) {
                 }
                 else {
                     allocation_in = Allocation.createFromBitmap(preview.rs, preview_bitmap);
@@ -8459,7 +8459,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
                     if (MyDebug.LOG)
                         Log.d(TAG, "time before computeHistogram: " + (System.currentTimeMillis() - debug_time));
-                    if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+                    if( !HDRProcessor.use_renderscript ) {
                         JavaImageFunctions.ComputeHistogramApplyFunction.Type java_type;
                         switch( preview.histogram_type ) {
                             case HISTOGRAM_TYPE_RGB:
@@ -8506,7 +8506,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
                     int zebra_stripes_width = zebra_stripes_bitmap_buffer.getWidth()/20;
 
-                    if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+                    if( !HDRProcessor.use_renderscript ) {
                         JavaImageFunctions.ZebraStripesApplyFunction function = new JavaImageFunctions.ZebraStripesApplyFunction(preview.zebra_stripes_threshold, preview.zebra_stripes_color_foreground, preview.zebra_stripes_color_background, zebra_stripes_width);
                         JavaImageProcessing.applyFunction(function, preview_bitmap, zebra_stripes_bitmap_buffer, 0, 0, preview_bitmap.getWidth(), preview_bitmap.getHeight());
                     }
@@ -8582,7 +8582,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                         debug_time_focus_peaking = System.currentTimeMillis();
                     }
 
-                    if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+                    if( !HDRProcessor.use_renderscript ) {
                         JavaImageFunctions.FocusPeakingApplyFunction function = new JavaImageFunctions.FocusPeakingApplyFunction(preview_bitmap);
                         JavaImageProcessing.applyFunction(function, preview_bitmap, focus_peaking_bitmap_buffer_temp, 0, 0, preview_bitmap.getWidth(), preview_bitmap.getHeight());
 

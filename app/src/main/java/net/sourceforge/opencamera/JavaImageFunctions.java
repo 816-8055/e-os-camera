@@ -1,7 +1,7 @@
 package net.sourceforge.opencamera;
 
 import android.graphics.Bitmap;
-import android.util.Log;
+//import android.util.Log;
 
 import java.util.List;
 
@@ -74,12 +74,6 @@ public class JavaImageFunctions {
                     }
                 }
             }
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
         }
 
         @Override
@@ -390,12 +384,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -511,12 +499,6 @@ public class JavaImageFunctions {
                     pixels_out[c] = (255 << 24) | (r << 16) | (g << 8) | b;
                 }
             }
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
         }
 
         @Override
@@ -986,12 +968,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -1385,12 +1361,6 @@ public class JavaImageFunctions {
                     pixels_out[c] = (255 << 24) | (r << 16) | (g << 8) | b;
                 }
             }*/
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
         }
 
         @Override
@@ -1794,12 +1764,6 @@ public class JavaImageFunctions {
                     pixels_out[c] = (255 << 24) | (temp_rgb[0] << 16) | (temp_rgb[1] << 8) | temp_rgb[2];
                 }
             }
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
         }
 
         @Override
@@ -2320,12 +2284,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             byte [] pixels_out = output.getCachedPixelsB();
             for(int y=off_y,c=0;y<off_y+this_height;y++) {
@@ -2542,27 +2500,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-            /*if( MyDebug.LOG )
-                Log.d(TAG, "ComputeHistogramApplyFunction.apply [float vector array]");*/
-            /*if( histograms[thread_index] == null )
-                histograms[thread_index] = new int[256];
-            for(int c=0;c<4*this_width*this_height;) { // n.b., we increment c inside the loop
-                int r = (int)(pixels[c++]+0.5f);
-                int g = (int)(pixels[c++]+0.5f);
-                int b = (int)(pixels[c++]+0.5f);
-                c++; // skip padding
-                int value = Math.max(r, g);
-                value = Math.max(value, b);
-                value = Math.min(value, 255);
-                value = Math.max(value, 0);
-                histograms[thread_index][value]++;
-            }*/
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             /*if( MyDebug.LOG )
                 Log.d(TAG, "ComputeHistogramApplyFunction.apply [byte vector array]");*/
@@ -2648,12 +2585,6 @@ public class JavaImageFunctions {
                     }
                 }
             }
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
         }
 
         @Override
@@ -2768,12 +2699,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -2852,12 +2777,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -2896,12 +2815,6 @@ public class JavaImageFunctions {
                     pixels_out[c] = value << 24;
                 }
             }
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
         }
 
         @Override
@@ -2998,12 +2911,6 @@ public class JavaImageFunctions {
 
         @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
         }
@@ -3112,12 +3019,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -3216,12 +3117,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -3284,12 +3179,6 @@ public class JavaImageFunctions {
                     }
                 }
             }
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
         }
 
         @Override
@@ -3403,12 +3292,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -3493,12 +3376,6 @@ public class JavaImageFunctions {
 
         @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
         }
@@ -3594,12 +3471,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -3659,12 +3530,6 @@ public class JavaImageFunctions {
 
         @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
         }
@@ -3802,12 +3667,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -3926,12 +3785,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -4000,12 +3853,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -4061,12 +3908,6 @@ public class JavaImageFunctions {
 
         @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
         }
@@ -4158,12 +3999,6 @@ public class JavaImageFunctions {
         }
 
         @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
-        }
-
-        @Override
         public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
             // unused
             throw new RuntimeException("not implemented");
@@ -4223,12 +4058,6 @@ public class JavaImageFunctions {
                     pixels_out[c] = (255 << 24) | (r << 16) | (g << 8) | b;
                 }
             }
-        }
-
-        @Override
-        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, float [] pixels, int off_x, int off_y, int this_width, int this_height) {
-            // unused
-            throw new RuntimeException("not implemented");
         }
 
         @Override

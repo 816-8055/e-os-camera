@@ -104,7 +104,6 @@ public class PanoramaProcessor {
         return reduced_allocation;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private Bitmap reduceBitmap(Bitmap bitmap) {
         if( MyDebug.LOG )
             Log.d(TAG, "reduceBitmap");
@@ -195,7 +194,6 @@ public class PanoramaProcessor {
         return result_allocation;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private Bitmap expandBitmap(Bitmap bitmap) {
         if( MyDebug.LOG )
             Log.d(TAG, "expandBitmap");
@@ -258,7 +256,6 @@ public class PanoramaProcessor {
     /** Creates a floating point array represending a bitmap where each pixel equals the pixel from
      *  bitmap0 minus the corresponding pixel from bitmap1.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private float [] subtractBitmap(Bitmap bitmap0, Bitmap bitmap1) {
         if( MyDebug.LOG )
             Log.d(TAG, "subtractBitmap");
@@ -298,7 +295,6 @@ public class PanoramaProcessor {
      *  corresponding pixel from bitmap1.
      *  bitmap0 should be of type RGBA_8888, bitmap1 should be of type RGBf.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void addBitmap(Bitmap bitmap0, float [] bitmap1) {
         if( MyDebug.LOG )
             Log.d(TAG, "addBitmap");
@@ -328,7 +324,6 @@ public class PanoramaProcessor {
         return pyramid;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private List<Bitmap> createGaussianPyramid(Bitmap bitmap, int n_levels) {
         if( MyDebug.LOG )
             Log.d(TAG, "createGaussianPyramid");
@@ -439,7 +434,6 @@ public class PanoramaProcessor {
      *  The diffs are of type floating point (RGB); the top_level is of type
      *  RGBA_8888.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private LaplacianPyramid createLaplacianPyramid(Bitmap bitmap, int n_levels, String name) {
         if( MyDebug.LOG )
             Log.d(TAG, "createLaplacianPyramid");
@@ -537,7 +531,6 @@ public class PanoramaProcessor {
         return bitmap;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private Bitmap collapseLaplacianPyramid(LaplacianPyramid pyramid) {
         if( MyDebug.LOG )
             Log.d(TAG, "collapseLaplacianPyramid");
@@ -736,7 +729,6 @@ public class PanoramaProcessor {
      *  Note that the width of the blend region will be half of the width of each image.
      * @param best_path If non-null, the blend region will follow the supplied best path.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void mergePyramids(LaplacianPyramid pyramid0, LaplacianPyramid pyramid1, int [] best_path, int best_path_n_x) {
         if( MyDebug.LOG )
             Log.d(TAG, "mergePyramids");
@@ -905,7 +897,7 @@ public class PanoramaProcessor {
         if( MyDebug.LOG )
             time_s = System.currentTimeMillis();
 
-        if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+        if( !HDRProcessor.use_renderscript ) {
         }
         else {
             if( pyramidBlendingScript == null ) {
@@ -979,7 +971,7 @@ public class PanoramaProcessor {
             int [] errors = null;
             Allocation errorsAllocation = null;
             Script.LaunchOptions launch_options = null;
-            if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+            if( !HDRProcessor.use_renderscript ) {
                 compute_error_function = new JavaImageFunctions.PyramidBlendingComputeErrorFunction(best_path_rhs);
             }
             else {
@@ -1004,7 +996,7 @@ public class PanoramaProcessor {
                 int best_error = -1;
 
                 stop_y = ((y+1) * best_path_lhs.getHeight()) / best_path_n_y;
-                if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+                if( !HDRProcessor.use_renderscript ) {
                 }
                 else {
                     launch_options.setY(start_y, stop_y);
@@ -1021,7 +1013,7 @@ public class PanoramaProcessor {
                     //stop_x = ((x+1) * best_path_lhs.getWidth()) / best_path_n_x;
 
                     int this_error;
-                    if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+                    if( !HDRProcessor.use_renderscript ) {
                         JavaImageProcessing.applyFunction(compute_error_function, best_path_lhs, null, start_x, start_y, stop_x, stop_y);
                         this_error = compute_error_function.getError();
                     }
@@ -1050,7 +1042,7 @@ public class PanoramaProcessor {
                     Log.d(TAG, "best_path [" + y + "]: " + best_path[y]);
             }
 
-            if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+            if( !HDRProcessor.use_renderscript ) {
             }
             else {
                 lhs_allocation.destroy();
@@ -1070,7 +1062,7 @@ public class PanoramaProcessor {
         }
 
         Bitmap merged_bitmap;
-        if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+        if( !HDRProcessor.use_renderscript ) {
             LaplacianPyramid lhs_pyramid = createLaplacianPyramid(lhs, blend_n_levels, "lhs");
             if( MyDebug.LOG )
                 Log.d(TAG, "### blendPyramids: time after createLaplacianPyramid 1st call: " + (System.currentTimeMillis() - time_s));
@@ -1399,7 +1391,7 @@ public class PanoramaProcessor {
             Allocation iy_allocation;
             Allocation strength_allocation = null;
             Allocation local_max_features_allocation = null;
-            if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+            if( !HDRProcessor.use_renderscript ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "convert to greyscale");
                 Bitmap gs_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8);
@@ -1532,7 +1524,7 @@ public class PanoramaProcessor {
 
             if( MyDebug.LOG )
                 Log.d(TAG, "find local maxima for image: " + i);
-            if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+            if( !HDRProcessor.use_renderscript ) {
             }
             else {
                 featureDetectorScript.set_bitmap(strength_allocation);
@@ -1570,7 +1562,7 @@ public class PanoramaProcessor {
                     if( MyDebug.LOG )
                         Log.d(TAG, "### attempt " + count + " try threshold: " + threshold + " [ " + low_threshold + " : " + high_threshold + " ]");
 
-                    if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+                    if( !HDRProcessor.use_renderscript ) {
                         JavaImageFunctions.LocalMaximumFunction function = new JavaImageFunctions.LocalMaximumFunction(strength_rgbf, bytes, width, height, threshold);
                         JavaImageProcessing.applyFunction(function, null, null, 0, 0, width, height);
                     }
@@ -3606,7 +3598,7 @@ public class PanoramaProcessor {
             /*if( true )
                 throw new RuntimeException("ratio_brightnesses: " + ratio_brightnesses);*/
 
-            if( !HDRProcessor.use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+            if( !HDRProcessor.use_renderscript ) {
                 hdrProcessor.adjustHistogram(panorama, panorama, panorama.getWidth(), panorama.getHeight(), 0.25f, 1, true, time_s);
                 if( MyDebug.LOG )
                     Log.d(TAG, "### time after adjustHistogram: " + (System.currentTimeMillis() - time_s));

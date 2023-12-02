@@ -29,7 +29,7 @@ public class HDRProcessor {
 
     // flag to control migration away from renderscript!
     // if use_renderscript==false, then use Java instead of Renderscript
-    //public final static boolean use_renderscript = Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
+    //public final static boolean use_renderscript = false;
     public final static boolean use_renderscript = true;
 
     private RenderScript rs; // lazily created, so we don't take up resources if application isn't using HDR
@@ -383,7 +383,7 @@ public class HDRProcessor {
                     sort_order.add(0);
                     sort_cb.sortOrder(sort_order);
                 }
-                if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+                if( !use_renderscript ) {
                     processSingleImage(bitmaps, release_bitmaps, output_bitmap, hdr_alpha, n_tiles, ce_preserve_blacks, dro_tonemapping_algorithm);
                 }
                 else {
@@ -1014,7 +1014,7 @@ public class HDRProcessor {
             Log.d(TAG, "### time for processHDRCore: " + (System.currentTimeMillis() - time_s));
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void processSingleImage(List<Bitmap> bitmaps, boolean release_bitmaps, Bitmap output_bitmap, float hdr_alpha, int n_tiles, boolean ce_preserve_blacks, DROTonemappingAlgorithm dro_tonemapping_algorithm) {
         if( MyDebug.LOG )
             Log.d(TAG, "processSingleImage");
@@ -1134,7 +1134,7 @@ public class HDRProcessor {
                 //if( true )
                 //  throw new HDRProcessorException(HDRProcessorException.UNEQUAL_SIZES); // test
 
-                /*if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+                /*if( !use_renderscript ) {
                     JavaImageFunctions.DROBrightenApplyFunction function = new JavaImageFunctions.DROBrightenApplyFunction(gain, gamma, low_x, mid_x, max_brightness);
                     JavaImageProcessing.applyFunction(function, allocation, false, output_allocation, 0, 0, width, height);
                 }
@@ -1194,7 +1194,7 @@ public class HDRProcessor {
             if( MyDebug.LOG )
                 Log.d(TAG, "apply gain/gamma");
 
-            if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+            if( !use_renderscript ) {
                 JavaImageFunctions.DROBrightenApplyFunction function = new JavaImageFunctions.DROBrightenApplyFunction(gain, gamma, low_x, mid_x, max_brightness);
                 JavaImageProcessing.applyFunction(function, bitmap, bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight());
             }
@@ -1659,7 +1659,7 @@ public class HDRProcessor {
             bitmap_orig = bitmap_avg;
         }
 
-        if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M /*&& !floating_point*/ ) {
+        if( !use_renderscript /*&& !floating_point*/ ) {
             /*float [] pixels_rgbf;
             if( allocation_avg != null ) {
                 if( MyDebug.LOG )
@@ -2193,7 +2193,7 @@ public class HDRProcessor {
             if( MyDebug.LOG )
                 Log.d(TAG, i + ": median_value is now: " + median_value);
 
-            if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+            if( !use_renderscript ) {
                 Bitmap output_mtb_bitmap = Bitmap.createBitmap(mtb_width, mtb_height, Bitmap.Config.ALPHA_8);
                 JavaImageFunctions.CreateMTBApplyFunction function = new JavaImageFunctions.CreateMTBApplyFunction(use_mtb, median_value);
                 JavaImageProcessing.applyFunction(function, bitmaps.get(i), output_mtb_bitmap, mtb_x, mtb_y, mtb_x+mtb_width, mtb_y+mtb_height, 0, 0);
@@ -2378,7 +2378,7 @@ public class HDRProcessor {
 
                 int [] errors;
 
-                if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+                if( !use_renderscript ) {
                     JavaImageFunctions.AlignMTBApplyFunction function = new JavaImageFunctions.AlignMTBApplyFunction(use_mtb, mtb_bitmaps[base_bitmap], mtb_bitmaps[i], offsets_x[i], offsets_y[i], pixel_step_size);
                     JavaImageProcessing.applyFunction(function, null, null, 0, 0, stop_x, stop_y);
                     if( MyDebug.LOG )
@@ -2798,7 +2798,6 @@ public class HDRProcessor {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     void adjustHistogram(Bitmap bitmap_in, Bitmap bitmap_out, int width, int height, float hdr_alpha, int n_tiles, boolean ce_preserve_blacks, long time_s) {
         if( MyDebug.LOG )
             Log.d(TAG, "adjustHistogram [bitmap]");
@@ -2894,24 +2893,18 @@ public class HDRProcessor {
             if( MyDebug.LOG )
                 Log.d(TAG, "time before creating histograms: " + (System.currentTimeMillis() - time_s));
             // create histograms
-            Allocation histogramAllocation = null;
-            ScriptC_histogram_compute histogramScript = null;
-            if( !use_renderscript ) {
-            }
-            else {
-                /*if( histogramScript == null ) {
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "create histogramScript");
-                    histogramScript = new ScriptC_histogram_compute(rs);
-                }*/
-                histogramAllocation = Allocation.createSized(rs, Element.I32(rs), 256);
+            /*if( histogramScript == null ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "create histogramScript");
                 histogramScript = new ScriptC_histogram_compute(rs);
-                if( MyDebug.LOG )
-                    Log.d(TAG, "bind histogram allocation");
-                histogramScript.bind_histogram(histogramAllocation);
-            }
+            }*/
+            Allocation histogramAllocation = Allocation.createSized(rs, Element.I32(rs), 256);
+            if( MyDebug.LOG )
+                Log.d(TAG, "create histogramScript");
+            ScriptC_histogram_compute histogramScript = new ScriptC_histogram_compute(rs);
+            if( MyDebug.LOG )
+                Log.d(TAG, "bind histogram allocation");
+            histogramScript.bind_histogram(histogramAllocation);
 
             //final int n_tiles_c = 8;
             //final int n_tiles_c = 4;
@@ -2937,23 +2930,15 @@ public class HDRProcessor {
 
                     // We compute a histogram based on the max RGB value, so this matches with the scaling we do in histogram_adjust.rs.
                     // This improves the look of the grass in testHDR24, testHDR27.
-                    int [] histogram;
-                    /*if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
-                        JavaImageFunctions.ComputeHistogramApplyFunction function = new JavaImageFunctions.ComputeHistogramApplyFunction(JavaImageFunctions.ComputeHistogramApplyFunction.Type.TYPE_VALUE);
-                        JavaImageProcessing.applyFunction(function, allocation_in, false, null, start_x, start_y, stop_x, stop_y);
-                        histogram = function.getHistogram();
-                    }
-                    else*/ {
-                        Script.LaunchOptions launch_options = new Script.LaunchOptions();
-                        launch_options.setX(start_x, stop_x);
-                        launch_options.setY(start_y, stop_y);
+                    Script.LaunchOptions launch_options = new Script.LaunchOptions();
+                    launch_options.setX(start_x, stop_x);
+                    launch_options.setY(start_y, stop_y);
 
-                        histogramScript.invoke_init_histogram();
-                        histogramScript.forEach_histogram_compute_by_value(allocation_in, launch_options);
+                    histogramScript.invoke_init_histogram();
+                    histogramScript.forEach_histogram_compute_by_value(allocation_in, launch_options);
 
-                        histogram = new int[256];
-                        histogramAllocation.copyTo(histogram);
-                    }
+                    int [] histogram = new int[256];
+                    histogramAllocation.copyTo(histogram);
 
                         /*if( MyDebug.LOG ) {
                             // compare/adjust
@@ -3003,31 +2988,25 @@ public class HDRProcessor {
             if( MyDebug.LOG )
                 Log.d(TAG, "adjustHistogram: time after creating histograms: " + (System.currentTimeMillis() - time_s));
 
-            /*if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
-                JavaImageFunctions.AdjustHistogramApplyFunction function = new JavaImageFunctions.AdjustHistogramApplyFunction(hdr_alpha, n_tiles, width, height, c_histogram);
-                JavaImageProcessing.applyFunction(function, allocation_in, false, allocation_out, 0, 0, width, height);
-            }
-            else*/ {
-                Allocation c_histogramAllocation = Allocation.createSized(rs, Element.I32(rs), n_tiles*n_tiles*256);
-                c_histogramAllocation.copyFrom(c_histogram);
-                /*if( histogramAdjustScript == null ) {
-                    histogramAdjustScript = new ScriptC_histogram_adjust(rs);
-                }*/
-                ScriptC_histogram_adjust histogramAdjustScript = new ScriptC_histogram_adjust(rs);
-                histogramAdjustScript.set_c_histogram(c_histogramAllocation);
-                histogramAdjustScript.set_hdr_alpha(hdr_alpha);
-                histogramAdjustScript.set_n_tiles(n_tiles);
-                histogramAdjustScript.set_width(width);
-                histogramAdjustScript.set_height(height);
+            Allocation c_histogramAllocation = Allocation.createSized(rs, Element.I32(rs), n_tiles*n_tiles*256);
+            c_histogramAllocation.copyFrom(c_histogram);
+            /*if( histogramAdjustScript == null ) {
+                histogramAdjustScript = new ScriptC_histogram_adjust(rs);
+            }*/
+            ScriptC_histogram_adjust histogramAdjustScript = new ScriptC_histogram_adjust(rs);
+            histogramAdjustScript.set_c_histogram(c_histogramAllocation);
+            histogramAdjustScript.set_hdr_alpha(hdr_alpha);
+            histogramAdjustScript.set_n_tiles(n_tiles);
+            histogramAdjustScript.set_width(width);
+            histogramAdjustScript.set_height(height);
 
-                if( MyDebug.LOG )
-                    Log.d(TAG, "time before histogramAdjustScript: " + (System.currentTimeMillis() - time_s));
-                histogramAdjustScript.forEach_histogram_adjust(allocation_in, allocation_out);
-                if( MyDebug.LOG )
-                    Log.d(TAG, "time after histogramAdjustScript: " + (System.currentTimeMillis() - time_s));
+            if( MyDebug.LOG )
+                Log.d(TAG, "time before histogramAdjustScript: " + (System.currentTimeMillis() - time_s));
+            histogramAdjustScript.forEach_histogram_adjust(allocation_in, allocation_out);
+            if( MyDebug.LOG )
+                Log.d(TAG, "time after histogramAdjustScript: " + (System.currentTimeMillis() - time_s));
 
-                c_histogramAllocation.destroy();
-            }
+            c_histogramAllocation.destroy();
             if( MyDebug.LOG )
                 Log.d(TAG, "time after adjusting histogram: " + (System.currentTimeMillis() - time_s));
 
@@ -3111,7 +3090,7 @@ public class HDRProcessor {
             Log.d(TAG, "type: " + type);
         }
         long time_s = System.currentTimeMillis();
-        if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+        if( !use_renderscript ) {
 
             /*final int n_pixels = bitmap.getWidth()*bitmap.getHeight();
             int [] pixels = new int[n_pixels];
@@ -3180,7 +3159,6 @@ public class HDRProcessor {
     /**
      * @param pixels Pixels in floating point RGB format. Length of array should be 3*width*height.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private int [] computeHistogram(float [] pixels, int width, int height, boolean avg) {
         if( avg ) {
             throw new RuntimeException("not implemented");
@@ -3212,7 +3190,7 @@ public class HDRProcessor {
             Log.d(TAG, "floating_point: " + floating_point);
         }
         long time_s = System.currentTimeMillis();
-        /*if( !use_renderscript && !avg && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+        /*if( !use_renderscript && !avg ) {
             JavaImageFunctions.ComputeHistogramApplyFunction function = new JavaImageFunctions.ComputeHistogramApplyFunction(JavaImageFunctions.ComputeHistogramApplyFunction.Type.TYPE_VALUE);
             JavaImageProcessing.applyFunction(function, allocation, floating_point, null, 0, 0, width, height);
             int [] histogram = function.getHistogram();
@@ -3472,73 +3450,6 @@ public class HDRProcessor {
         return black_level;
     }
 
-    static float [] AllocationToRGBf(Allocation allocation, int width, int height) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "AllocationToRGBf");
-        long time_s = System.currentTimeMillis();
-            /*Bitmap input_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGBA_F16);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after creating input_bitmap: " + (System.currentTimeMillis() - time_s));
-            input.copyTo(input_bitmap);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after copying to input_bitmap: " + (System.currentTimeMillis() - time_s));*/
-        //int [] pixels_in = new int[width*height]; // RGB101010 format
-        float [] pixels_in_rgbf = new float[3*width*height]; // RGB floating point format
-        {
-            float [] pixels_in_float4 = new float[4*width*height];
-            allocation.copyTo(pixels_in_float4);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after copying to pixels_in_float: " + (System.currentTimeMillis() - time_s));
-            /*for(int i=0,c=0;i<width*height;i++) {
-                float fr = 4.0f*pixels_in_float4[c++];
-                float fg = 4.0f*pixels_in_float4[c++];
-                float fb = 4.0f*pixels_in_float4[c++];
-                c++; // skip padding
-                int r = (int)(fr+0.5f);
-                int g = (int)(fg+0.5f);
-                int b = (int)(fb+0.5f);
-                if( r < 0 || r > 1023 || g < 0 || g > 1023 || b < 0 || b > 1023 ) {
-                    throw new RuntimeException("unexpected rgb10 value");
-                }
-                pixels_in[i] = b << 20 | g << 10 | r;
-            }*/
-            for(int i=0,c=0;c<4*width*height;) {
-                pixels_in_rgbf[i++] = pixels_in_float4[c++];
-                pixels_in_rgbf[i++] = pixels_in_float4[c++];
-                pixels_in_rgbf[i++] = pixels_in_float4[c++];
-                c++; // skip padding
-            }
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after copying to pixels_in: " + (System.currentTimeMillis() - time_s));
-        }
-        return pixels_in_rgbf;
-    }
-
-    static Allocation RGBfToAllocation(float [] pixels_in_rgbf, Allocation allocation, int width, int height) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "RGBfToAllocation");
-        if( pixels_in_rgbf.length != 3*width*height ) {
-            throw new RuntimeException("unexpected width or height for array length");
-        }
-        long time_s = System.currentTimeMillis();
-        {
-            float [] pixels_in_float4 = new float[4*width*height];
-            for(int i=0,c=0;c<4*width*height;) {
-                pixels_in_float4[c++] = pixels_in_rgbf[i++];
-                pixels_in_float4[c++] = pixels_in_rgbf[i++];
-                pixels_in_float4[c++] = pixels_in_rgbf[i++];
-                pixels_in_float4[c++] = 1.0f;
-            }
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after copying to pixels_in_float4: " + (System.currentTimeMillis() - time_s));
-
-            allocation.copyFrom(pixels_in_float4);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after copying from pixels_in_float4: " + (System.currentTimeMillis() - time_s));
-        }
-        return allocation;
-    }
-
     /** Final stage of the noise reduction algorithm.
      * @param pixels_in_rgbf The pixels in floating point RGB format.
      * @param width          Width of the input.
@@ -3547,7 +3458,6 @@ public class HDRProcessor {
      * @param exposure_time  Exposure time used for the original images.
      * @return               Resultant bitmap.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private Bitmap avgBrightenRGBf(float [] pixels_in_rgbf, int width, int height, int iso, long exposure_time) {
         if( MyDebug.LOG ) {
             Log.d(TAG, "avgBrightenRGBf");
@@ -3664,52 +3574,7 @@ public class HDRProcessor {
 
         long time_s = System.currentTimeMillis();
 
-        float [] pixels_in_rgbf = null;
-        if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
-            /*Bitmap input_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGBA_F16);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after creating input_bitmap: " + (System.currentTimeMillis() - time_s));
-            input.copyTo(input_bitmap);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after copying to input_bitmap: " + (System.currentTimeMillis() - time_s));*/
-            //int [] pixels_in = new int[width*height]; // RGB101010 format
-            pixels_in_rgbf = new float[3*width*height]; // RGB floating point format
-            {
-                float [] pixels_in_float4 = new float[4*width*height];
-                input.copyTo(pixels_in_float4);
-                if( MyDebug.LOG )
-                    Log.d(TAG, "### time after copying to pixels_in_float: " + (System.currentTimeMillis() - time_s));
-                /*for(int i=0,c=0;i<width*height;i++) {
-                    float fr = 4.0f*pixels_in_float4[c++];
-                    float fg = 4.0f*pixels_in_float4[c++];
-                    float fb = 4.0f*pixels_in_float4[c++];
-                    c++; // skip padding
-                    int r = (int)(fr+0.5f);
-                    int g = (int)(fg+0.5f);
-                    int b = (int)(fb+0.5f);
-                    if( r < 0 || r > 1023 || g < 0 || g > 1023 || b < 0 || b > 1023 ) {
-                        throw new RuntimeException("unexpected rgb10 value");
-                    }
-                    pixels_in[i] = b << 20 | g << 10 | r;
-                }*/
-                for(int i=0,c=0;c<4*width*height;) {
-                    pixels_in_rgbf[i++] = pixels_in_float4[c++];
-                    pixels_in_rgbf[i++] = pixels_in_float4[c++];
-                    pixels_in_rgbf[i++] = pixels_in_float4[c++];
-                    c++; // skip padding
-                }
-                if( MyDebug.LOG )
-                    Log.d(TAG, "### time after copying to pixels_in: " + (System.currentTimeMillis() - time_s));
-            }
-        }
-
-        int [] histo;
-        if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
-            histo = computeHistogram(pixels_in_rgbf, width, height, false);
-        }
-        else {
-            histo = computeHistogramRS(input, width, height, false, true);
-        }
+        int [] histo = computeHistogramRS(input, width, height, false, true);
 
         HistogramInfo histogramInfo = getHistogramInfo(histo);
         int brightness = histogramInfo.median_brightness;
@@ -3758,20 +3623,6 @@ public class HDRProcessor {
         if( MyDebug.LOG )
             Log.d(TAG, "median_filter_strength: " + median_filter_strength);
 
-        Bitmap output_bitmap;
-        Allocation allocation_out = null;
-        if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
-            output_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-            JavaImageFunctions.AvgBrightenApplyFunction function = new JavaImageFunctions.AvgBrightenApplyFunction(pixels_in_rgbf, width, height, gain, gamma, low_x, mid_x, max_brightness, median_filter_strength, black_level);
-            //JavaImageProcessing.applyFunction(function, input_bitmap, output_bitmap, 0, 0, width, height);
-            JavaImageProcessing.applyFunction(function, null, output_bitmap, 0, 0, width, height);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after AvgBrightenApplyFunction: " + (System.currentTimeMillis() - time_s));
-
-            //allocation_out = Allocation.createFromBitmap(rs, output_bitmap);
-        }
-        else
-        {
         /*if( avgBrightenScript == null ) {
             avgBrightenScript = new ScriptC_avg_brighten(rs);
         }*/
@@ -3782,15 +3633,14 @@ public class HDRProcessor {
         avgBrightenScript.set_median_filter_strength(median_filter_strength);
         avgBrightenScript.invoke_setBrightenParameters(gain, gamma, low_x, mid_x, max_brightness);
 
-        output_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        allocation_out = Allocation.createFromBitmap(rs, output_bitmap);
+        Bitmap output_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Allocation allocation_out = Allocation.createFromBitmap(rs, output_bitmap);
         if( MyDebug.LOG )
             Log.d(TAG, "### time after creating allocation_out: " + (System.currentTimeMillis() - time_s));
 
         avgBrightenScript.forEach_avg_brighten_f(input, allocation_out);
         if( MyDebug.LOG )
             Log.d(TAG, "### time after avg_brighten: " + (System.currentTimeMillis() - time_s));
-        }
 
         //if( iso <= 150 ) {
         if( iso < 1100 && exposure_time < 1000000000L/59 ) {
@@ -3814,26 +3664,15 @@ public class HDRProcessor {
                 Log.d(TAG, "dro alpha: " + alpha);
                 Log.d(TAG, "dro amount: " + amount);
             }
-            if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
-                adjustHistogram(output_bitmap, output_bitmap, width, height, amount, 1, true, time_s);
-            }
-            else {
-                adjustHistogramRS(allocation_out, allocation_out, width, height, amount, 1, true, time_s);
-            }
+            adjustHistogramRS(allocation_out, allocation_out, width, height, amount, 1, true, time_s);
             if( MyDebug.LOG )
                 Log.d(TAG, "### time after adjustHistogram: " + (System.currentTimeMillis() - time_s));
         }
 
-        if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
-            // no further code needed
-        }
-        else
-        {
         allocation_out.copyTo(output_bitmap);
         allocation_out.destroy();
         if( MyDebug.LOG )
             Log.d(TAG, "### time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
-        }
 
         freeScripts();
         if( MyDebug.LOG )
@@ -3851,7 +3690,7 @@ public class HDRProcessor {
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public Bitmap avgBrighten(AvgData avg_data, int width, int height, int iso, long exposure_time) {
-        if( !use_renderscript && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
+        if( !use_renderscript ) {
             //float [] pixels_rgbf = HDRProcessor.AllocationToRGBf(avg_data.allocation_out, width, height);
             //return avgBrightenRGBf(pixels_rgbf, width, height, iso, exposure_time);
             return avgBrightenRGBf(avg_data.pixels_rgbf_out, width, height, iso, exposure_time);
