@@ -116,7 +116,8 @@ public class PanoramaProcessor {
 
         Bitmap reduced_bitmap = Bitmap.createBitmap(width/2, height/2, Bitmap.Config.ARGB_8888);
 
-        final boolean use_reduce_2d = true;
+        //final boolean use_reduce_2d = true;
+        final boolean use_reduce_2d = false; // faster to do reduce as two 1D passes (note this gives minor differences in resultant images due to numerical wobble)
         if( use_reduce_2d ) {
             JavaImageFunctions.ReduceBitmapFunction function = new JavaImageFunctions.ReduceBitmapFunction(bitmap);
             JavaImageProcessing.applyFunction(function, null, reduced_bitmap, 0, 0, reduced_bitmap.getWidth(), reduced_bitmap.getHeight());
