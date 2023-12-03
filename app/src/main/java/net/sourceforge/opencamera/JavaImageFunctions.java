@@ -3338,29 +3338,52 @@ public class JavaImageFunctions {
                         float sum_fg = 0.0f;
                         float sum_fb = 0.0f;
 
-                        for(int dx=-2;dx<=2;dx++) {
-
+                        /*for(int dx=-2;dx<=2;dx++) {
                             int color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache)*width+(sx+dx)];
-                            //int color = bitmap_in.getPixel(sx+dx, y);
-                            int r = (color >> 16) & 0xFF;
-                            int g = (color >> 8) & 0xFF;
-                            int b = color & 0xFF;
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[2+dx];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[2+dx];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[2+dx];
+                        }*/
 
-                            float fr = ((float)r) * pyramid_blending_weights[2+dx];
-                            float fg = ((float)g) * pyramid_blending_weights[2+dx];
-                            float fb = ((float)b) * pyramid_blending_weights[2+dx];
-                            sum_fr += fr;
-                            sum_fg += fg;
-                            sum_fb += fb;
-                        }
+                        // unroll loops
+
+                        int offset = (y_rel_bitmap_in_cache)*width+(sx);
+                        int color;
+
+                        color = bitmap_in_cache_pixels[offset-2];
+                        sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[0];
+                        sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[0];
+                        sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[0];
+
+                        color = bitmap_in_cache_pixels[offset-1];
+                        sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[1];
+                        sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[1];
+                        sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[1];
+
+                        color = bitmap_in_cache_pixels[offset];
+                        sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[2];
+                        sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[2];
+                        sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[2];
+
+                        color = bitmap_in_cache_pixels[offset+1];
+                        sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[3];
+                        sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[3];
+                        sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[3];
+
+                        color = bitmap_in_cache_pixels[offset+2];
+                        sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[4];
+                        sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[4];
+                        sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[4];
+
+                        // end unroll loops
 
                         int r = (int)(sum_fr+0.5f);
                         int g = (int)(sum_fg+0.5f);
                         int b = (int)(sum_fb+0.5f);
 
-                        r = Math.max(0, Math.min(255, r));
+                        /*r = Math.max(0, Math.min(255, r));
                         g = Math.max(0, Math.min(255, g));
-                        b = Math.max(0, Math.min(255, b));
+                        b = Math.max(0, Math.min(255, b));*/
 
                         // this code is performance critical; note it's faster to avoid calls to Color.argb()
                         pixels_out[c] = (255 << 24) | (r << 16) | (g << 8) | b;
@@ -3420,42 +3443,64 @@ public class JavaImageFunctions {
                 int y_rel_bitmap_in_cache = sy-bitmap_in_cache_y;
                 int [] bitmap_in_cache_pixels = fast_bitmap_in[thread_index].getCachedPixelsI();
 
-                for(int x=off_x;x<off_x+this_width;x++,c++) {
-
-                    if( sy >= 2 & sy < height-2 ) {
-
+                if( sy >= 2 & sy < height-2 ) {
+                    for(int x=off_x;x<off_x+this_width;x++,c++) {
                         float sum_fr = 0.0f;
                         float sum_fg = 0.0f;
                         float sum_fb = 0.0f;
 
-                        for(int dy=-2;dy<=2;dy++) {
-
+                        /*for(int dy=-2;dy<=2;dy++) {
                             int color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache+dy)*width+(x)];
-                            //int color = bitmap_in.getPixel(x, sy+dy);
-                            int r = (color >> 16) & 0xFF;
-                            int g = (color >> 8) & 0xFF;
-                            int b = color & 0xFF;
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[2+dy];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[2+dy];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[2+dy];
+                        }*/
 
-                            float fr = ((float)r) * pyramid_blending_weights[2+dy];
-                            float fg = ((float)g) * pyramid_blending_weights[2+dy];
-                            float fb = ((float)b) * pyramid_blending_weights[2+dy];
-                            sum_fr += fr;
-                            sum_fg += fg;
-                            sum_fb += fb;
-                        }
+                        // unroll loops
+
+                        int color;
+
+                        color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache-2)*width+(x)];
+                        sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[0];
+                        sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[0];
+                        sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[0];
+
+                        color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache-1)*width+(x)];
+                        sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[1];
+                        sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[1];
+                        sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[1];
+
+                        color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache)*width+(x)];
+                        sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[2];
+                        sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[2];
+                        sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[2];
+
+                        color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache+1)*width+(x)];
+                        sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[3];
+                        sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[3];
+                        sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[3];
+
+                        color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache+2)*width+(x)];
+                        sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[4];
+                        sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[4];
+                        sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[4];
+
+                        // end unroll loops
 
                         int r = (int)(sum_fr+0.5f);
                         int g = (int)(sum_fg+0.5f);
                         int b = (int)(sum_fb+0.5f);
 
-                        r = Math.max(0, Math.min(255, r));
+                        /*r = Math.max(0, Math.min(255, r));
                         g = Math.max(0, Math.min(255, g));
-                        b = Math.max(0, Math.min(255, b));
+                        b = Math.max(0, Math.min(255, b));*/
 
                         // this code is performance critical; note it's faster to avoid calls to Color.argb()
                         pixels_out[c] = (255 << 24) | (r << 16) | (g << 8) | b;
                     }
-                    else {
+                }
+                else {
+                    for(int x=off_x;x<off_x+this_width;x++,c++) {
                         int color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache)*width+(x)];
                         //int color = bitmap_in.getPixel(x, sy);
                         pixels_out[c] = color;
@@ -3541,6 +3586,10 @@ public class JavaImageFunctions {
         }
     }
 
+    /** Note that this is optimised for being called on a result of ExpandBitmapFunction (where only
+     *  the top-left pixel in each group of 2x2 will be non-zero), rather than being a general blur
+     *  function.
+     */
     static class Blur1dXFunction implements JavaImageProcessing.ApplyFunctionInterface {
         private final Bitmap bitmap_in;
         private final int width;
@@ -3565,6 +3614,13 @@ public class JavaImageFunctions {
             int [] pixels_out = output.getCachedPixelsI();
 
             for(int y=off_y,c=0;y<off_y+this_height;y++) {
+                if( y % 2 == 1 ) {
+                    // can skip odd y lines, as will be all zeroes (due to the result of ExpandBitmapFunction)
+                    for(int x=off_x;x<off_x+this_width;x++,c++) {
+                        pixels_out[c] = (255 << 24);
+                    }
+                    continue;
+                }
 
                 fast_bitmap_in[thread_index].ensureCache(y, y); // force cache to cover rows needed by this row
                 int bitmap_in_cache_y = fast_bitmap_in[thread_index].getCacheY();
@@ -3606,6 +3662,48 @@ public class JavaImageFunctions {
                         int color;
                         int pixel_index = (y_rel_bitmap_in_cache)*width+x;
 
+                        // when blending, we can take advantage of the fact that pixels will be 0 at odd x coordinates (due to the result of ExpandBitmapFunction)
+                        if( x % 2 == 1 ) {
+                            // odd coordinate: so only immediately adjacent coordinates will be non-0
+
+                            // pixel_index-2 is zero
+
+                            color = bitmap_in_cache_pixels[pixel_index-1];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[1];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[1];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[1];
+
+                            // pixel_index is zero
+
+                            color = bitmap_in_cache_pixels[pixel_index+1];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[3];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[3];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[3];
+
+                            // pixel_index+2 is zero
+                        }
+                        else {
+                            // even coordinate: so adjacent coordinates will be 0
+                            color = bitmap_in_cache_pixels[pixel_index-2];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[0];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[0];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[0];
+
+                            // pixel_index-1 is zero
+
+                            color = bitmap_in_cache_pixels[pixel_index];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[2];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[2];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[2];
+
+                            // pixel_index+1 is zero
+
+                            color = bitmap_in_cache_pixels[pixel_index+2];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[4];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[4];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[4];
+                        }
+                        /*
                         color = bitmap_in_cache_pixels[pixel_index-2];
                         sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[0];
                         sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[0];
@@ -3630,6 +3728,7 @@ public class JavaImageFunctions {
                         sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[4];
                         sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[4];
                         sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[4];
+                        */
 
                         // end unrolled loop
 
@@ -3673,6 +3772,10 @@ public class JavaImageFunctions {
         }
     }
 
+    /** Note that this is optimised for being called on a result of ExpandBitmapFunction (where only
+     *  the top-left pixel in each group of 2x2 will be non-zero), that was then processed with
+     *  Blur1dXFunction, rather than being a general blur function.
+     */
     static class Blur1dYFunction implements JavaImageProcessing.ApplyFunctionInterface {
         private final Bitmap bitmap_in;
         private final int width, height;
@@ -3727,6 +3830,49 @@ public class JavaImageFunctions {
 
                         int color;
 
+                        // when blending, due to having blurred X the result of ExpandBitmapFunction, we will now have odd-y lines being zero, even-y lines being non-zero
+                        if( y % 2 == 1 ) {
+                            // odd coordinate: so only immediately adjacent coordinates will be non-0
+
+                            // pixel_index-2 is zero
+
+                            color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache-1)*width+(x)];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[1];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[1];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[1];
+
+                            // pixel_index is zero
+
+                            color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache+1)*width+(x)];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[3];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[3];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[3];
+
+                            // pixel_index+2 is zero
+                        }
+                        else {
+                            // even coordinate: so adjacent coordinates will be 0
+                            color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache-2)*width+(x)];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[0];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[0];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[0];
+
+                            // pixel_index-1 is zero
+
+                            color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache)*width+(x)];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[2];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[2];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[2];
+
+                            // pixel_index+1 is zero
+
+                            color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache+2)*width+(x)];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[4];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[4];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[4];
+                        }
+
+                        /*
                         color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache-2)*width+(x)];
                         sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[0];
                         sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[0];
@@ -3751,6 +3897,7 @@ public class JavaImageFunctions {
                         sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[4];
                         sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[4];
                         sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[4];
+                        */
 
                         // end unrolled loop
 
