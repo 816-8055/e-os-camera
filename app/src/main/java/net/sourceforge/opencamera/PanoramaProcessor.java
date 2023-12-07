@@ -1,5 +1,7 @@
 package net.sourceforge.opencamera;
 
+import static java.nio.ByteBuffer.*;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -26,6 +28,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -123,6 +127,10 @@ public class PanoramaProcessor {
             JavaImageProcessing.applyFunction(function, null, reduced_bitmap, 0, 0, reduced_bitmap.getWidth(), reduced_bitmap.getHeight());
         }
         else {
+
+            /*
+            // work on bitmap directly:
+
             Bitmap reduced_bitmap_x = Bitmap.createBitmap(width/2, height, Bitmap.Config.ARGB_8888);
             JavaImageFunctions.ReduceBitmapXFunction function_x = new JavaImageFunctions.ReduceBitmapXFunction(bitmap);
             JavaImageProcessing.applyFunction(function_x, null, reduced_bitmap_x, 0, 0, reduced_bitmap_x.getWidth(), reduced_bitmap_x.getHeight());
@@ -133,6 +141,52 @@ public class PanoramaProcessor {
             JavaImageProcessing.applyFunction(function_y, null, reduced_bitmap, 0, 0, reduced_bitmap.getWidth(), reduced_bitmap.getHeight());
 
             reduced_bitmap_x.recycle();
+            */
+
+            // work with temp arrays instead of bitmaps
+            byte [] bitmap_argb;
+            {
+                int [] pixels = new int[width*height];
+                bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+                if( MyDebug.LOG )
+                    Log.d(TAG, "### reduceBitmap: time after getPixels: " + (System.currentTimeMillis() - time_s));
+                // convert int[] array to byte[] array
+                ByteBuffer byte_buffer = ByteBuffer.allocate(4*width*height);
+                IntBuffer int_buffer = byte_buffer.asIntBuffer();
+                int_buffer.put(pixels);
+                bitmap_argb = byte_buffer.array();
+                if( MyDebug.LOG )
+                    Log.d(TAG, "### expandBitmap: time after converting int array to byte array: " + (System.currentTimeMillis() - time_s));
+            }
+
+            byte [] reduced_bitmap_x_argb = new byte[4*(width/2)*(height)];
+            JavaImageFunctions.ReduceBitmapXFullFunction function_x = new JavaImageFunctions.ReduceBitmapXFullFunction(bitmap_argb, reduced_bitmap_x_argb, width/2);
+            JavaImageProcessing.applyFunction(function_x, null, null, 0, 0, width/2,  height);
+            if( MyDebug.LOG )
+                Log.d(TAG, "### time for reduceBitmapX: " + (System.currentTimeMillis() - time_s));
+
+            //noinspection ReassignedVariable,UnusedAssignment
+            bitmap_argb = null; // help garbage collection
+
+            byte [] reduced_bitmap_argb = new byte[4*(width/2)*(height/2)];
+            JavaImageFunctions.ReduceBitmapYFullFunction function_y = new JavaImageFunctions.ReduceBitmapYFullFunction(reduced_bitmap_x_argb, reduced_bitmap_argb, width/2, height/2);
+            JavaImageProcessing.applyFunction(function_y, null, null, 0, 0, width/2,  height/2);
+            if( MyDebug.LOG )
+                Log.d(TAG, "### time for reduceBitmapX: " + (System.currentTimeMillis() - time_s));
+
+            //noinspection ReassignedVariable,UnusedAssignment
+            reduced_bitmap_x_argb = null; // help garbage collection
+
+            {
+                int [] pixels = new int[(width/2)*(height/2)];
+                IntBuffer int_buffer = ByteBuffer.wrap(reduced_bitmap_argb).asIntBuffer();
+                int_buffer.get(pixels);
+                if( MyDebug.LOG )
+                    Log.d(TAG, "### reduceBitmap: time after converting byte array to int array: " + (System.currentTimeMillis() - time_s));
+                reduced_bitmap.setPixels(pixels,0, width/2, 0, 0, width/2, height/2);
+                if( MyDebug.LOG )
+                    Log.d(TAG, "### reduceBitmap: time after setPixels: " + (System.currentTimeMillis() - time_s));
+            }
         }
         if( MyDebug.LOG )
             Log.d(TAG, "### time for reduceBitmap: " + (System.currentTimeMillis() - time_s));
@@ -205,6 +259,9 @@ public class PanoramaProcessor {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
 
+        /*
+        // work on bitmap directly:
+
         Bitmap expanded_bitmap = Bitmap.createBitmap(2*width, 2*height, Bitmap.Config.ARGB_8888);
         if( MyDebug.LOG )
             Log.d(TAG, "### expandBitmap: time after create expanded_bitmap: " + (System.currentTimeMillis() - time_s));
@@ -230,6 +287,124 @@ public class PanoramaProcessor {
             Log.d(TAG, "### expandBitmap: time after blur1dY: " + (System.currentTimeMillis() - time_s));
 
         temp_bitmap.recycle();
+        */
+
+        // work with temp arrays instead of bitmaps
+
+        byte [] bitmap_argb;
+        {
+            int [] pixels = new int[width*height];
+            bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+            if( MyDebug.LOG )
+                Log.d(TAG, "### expandBitmap: time after getPixels: " + (System.currentTimeMillis() - time_s));
+            /*bitmap_argb = new byte[4*width*height];
+            for(int byte_i=0,int_i=0;int_i<width*height;byte_i+=4,int_i++) {
+                int color = pixels[int_i];
+                bitmap_argb[byte_i] = (byte)((color >> 24) & 0xFF);
+                bitmap_argb[byte_i+1] = (byte)((color >> 16) & 0xFF);
+                bitmap_argb[byte_i+2] = (byte)((color >> 8) & 0xFF);
+                bitmap_argb[byte_i+3] = (byte)(color & 0xFF);
+            }*/
+            // convert int[] array to byte[] array
+            ByteBuffer byte_buffer = ByteBuffer.allocate(4*width*height);
+            IntBuffer int_buffer = byte_buffer.asIntBuffer();
+            int_buffer.put(pixels);
+            bitmap_argb = byte_buffer.array();
+            if( MyDebug.LOG )
+                Log.d(TAG, "### expandBitmap: time after converting int array to byte array: " + (System.currentTimeMillis() - time_s));
+        }
+
+        byte [] expanded_bitmap_argb = new byte[4*(2*width)*(2*height)];
+        JavaImageFunctions.ExpandBitmapFullFunction function = new JavaImageFunctions.ExpandBitmapFullFunction(bitmap_argb, expanded_bitmap_argb, 2*width, 2*height);
+        JavaImageProcessing.applyFunction(function, null, null, 0, 0, 2*width, 2*height);
+        if( MyDebug.LOG )
+            Log.d(TAG, "### expandBitmap: time after expand: " + (System.currentTimeMillis() - time_s));
+
+        //noinspection ReassignedVariable,UnusedAssignment
+        bitmap_argb = null; // help garbage collection
+
+        /*Bitmap expanded_bitmap = Bitmap.createBitmap(2*width, 2*height, Bitmap.Config.ARGB_8888);
+        if( MyDebug.LOG )
+            Log.d(TAG, "### expandBitmap: time after create expanded_bitmap: " + (System.currentTimeMillis() - time_s));
+        JavaImageFunctions.ExpandBitmapFunction function = new JavaImageFunctions.ExpandBitmapFunction(bitmap);
+        JavaImageProcessing.applyFunction(function, null, expanded_bitmap, 0, 0, expanded_bitmap.getWidth(), expanded_bitmap.getHeight());
+        if( MyDebug.LOG )
+            Log.d(TAG, "### expandBitmap: time after expand: " + (System.currentTimeMillis() - time_s));
+
+        byte [] expanded_bitmap_argb = new byte[4*(2*width)*(2*height)];
+        {
+            int [] pixels = new int[(2*width)*(2*height)];
+            expanded_bitmap.getPixels(pixels, 0, 2*width, 0, 0, 2*width, 2*height);
+            for(int byte_i=0,int_i=0;int_i<(2*width)*(2*height);byte_i+=4,int_i++) {
+                int color = pixels[int_i];
+                expanded_bitmap_argb[byte_i] = (byte)((color >> 24) & 0xFF);
+                expanded_bitmap_argb[byte_i+1] = (byte)((color >> 16) & 0xFF);
+                expanded_bitmap_argb[byte_i+2] = (byte)((color >> 8) & 0xFF);
+                expanded_bitmap_argb[byte_i+3] = (byte)(color & 0xFF);
+            }
+            expanded_bitmap.recycle();
+        }*/
+
+        byte [] temp_bitmap_argb = new byte[4*(2*width)*(2*height)];
+        JavaImageFunctions.Blur1dXFullFunction function_blur1dX = new JavaImageFunctions.Blur1dXFullFunction(expanded_bitmap_argb, temp_bitmap_argb, 2*width, 2*height);
+        JavaImageProcessing.applyFunction(function_blur1dX, null, null, 0, 0, 2*width, 2*height);
+        if( MyDebug.LOG )
+            Log.d(TAG, "### expandBitmap: time after blur1dX: " + (System.currentTimeMillis() - time_s));
+
+        /*Bitmap temp_bitmap = Bitmap.createBitmap(2*width, 2*height, Bitmap.Config.ARGB_8888);
+        if( MyDebug.LOG )
+            Log.d(TAG, "### expandBitmap: time after create temp_bitmap: " + (System.currentTimeMillis() - time_s));
+        JavaImageFunctions.Blur1dXFunction function_blur1dX = new JavaImageFunctions.Blur1dXFunction(expanded_bitmap);
+        JavaImageProcessing.applyFunction(function_blur1dX, null, temp_bitmap, 0, 0, temp_bitmap.getWidth(), temp_bitmap.getHeight());
+        if( MyDebug.LOG )
+            Log.d(TAG, "### expandBitmap: time after blur1dX: " + (System.currentTimeMillis() - time_s));
+        expanded_bitmap.recycle();
+
+        byte [] temp_bitmap_argb = new byte[4*(2*width)*(2*height)];
+        {
+            int [] pixels = new int[(2*width)*(2*height)];
+            temp_bitmap.getPixels(pixels, 0, 2*width, 0, 0, 2*width, 2*height);
+            for(int byte_i=0,int_i=0;int_i<(2*width)*(2*height);byte_i+=4,int_i++) {
+                int color = pixels[int_i];
+                temp_bitmap_argb[byte_i] = (byte)((color >> 24) & 0xFF);
+                temp_bitmap_argb[byte_i+1] = (byte)((color >> 16) & 0xFF);
+                temp_bitmap_argb[byte_i+2] = (byte)((color >> 8) & 0xFF);
+                temp_bitmap_argb[byte_i+3] = (byte)(color & 0xFF);
+            }
+            temp_bitmap.recycle();
+        }*/
+
+        //byte [] result_bitmap_argb = new byte[4*(2*width)*(2*height)];
+        // now re-use expanded_bitmap for the result_bitmap
+        @SuppressWarnings("UnnecessaryLocalVariable")
+        byte [] result_bitmap_argb = expanded_bitmap_argb;
+
+        JavaImageFunctions.Blur1dYFullFunction function_blur1dY = new JavaImageFunctions.Blur1dYFullFunction(temp_bitmap_argb, result_bitmap_argb, 2*width, 2*height);
+        JavaImageProcessing.applyFunction(function_blur1dY, null, null, 0, 0, 2*width, 2*height);
+        if( MyDebug.LOG )
+            Log.d(TAG, "### expandBitmap: time after blur1dY: " + (System.currentTimeMillis() - time_s));
+
+        //noinspection ReassignedVariable,UnusedAssignment
+        temp_bitmap_argb = null; // help garbage collection
+
+        Bitmap result_bitmap = Bitmap.createBitmap(2*width, 2*height, Bitmap.Config.ARGB_8888);
+        {
+            int [] pixels = new int[(2*width)*(2*height)];
+            /*for(int byte_i=0,int_i=0;int_i<(2*width)*(2*height);byte_i+=4,int_i++) {
+                int a = result_bitmap_argb[byte_i] & 0xFF;
+                int r = result_bitmap_argb[byte_i+1] & 0xFF;
+                int g = result_bitmap_argb[byte_i+2] & 0xFF;
+                int b = result_bitmap_argb[byte_i+3] & 0xFF;
+                pixels[int_i] = (a << 24) | (r << 16) | (g << 8) | b;
+            }*/
+            IntBuffer int_buffer = ByteBuffer.wrap(result_bitmap_argb).asIntBuffer();
+            int_buffer.get(pixels);
+            if( MyDebug.LOG )
+                Log.d(TAG, "### expandBitmap: time after converting byte array to int array: " + (System.currentTimeMillis() - time_s));
+            result_bitmap.setPixels(pixels,0, 2*width, 0, 0, 2*width, 2*height);
+            if( MyDebug.LOG )
+                Log.d(TAG, "### expandBitmap: time after setPixels: " + (System.currentTimeMillis() - time_s));
+        }
 
         return result_bitmap;
     }

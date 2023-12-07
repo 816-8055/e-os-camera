@@ -3522,6 +3522,218 @@ public class JavaImageFunctions {
         }
     }
 
+    static class ReduceBitmapXFullFunction implements JavaImageProcessing.ApplyFunctionInterface {
+        // bitmaps in ARGB format
+        private final byte [] bitmap_in;
+        private final byte [] bitmap_out;
+        private final int width; // width of bitmap_out (bitmap_in should be twice the width)
+
+        ReduceBitmapXFullFunction(byte [] bitmap_in, byte [] bitmap_out, int width) {
+            this.bitmap_in = bitmap_in;
+            this.bitmap_out = bitmap_out;
+            this.width = width;
+        }
+
+        @Override
+        public void init(int n_threads) {
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int off_x, int off_y, int this_width, int this_height) {
+            for(int y=off_y;y<off_y+this_height;y++) {
+                int c = 4*(y*width+off_x); // index into bitmap_out array
+                for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+
+                    int sx = 2*x;
+                    int pixel_index = 4*((y)*(2*width)+(sx));
+
+                    if( sx >= 2 && sx < (2*width)-2 ) {
+                        float sum_fr = 0.0f;
+                        float sum_fg = 0.0f;
+                        float sum_fb = 0.0f;
+
+                        /*for(int dx=-2;dx<=2;dx++) {
+                            int color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache)*width+(sx+dx)];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[2+dx];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[2+dx];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[2+dx];
+                        }*/
+
+                        // unroll loops
+
+                        int offset;
+
+                        offset = pixel_index-8;
+                        sum_fr += ((float)(bitmap_in[offset+1] & 0xFF)) * pyramid_blending_weights[0];
+                        sum_fg += ((float)(bitmap_in[offset+2] & 0xFF)) * pyramid_blending_weights[0];
+                        sum_fb += ((float)(bitmap_in[offset+3] & 0xFF)) * pyramid_blending_weights[0];
+
+                        offset = pixel_index-4;
+                        sum_fr += ((float)(bitmap_in[offset+1] & 0xFF)) * pyramid_blending_weights[1];
+                        sum_fg += ((float)(bitmap_in[offset+2] & 0xFF)) * pyramid_blending_weights[1];
+                        sum_fb += ((float)(bitmap_in[offset+3] & 0xFF)) * pyramid_blending_weights[1];
+
+                        offset = pixel_index;
+                        sum_fr += ((float)(bitmap_in[offset+1] & 0xFF)) * pyramid_blending_weights[2];
+                        sum_fg += ((float)(bitmap_in[offset+2] & 0xFF)) * pyramid_blending_weights[2];
+                        sum_fb += ((float)(bitmap_in[offset+3] & 0xFF)) * pyramid_blending_weights[2];
+
+                        offset = pixel_index+4;
+                        sum_fr += ((float)(bitmap_in[offset+1] & 0xFF)) * pyramid_blending_weights[3];
+                        sum_fg += ((float)(bitmap_in[offset+2] & 0xFF)) * pyramid_blending_weights[3];
+                        sum_fb += ((float)(bitmap_in[offset+3] & 0xFF)) * pyramid_blending_weights[3];
+
+                        offset = pixel_index+8;
+                        sum_fr += ((float)(bitmap_in[offset+1] & 0xFF)) * pyramid_blending_weights[4];
+                        sum_fg += ((float)(bitmap_in[offset+2] & 0xFF)) * pyramid_blending_weights[4];
+                        sum_fb += ((float)(bitmap_in[offset+3] & 0xFF)) * pyramid_blending_weights[4];
+
+                        // end unroll loops
+
+                        int r = (int)(sum_fr+0.5f);
+                        int g = (int)(sum_fg+0.5f);
+                        int b = (int)(sum_fb+0.5f);
+
+                        /*r = Math.max(0, Math.min(255, r));
+                        g = Math.max(0, Math.min(255, g));
+                        b = Math.max(0, Math.min(255, b));*/
+
+                        bitmap_out[c] = (byte)255;
+                        bitmap_out[c+1] = (byte)r;
+                        bitmap_out[c+2] = (byte)g;
+                        bitmap_out[c+3] = (byte)b;
+                    }
+                    else {
+                        bitmap_out[c] = (byte)255;
+                        bitmap_out[c+1] = bitmap_in[pixel_index+1];
+                        bitmap_out[c+2] = bitmap_in[pixel_index+2];
+                        bitmap_out[c+3] = bitmap_in[pixel_index+3];
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int [] pixels, int off_x, int off_y, int this_width, int this_height) {
+            // unused
+            throw new RuntimeException("not implemented");
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
+            // unused
+            throw new RuntimeException("not implemented");
+        }
+    }
+
+    static class ReduceBitmapYFullFunction implements JavaImageProcessing.ApplyFunctionInterface {
+        // bitmaps in ARGB format
+        private final byte [] bitmap_in;
+        private final byte [] bitmap_out;
+        private final int width; // width of bitmap_out (bitmap_in should be the same width)
+        private final int height; // width of bitmap_out (bitmap_in should be twice the height)
+
+        ReduceBitmapYFullFunction(byte [] bitmap_in, byte [] bitmap_out, int width, int height) {
+            this.bitmap_in = bitmap_in;
+            this.bitmap_out = bitmap_out;
+            this.width = width;
+            this.height = height;
+        }
+
+        @Override
+        public void init(int n_threads) {
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int off_x, int off_y, int this_width, int this_height) {
+            for(int y=off_y;y<off_y+this_height;y++) {
+                int c = 4*(y*width+off_x); // index into bitmap_out array
+
+                int sy = 2*y;
+
+                if( sy >= 2 & sy < (2*height)-2 ) {
+                    for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+                        float sum_fr = 0.0f;
+                        float sum_fg = 0.0f;
+                        float sum_fb = 0.0f;
+
+                        /*for(int dy=-2;dy<=2;dy++) {
+                            int color = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache+dy)*width+(x)];
+                            sum_fr += ((float)((color >> 16) & 0xFF)) * pyramid_blending_weights[2+dy];
+                            sum_fg += ((float)((color >> 8) & 0xFF)) * pyramid_blending_weights[2+dy];
+                            sum_fb += ((float)(color & 0xFF)) * pyramid_blending_weights[2+dy];
+                        }*/
+
+                        // unroll loops
+
+                        int offset;
+
+                        offset = 4*((sy-2)*(width)+(x));
+                        sum_fr += ((float)(bitmap_in[offset+1] & 0xFF)) * pyramid_blending_weights[0];
+                        sum_fg += ((float)(bitmap_in[offset+2] & 0xFF)) * pyramid_blending_weights[0];
+                        sum_fb += ((float)(bitmap_in[offset+3] & 0xFF)) * pyramid_blending_weights[0];
+
+                        offset = 4*((sy-1)*(width)+(x));
+                        sum_fr += ((float)(bitmap_in[offset+1] & 0xFF)) * pyramid_blending_weights[1];
+                        sum_fg += ((float)(bitmap_in[offset+2] & 0xFF)) * pyramid_blending_weights[1];
+                        sum_fb += ((float)(bitmap_in[offset+3] & 0xFF)) * pyramid_blending_weights[1];
+
+                        offset = 4*((sy)*(width)+(x));
+                        sum_fr += ((float)(bitmap_in[offset+1] & 0xFF)) * pyramid_blending_weights[2];
+                        sum_fg += ((float)(bitmap_in[offset+2] & 0xFF)) * pyramid_blending_weights[2];
+                        sum_fb += ((float)(bitmap_in[offset+3] & 0xFF)) * pyramid_blending_weights[2];
+
+                        offset = 4*((sy+1)*(width)+(x));
+                        sum_fr += ((float)(bitmap_in[offset+1] & 0xFF)) * pyramid_blending_weights[3];
+                        sum_fg += ((float)(bitmap_in[offset+2] & 0xFF)) * pyramid_blending_weights[3];
+                        sum_fb += ((float)(bitmap_in[offset+3] & 0xFF)) * pyramid_blending_weights[3];
+
+                        offset = 4*((sy+2)*(width)+(x));
+                        sum_fr += ((float)(bitmap_in[offset+1] & 0xFF)) * pyramid_blending_weights[4];
+                        sum_fg += ((float)(bitmap_in[offset+2] & 0xFF)) * pyramid_blending_weights[4];
+                        sum_fb += ((float)(bitmap_in[offset+3] & 0xFF)) * pyramid_blending_weights[4];
+
+                        // end unroll loops
+
+                        int r = (int)(sum_fr+0.5f);
+                        int g = (int)(sum_fg+0.5f);
+                        int b = (int)(sum_fb+0.5f);
+
+                        /*r = Math.max(0, Math.min(255, r));
+                        g = Math.max(0, Math.min(255, g));
+                        b = Math.max(0, Math.min(255, b));*/
+
+                        bitmap_out[c] = (byte)255;
+                        bitmap_out[c+1] = (byte)r;
+                        bitmap_out[c+2] = (byte)g;
+                        bitmap_out[c+3] = (byte)b;
+                    }
+                }
+                else {
+                    for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+                        int pixel_index = 4*((sy)*(width)+(x));
+                        bitmap_out[c] = (byte)255;
+                        bitmap_out[c+1] = bitmap_in[pixel_index+1];
+                        bitmap_out[c+2] = bitmap_in[pixel_index+2];
+                        bitmap_out[c+3] = bitmap_in[pixel_index+3];
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int [] pixels, int off_x, int off_y, int this_width, int this_height) {
+            // unused
+            throw new RuntimeException("not implemented");
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
+            // unused
+            throw new RuntimeException("not implemented");
+        }
+    }
+
     static class ExpandBitmapFunction implements JavaImageProcessing.ApplyFunctionInterface {
         private final Bitmap bitmap_in;
         private final int width;
@@ -3920,6 +4132,349 @@ public class JavaImageFunctions {
                 else {
                     for(int x=off_x;x<off_x+this_width;x++,c++) {
                         pixels_out[c] = bitmap_in_cache_pixels[(y_rel_bitmap_in_cache)*width+(x)];
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int [] pixels, int off_x, int off_y, int this_width, int this_height) {
+            // unused
+            throw new RuntimeException("not implemented");
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
+            // unused
+            throw new RuntimeException("not implemented");
+        }
+    }
+
+    static class ExpandBitmapFullFunction implements JavaImageProcessing.ApplyFunctionInterface {
+        // bitmaps in ARGB format
+        private final byte [] bitmap_in;
+        private final byte [] bitmap_out;
+        private final int width, height; // dimensions of bitmap_out (bitmap_in should be half the width and half the height)
+
+        ExpandBitmapFullFunction(byte [] bitmap_in, byte [] bitmap_out, int width, int height) {
+            this.bitmap_in = bitmap_in;
+            this.bitmap_out = bitmap_out;
+            this.width = width;
+            this.height = height;
+        }
+
+        @Override
+        public void init(int n_threads) {
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int off_x, int off_y, int this_width, int this_height) {
+            for(int y=off_y;y<off_y+this_height;y++) {
+                int c = 4*(y*width+off_x); // index into bitmap_out array
+
+                if( y % 2 == 0 ) {
+                    int sy = y/2;
+
+                    for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+                        if( x % 2 == 0 ) {
+                            int sx = x/2;
+                            int sc = 4*(sy*(width/2)+sx); // index into bitmap_in array (n.b., width/w as bitmap_in is half the size)
+                            bitmap_out[c] = bitmap_in[sc];
+                            bitmap_out[c+1] = bitmap_in[sc+1];
+                            bitmap_out[c+2] = bitmap_in[sc+2];
+                            bitmap_out[c+3] = bitmap_in[sc+3];
+                        }
+                        else {
+                            bitmap_out[c] = (byte)255;
+                        }
+                    }
+                }
+                else {
+                    for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+                        bitmap_out[c] = (byte)255;
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int [] pixels, int off_x, int off_y, int this_width, int this_height) {
+            // unused
+            throw new RuntimeException("not implemented");
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
+            // unused
+            throw new RuntimeException("not implemented");
+        }
+    }
+
+    /** Note that this is optimised for being called on a result of ExpandBitmapFunction (where only
+     *  the top-left pixel in each group of 2x2 will be non-zero), rather than being a general blur
+     *  function.
+     */
+    static class Blur1dXFullFunction implements JavaImageProcessing.ApplyFunctionInterface {
+        // bitmaps in ARGB format
+        private final byte [] bitmap_in;
+        private final byte [] bitmap_out;
+        private final int width, height;
+
+        Blur1dXFullFunction(byte [] bitmap_in, byte [] bitmap_out, int width, int height) {
+            this.bitmap_in = bitmap_in;
+            this.bitmap_out = bitmap_out;
+            this.width = width;
+            this.height = height;
+        }
+
+        @Override
+        public void init(int n_threads) {
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int off_x, int off_y, int this_width, int this_height) {
+            for(int y=off_y;y<off_y+this_height;y++) {
+                int c = 4*(y*width+off_x); // index into bitmap_out array
+                if( y % 2 == 1 ) {
+                    // can skip odd y lines, as will be all zeroes (due to the result of ExpandBitmapFunction)
+                    for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+                        bitmap_out[c] = (byte)255;
+                    }
+                    continue;
+                }
+
+                int sx = Math.max(off_x, 2);
+                int ex = Math.min(off_x+this_width, width-2);
+
+                for(int x=off_x;x<sx;x++,c+=4) {
+                    // x values < 2
+                    bitmap_out[c] = bitmap_in[c];
+                    bitmap_out[c+1] = bitmap_in[c+1];
+                    bitmap_out[c+2] = bitmap_in[c+2];
+                    bitmap_out[c+3] = bitmap_in[c+3];
+                }
+
+                //for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+                for(int x=sx;x<ex;x++,c+=4) {
+                    //if( x >= 2 && x < width-2 )
+                    {
+                        float sum_fr = 0.0f;
+                        float sum_fg = 0.0f;
+                        float sum_fb = 0.0f;
+
+                        /*for(int dx=-2;dx<=2;dx++) {
+                            int index = 4*((y)*width+(x+dx));
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[2+dx];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[2+dx];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[2+dx];
+                        }*/
+
+                        // unroll loop
+
+                        int pixel_index = 4*((y)*width+(x)), index;
+
+                        // when blending, we can take advantage of the fact that pixels will be 0 at odd x coordinates (due to the result of ExpandBitmapFunction)
+                        if( x % 2 == 1 ) {
+                            // odd coordinate: so only immediately adjacent coordinates will be non-0
+
+                            // pixel_index-2 is zero
+
+                            index = pixel_index-4;
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[1];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[1];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[1];
+
+                            // pixel_index is zero
+
+                            index = pixel_index+4;
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[3];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[3];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[3];
+
+                            // pixel_index+2 is zero
+                        }
+                        else {
+                            // even coordinate: so adjacent coordinates will be 0
+                            index = pixel_index-8;
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[0];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[0];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[0];
+
+                            // pixel_index-1 is zero
+
+                            index = pixel_index;
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[2];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[2];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[2];
+
+                            // pixel_index+1 is zero
+
+                            index = pixel_index+8;
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[4];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[4];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[4];
+                        }
+
+                        // end unrolled loop
+
+                        sum_fr *= 2.0;
+                        sum_fg *= 2.0;
+                        sum_fb *= 2.0;
+
+                        int r = (int)(sum_fr+0.5f);
+                        int g = (int)(sum_fg+0.5f);
+                        int b = (int)(sum_fb+0.5f);
+
+                        //r = Math.max(0, Math.min(255, r));
+                        //g = Math.max(0, Math.min(255, g));
+                        //b = Math.max(0, Math.min(255, b));
+
+                        bitmap_out[c] = (byte)255;
+                        bitmap_out[c+1] = (byte)r;
+                        bitmap_out[c+2] = (byte)g;
+                        bitmap_out[c+3] = (byte)b;
+                    }
+                    /*else {
+                        bitmap_out[c] = (byte)255;
+                        bitmap_out[c+1] = bitmap_in[c+1];
+                        bitmap_out[c+2] = bitmap_in[c+2];
+                        bitmap_out[c+3] = bitmap_in[c+3];
+                    }*/
+                }
+
+                for(int x=ex;x<off_x+this_width;x++,c+=4) {
+                    // x values >= width-2
+                    bitmap_out[c] = bitmap_in[c];
+                    bitmap_out[c+1] = bitmap_in[c+1];
+                    bitmap_out[c+2] = bitmap_in[c+2];
+                    bitmap_out[c+3] = bitmap_in[c+3];
+                }
+            }
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int [] pixels, int off_x, int off_y, int this_width, int this_height) {
+            // unused
+            throw new RuntimeException("not implemented");
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, byte [] pixels, int off_x, int off_y, int this_width, int this_height) {
+            // unused
+            throw new RuntimeException("not implemented");
+        }
+    }
+
+    /** Note that this is optimised for being called on a result of ExpandBitmapFunction (where only
+     *  the top-left pixel in each group of 2x2 will be non-zero), that was then processed with
+     *  Blur1dXFunction, rather than being a general blur function.
+     */
+    static class Blur1dYFullFunction implements JavaImageProcessing.ApplyFunctionInterface {
+        // bitmaps in ARGB format
+        private final byte [] bitmap_in;
+        private final byte [] bitmap_out;
+        private final int width, height;
+
+        Blur1dYFullFunction(byte [] bitmap_in, byte [] bitmap_out, int width, int height) {
+            this.bitmap_in = bitmap_in;
+            this.bitmap_out = bitmap_out;
+            this.width = width;
+            this.height = height;
+        }
+
+        @Override
+        public void init(int n_threads) {
+        }
+
+        @Override
+        public void apply(JavaImageProcessing.CachedBitmap output, int thread_index, int off_x, int off_y, int this_width, int this_height) {
+            for(int y=off_y;y<off_y+this_height;y++) {
+                int c = 4*(y*width+off_x); // index into bitmap_out array
+                if( y >= 2 && y < height-2 ) {
+                    for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+                        float sum_fr = 0.0f;
+                        float sum_fg = 0.0f;
+                        float sum_fb = 0.0f;
+
+                        /*for(int dy=-2;dy<=2;dy++) {
+                            int index = 4*((y+dy)*width+(x));
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[2+dy];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[2+dy];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[2+dy];
+                        }*/
+
+                        // unroll loop:
+
+                        int index;
+
+                        // when blending, due to having blurred X the result of ExpandBitmapFunction, we will now have odd-y lines being zero, even-y lines being non-zero
+                        if( y % 2 == 1 ) {
+                            // odd coordinate: so only immediately adjacent coordinates will be non-0
+
+                            // pixel_index-2 is zero
+
+                            index = 4*((y-1)*width+(x));
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[1];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[1];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[1];
+
+                            // pixel_index is zero
+
+                            index = 4*((y+1)*width+(x));
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[3];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[3];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[3];
+
+                            // pixel_index+2 is zero
+                        }
+                        else {
+                            // even coordinate: so adjacent coordinates will be 0
+                            index = 4*((y-2)*width+(x));
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[0];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[0];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[0];
+
+                            // pixel_index-1 is zero
+
+                            index = 4*((y)*width+(x));
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[2];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[2];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[2];
+
+                            // pixel_index+1 is zero
+
+                            index = 4*((y+2)*width+(x));
+                            sum_fr += ((float)(bitmap_in[index+1] & 0xFF)) * pyramid_blending_weights[4];
+                            sum_fg += ((float)(bitmap_in[index+2] & 0xFF)) * pyramid_blending_weights[4];
+                            sum_fb += ((float)(bitmap_in[index+3] & 0xFF)) * pyramid_blending_weights[4];
+                        }
+
+                        // end unrolled loop
+
+                        sum_fr *= 2.0;
+                        sum_fg *= 2.0;
+                        sum_fb *= 2.0;
+
+                        int r = (int)(sum_fr+0.5f);
+                        int g = (int)(sum_fg+0.5f);
+                        int b = (int)(sum_fb+0.5f);
+
+                        //r = Math.max(0, Math.min(255, r));
+                        //g = Math.max(0, Math.min(255, g));
+                        //b = Math.max(0, Math.min(255, b));
+
+                        bitmap_out[c] = (byte)255;
+                        bitmap_out[c+1] = (byte)r;
+                        bitmap_out[c+2] = (byte)g;
+                        bitmap_out[c+3] = (byte)b;
+                    }
+                }
+                else {
+                    for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+                        bitmap_out[c] = bitmap_in[c];
+                        bitmap_out[c+1] = bitmap_in[c+1];
+                        bitmap_out[c+2] = bitmap_in[c+2];
+                        bitmap_out[c+3] = bitmap_in[c+3];
                     }
                 }
             }
