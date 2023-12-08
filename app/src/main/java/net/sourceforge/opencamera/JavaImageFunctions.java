@@ -4175,10 +4175,10 @@ public class JavaImageFunctions {
                 if( y % 2 == 0 ) {
                     int sy = y/2;
 
-                    for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+                    /*for(int x=off_x;x<off_x+this_width;x++,c+=4) {
                         if( x % 2 == 0 ) {
                             int sx = x/2;
-                            int sc = 4*(sy*(width/2)+sx); // index into bitmap_in array (n.b., width/w as bitmap_in is half the size)
+                            int sc = 4*(sy*(width/2)+sx); // index into bitmap_in array (n.b., width/2 as bitmap_in is half the size)
                             bitmap_out[c] = bitmap_in[sc];
                             bitmap_out[c+1] = bitmap_in[sc+1];
                             bitmap_out[c+2] = bitmap_in[sc+2];
@@ -4187,6 +4187,20 @@ public class JavaImageFunctions {
                         else {
                             bitmap_out[c] = (byte)255;
                         }
+                    }*/
+                    // copy even x (assumes off_x is even)
+                    int saved_c = c;
+                    for(int sx=off_x/2;sx<(off_x+this_width)/2;sx++,c+=8) {
+                        int sc = 4*(sy*(width/2)+sx); // index into bitmap_in array (n.b., width/2 as bitmap_in is half the size)
+                        bitmap_out[c] = bitmap_in[sc];
+                        bitmap_out[c+1] = bitmap_in[sc+1];
+                        bitmap_out[c+2] = bitmap_in[sc+2];
+                        bitmap_out[c+3] = bitmap_in[sc+3];
+                    }
+                    // copy odd x
+                    c = saved_c+4;
+                    for(int x=off_x+1;x<off_x+this_width;x+=2,c+=8) {
+                        bitmap_out[c] = (byte)255;
                     }
                 }
                 else {
