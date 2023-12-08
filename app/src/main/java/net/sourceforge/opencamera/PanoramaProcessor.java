@@ -156,7 +156,7 @@ public class PanoramaProcessor {
                 int_buffer.put(pixels);
                 bitmap_argb = byte_buffer.array();
                 if( MyDebug.LOG )
-                    Log.d(TAG, "### expandBitmap: time after converting int array to byte array: " + (System.currentTimeMillis() - time_s));
+                    Log.d(TAG, "### reduceBitmap: time after converting int array to byte array: " + (System.currentTimeMillis() - time_s));
             }
 
             byte [] reduced_bitmap_x_argb = new byte[4*(width/2)*(height)];
@@ -172,7 +172,7 @@ public class PanoramaProcessor {
             JavaImageFunctions.ReduceBitmapYFullFunction function_y = new JavaImageFunctions.ReduceBitmapYFullFunction(reduced_bitmap_x_argb, reduced_bitmap_argb, width/2, height/2);
             JavaImageProcessing.applyFunction(function_y, null, null, 0, 0, width/2,  height/2);
             if( MyDebug.LOG )
-                Log.d(TAG, "### time for reduceBitmapX: " + (System.currentTimeMillis() - time_s));
+                Log.d(TAG, "### time for reduceBitmapY: " + (System.currentTimeMillis() - time_s));
 
             //noinspection ReassignedVariable,UnusedAssignment
             reduced_bitmap_x_argb = null; // help garbage collection
