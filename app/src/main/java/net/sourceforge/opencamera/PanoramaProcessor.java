@@ -3621,10 +3621,12 @@ public class PanoramaProcessor {
         // N.B., when using blendPyramids(), the region we actually have blending over is only half
         // of the width of the images it receives to blend receive (i.e., the blend region width
         // is equal to blend_hwidth), because of the code to find a best path.
+        // Reduced to bitmap_width/10.0f to improve performance.
         //final int blend_hwidth = 0;
         //final int blend_hwidth = nextPowerOf2(bitmap_width/20);
         //final int blend_hwidth = nextPowerOf2(bitmap_width/10);
-        final int blend_hwidth = nextMultiple((int)(bitmap_width/6.1f+0.5f), getBlendDimension()/2);
+        //final int blend_hwidth = nextMultiple((int)(bitmap_width/6.1f+0.5f), getBlendDimension()/2);
+        final int blend_hwidth = nextMultiple((int)(bitmap_width/10.0f+0.5f), getBlendDimension()/2);
         //final int blend_hwidth = nextPowerOf2(bitmap_width/5);
         final int align_hwidth = bitmap_width/10;
         //final int align_hwidth = bitmap_width/5;
