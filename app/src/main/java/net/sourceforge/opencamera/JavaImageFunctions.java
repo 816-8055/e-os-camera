@@ -4150,6 +4150,8 @@ public class JavaImageFunctions {
         }
     }
 
+    /** Alpha isn't written on result for performance.
+     */
     static class ExpandBitmapFullFunction implements JavaImageProcessing.ApplyFunctionInterface {
         // bitmaps in ARGB format
         private final byte [] bitmap_in;
@@ -4189,25 +4191,29 @@ public class JavaImageFunctions {
                         }
                     }*/
                     // copy even x (assumes off_x is even)
-                    int saved_c = c;
+                    //int saved_c = c;
                     for(int sx=off_x/2;sx<(off_x+this_width)/2;sx++,c+=8) {
                         int sc = 4*(sy*(width/2)+sx); // index into bitmap_in array (n.b., width/2 as bitmap_in is half the size)
-                        bitmap_out[c] = bitmap_in[sc];
+                        //bitmap_out[c] = bitmap_in[sc];
                         bitmap_out[c+1] = bitmap_in[sc+1];
                         bitmap_out[c+2] = bitmap_in[sc+2];
                         bitmap_out[c+3] = bitmap_in[sc+3];
                     }
+                    // skip writing odd x
+                    /*
                     // copy odd x
                     c = saved_c+4;
                     for(int x=off_x+1;x<off_x+this_width;x+=2,c+=8) {
                         bitmap_out[c] = (byte)255;
                     }
+                   */
                 }
-                else {
+                /*else {
+                    // skip writing odd y
                     for(int x=off_x;x<off_x+this_width;x++,c+=4) {
                         bitmap_out[c] = (byte)255;
                     }
-                }
+                }*/
             }
         }
 
@@ -4227,6 +4233,7 @@ public class JavaImageFunctions {
     /** Note that this is optimised for being called on a result of ExpandBitmapFunction (where only
      *  the top-left pixel in each group of 2x2 will be non-zero), rather than being a general blur
      *  function.
+     *  Alpha isn't written on result for performance.
      */
     static class Blur1dXFullFunction implements JavaImageProcessing.ApplyFunctionInterface {
         // bitmaps in ARGB format
@@ -4251,9 +4258,9 @@ public class JavaImageFunctions {
                 int c = 4*(y*width+off_x); // index into bitmap_out array
                 if( y % 2 == 1 ) {
                     // can skip odd y lines, as will be all zeroes (due to the result of ExpandBitmapFunction)
-                    for(int x=off_x;x<off_x+this_width;x++,c+=4) {
+                    /*for(int x=off_x;x<off_x+this_width;x++,c+=4) {
                         bitmap_out[c] = (byte)255;
-                    }
+                    }*/
                     continue;
                 }
 
@@ -4262,7 +4269,7 @@ public class JavaImageFunctions {
 
                 for(int x=off_x;x<sx;x++,c+=4) {
                     // x values < 2
-                    bitmap_out[c] = bitmap_in[c];
+                    //bitmap_out[c] = bitmap_in[c];
                     bitmap_out[c+1] = bitmap_in[c+1];
                     bitmap_out[c+2] = bitmap_in[c+2];
                     bitmap_out[c+3] = bitmap_in[c+3];
@@ -4343,7 +4350,7 @@ public class JavaImageFunctions {
                         //g = Math.max(0, Math.min(255, g));
                         //b = Math.max(0, Math.min(255, b));
 
-                        bitmap_out[c] = (byte)255;
+                        //bitmap_out[c] = (byte)255;
                         bitmap_out[c+1] = (byte)r;
                         bitmap_out[c+2] = (byte)g;
                         bitmap_out[c+3] = (byte)b;
@@ -4358,7 +4365,7 @@ public class JavaImageFunctions {
 
                 for(int x=ex;x<off_x+this_width;x++,c+=4) {
                     // x values >= width-2
-                    bitmap_out[c] = bitmap_in[c];
+                    //bitmap_out[c] = bitmap_in[c];
                     bitmap_out[c+1] = bitmap_in[c+1];
                     bitmap_out[c+2] = bitmap_in[c+2];
                     bitmap_out[c+3] = bitmap_in[c+3];
@@ -4382,6 +4389,7 @@ public class JavaImageFunctions {
     /** Note that this is optimised for being called on a result of ExpandBitmapFunction (where only
      *  the top-left pixel in each group of 2x2 will be non-zero), that was then processed with
      *  Blur1dXFunction, rather than being a general blur function.
+     *  Alpha isn't written as 255, rather than being based on input alpha.
      */
     static class Blur1dYFullFunction implements JavaImageProcessing.ApplyFunctionInterface {
         // bitmaps in ARGB format
@@ -4485,7 +4493,7 @@ public class JavaImageFunctions {
                 }
                 else {
                     for(int x=off_x;x<off_x+this_width;x++,c+=4) {
-                        bitmap_out[c] = bitmap_in[c];
+                        bitmap_out[c] = (byte)255;
                         bitmap_out[c+1] = bitmap_in[c+1];
                         bitmap_out[c+2] = bitmap_in[c+2];
                         bitmap_out[c+3] = bitmap_in[c+3];
