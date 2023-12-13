@@ -1567,6 +1567,16 @@ public class JavaImageFunctions {
             int pixel2_r, pixel2_g, pixel2_b;
 
             for(int y=off_y,c=0;y<off_y+this_height;y++) {
+                fast_bitmap0[thread_index].getPixel(0, y+offset_y0); // force cache to cover rows needed by this row
+                int bitmap0_cache_y = fast_bitmap0[thread_index].getCacheY();
+                int y_rel_bitmap0_cache = y-bitmap0_cache_y;
+                int [] bitmap0_cache_pixels = fast_bitmap0[thread_index].getCachedPixelsI();
+
+                fast_bitmap2[thread_index].getPixel(0, y+offset_y2); // force cache to cover rows needed by this row
+                int bitmap2_cache_y = fast_bitmap2[thread_index].getCacheY();
+                int y_rel_bitmap2_cache = y-bitmap2_cache_y;
+                int [] bitmap2_cache_pixels = fast_bitmap2[thread_index].getCachedPixelsI();
+
                 for(int x=off_x;x<off_x+this_width;x++,c++) {
                     float this_parameter_A0 = parameter_A[0], this_parameter_B0 = parameter_B[0];
                     float this_parameter_A1 = parameter_A[1], this_parameter_B1 = parameter_B[1];
@@ -1579,7 +1589,8 @@ public class JavaImageFunctions {
                     pixel1_b = pixel1 & 0xFF;
 
                     if( x+offset_x0 >= 0 && y+offset_y0 >= 0 && x+offset_x0 < width && y+offset_y0 < height ) {
-                        int pixel0 = fast_bitmap0[thread_index].getPixel(x+offset_x0, y+offset_y0);
+                        //int pixel0 = fast_bitmap0[thread_index].getPixel(x+offset_x0, y+offset_y0);
+                        int pixel0 = bitmap0_cache_pixels[y_rel_bitmap0_cache*width+(x+offset_x0)];
                         pixel0_r = (pixel0 >> 16) & 0xFF;
                         pixel0_g = (pixel0 >> 8) & 0xFF;
                         pixel0_b = pixel0 & 0xFF;
@@ -1593,7 +1604,8 @@ public class JavaImageFunctions {
                     }
 
                     if( x+offset_x2 >= 0 && y+offset_y2 >= 0 && x+offset_x2 < width && y+offset_y2 < height ) {
-                        int pixel2 = fast_bitmap2[thread_index].getPixel(x+offset_x2, y+offset_y2);
+                        //int pixel2 = fast_bitmap2[thread_index].getPixel(x+offset_x2, y+offset_y2);
+                        int pixel2 = bitmap2_cache_pixels[y_rel_bitmap2_cache*width+(x+offset_x2)];
                         pixel2_r = (pixel2 >> 16) & 0xFF;
                         pixel2_g = (pixel2 >> 8) & 0xFF;
                         pixel2_b = pixel2 & 0xFF;
@@ -1878,6 +1890,62 @@ public class JavaImageFunctions {
             int base_pixel_r, base_pixel_g, base_pixel_b;
 
             for(int y=off_y,c=0;y<off_y+this_height;y++) {
+                fast_bitmap0[thread_index].getPixel(0, y+offset_y0); // force cache to cover rows needed by this row
+                int bitmap0_cache_y = fast_bitmap0[thread_index].getCacheY();
+                int y_rel_bitmap0_cache = y-bitmap0_cache_y;
+                int [] bitmap0_cache_pixels = fast_bitmap0[thread_index].getCachedPixelsI();
+
+                fast_bitmap1[thread_index].getPixel(0, y+offset_y1); // force cache to cover rows needed by this row
+                int bitmap1_cache_y = fast_bitmap1[thread_index].getCacheY();
+                int y_rel_bitmap1_cache = y-bitmap1_cache_y;
+                int [] bitmap1_cache_pixels = fast_bitmap1[thread_index].getCachedPixelsI();
+
+                int y_rel_bitmap2_cache = 0;
+                int y_rel_bitmap3_cache = 0;
+                int y_rel_bitmap4_cache = 0;
+                int y_rel_bitmap5_cache = 0;
+                int y_rel_bitmap6_cache = 0;
+                int [] bitmap2_cache_pixels = null;
+                int [] bitmap3_cache_pixels = null;
+                int [] bitmap4_cache_pixels = null;
+                int [] bitmap5_cache_pixels = null;
+                int [] bitmap6_cache_pixels = null;
+
+                if( n_bitmaps > 2 ) {
+                    fast_bitmap2[thread_index].getPixel(0, y+offset_y2); // force cache to cover rows needed by this row
+                    int bitmap2_cache_y = fast_bitmap2[thread_index].getCacheY();
+                    y_rel_bitmap2_cache = y-bitmap2_cache_y;
+                    bitmap2_cache_pixels = fast_bitmap2[thread_index].getCachedPixelsI();
+
+                    if( n_bitmaps > 3 ) {
+                        fast_bitmap3[thread_index].getPixel(0, y+offset_y3); // force cache to cover rows needed by this row
+                        int bitmap3_cache_y = fast_bitmap3[thread_index].getCacheY();
+                        y_rel_bitmap3_cache = y-bitmap3_cache_y;
+                        bitmap3_cache_pixels = fast_bitmap3[thread_index].getCachedPixelsI();
+
+                        if( n_bitmaps > 4 ) {
+                            fast_bitmap4[thread_index].getPixel(0, y+offset_y4); // force cache to cover rows needed by this row
+                            int bitmap4_cache_y = fast_bitmap4[thread_index].getCacheY();
+                            y_rel_bitmap4_cache = y-bitmap4_cache_y;
+                            bitmap4_cache_pixels = fast_bitmap4[thread_index].getCachedPixelsI();
+
+                            if( n_bitmaps > 5 ) {
+                                fast_bitmap5[thread_index].getPixel(0, y+offset_y5); // force cache to cover rows needed by this row
+                                int bitmap5_cache_y = fast_bitmap5[thread_index].getCacheY();
+                                y_rel_bitmap5_cache = y-bitmap5_cache_y;
+                                bitmap5_cache_pixels = fast_bitmap5[thread_index].getCachedPixelsI();
+
+                                if( n_bitmaps > 6 ) {
+                                    fast_bitmap6[thread_index].getPixel(0, y+offset_y6); // force cache to cover rows needed by this row
+                                    int bitmap6_cache_y = fast_bitmap6[thread_index].getCacheY();
+                                    y_rel_bitmap6_cache = y-bitmap6_cache_y;
+                                    bitmap6_cache_pixels = fast_bitmap6[thread_index].getCachedPixelsI();
+                                }
+                            }
+                        }
+                    }
+                }
+
                 for(int x=off_x;x<off_x+this_width;x++,c++) {
 
                     System.arraycopy(parameter_A, 0, this_parameter_A, 0, parameter_A.length);
@@ -1889,7 +1957,8 @@ public class JavaImageFunctions {
                     base_pixel_b = base_pixel & 0xFF;
 
                     if( x+offset_x0 >= 0 && y+offset_y0 >= 0 && x+offset_x0 < width && y+offset_y0 < height ) {
-                        int pixel = fast_bitmap0[thread_index].getPixel(x+offset_x0, y+offset_y0);
+                        //int pixel = fast_bitmap0[thread_index].getPixel(x+offset_x0, y+offset_y0);
+                        int pixel = bitmap0_cache_pixels[y_rel_bitmap0_cache*width+(x+offset_x0)];
                         pixels_r[0] = (pixel >> 16) & 0xFF;
                         pixels_g[0] = (pixel >> 8) & 0xFF;
                         pixels_b[0] = pixel & 0xFF;
@@ -1903,7 +1972,8 @@ public class JavaImageFunctions {
                     }
 
                     if( x+offset_x1 >= 0 && y+offset_y1 >= 0 && x+offset_x1 < width && y+offset_y1 < height ) {
-                        int pixel = fast_bitmap1[thread_index].getPixel(x+offset_x1, y+offset_y1);
+                        //int pixel = fast_bitmap1[thread_index].getPixel(x+offset_x1, y+offset_y1);
+                        int pixel = bitmap1_cache_pixels[y_rel_bitmap1_cache*width+(x+offset_x1)];
                         pixels_r[1] = (pixel >> 16) & 0xFF;
                         pixels_g[1] = (pixel >> 8) & 0xFF;
                         pixels_b[1] = pixel & 0xFF;
@@ -1918,7 +1988,8 @@ public class JavaImageFunctions {
 
                     if( n_bitmaps > 2 ) {
                         if( x+offset_x2 >= 0 && y+offset_y2 >= 0 && x+offset_x2 < width && y+offset_y2 < height ) {
-                            int pixel = fast_bitmap2[thread_index].getPixel(x+offset_x2, y+offset_y2);
+                            //int pixel = fast_bitmap2[thread_index].getPixel(x+offset_x2, y+offset_y2);
+                            int pixel = bitmap2_cache_pixels[y_rel_bitmap2_cache*width+(x+offset_x2)];
                             pixels_r[2] = (pixel >> 16) & 0xFF;
                             pixels_g[2] = (pixel >> 8) & 0xFF;
                             pixels_b[2] = pixel & 0xFF;
@@ -1933,7 +2004,8 @@ public class JavaImageFunctions {
 
                         if( n_bitmaps > 3 ) {
                             if( x+offset_x3 >= 0 && y+offset_y3 >= 0 && x+offset_x3 < width && y+offset_y3 < height ) {
-                                int pixel = fast_bitmap3[thread_index].getPixel(x+offset_x3, y+offset_y3);
+                                //int pixel = fast_bitmap3[thread_index].getPixel(x+offset_x3, y+offset_y3);
+                                int pixel = bitmap3_cache_pixels[y_rel_bitmap3_cache*width+(x+offset_x3)];
                                 pixels_r[3] = (pixel >> 16) & 0xFF;
                                 pixels_g[3] = (pixel >> 8) & 0xFF;
                                 pixels_b[3] = pixel & 0xFF;
@@ -1948,7 +2020,8 @@ public class JavaImageFunctions {
 
                             if( n_bitmaps > 4 ) {
                                 if( x+offset_x4 >= 0 && y+offset_y4 >= 0 && x+offset_x4 < width && y+offset_y4 < height ) {
-                                    int pixel = fast_bitmap4[thread_index].getPixel(x+offset_x4, y+offset_y4);
+                                    //int pixel = fast_bitmap4[thread_index].getPixel(x+offset_x4, y+offset_y4);
+                                    int pixel = bitmap4_cache_pixels[y_rel_bitmap4_cache*width+(x+offset_x4)];
                                     pixels_r[4] = (pixel >> 16) & 0xFF;
                                     pixels_g[4] = (pixel >> 8) & 0xFF;
                                     pixels_b[4] = pixel & 0xFF;
@@ -1963,7 +2036,8 @@ public class JavaImageFunctions {
 
                                 if( n_bitmaps > 5 ) {
                                     if( x+offset_x5 >= 0 && y+offset_y5 >= 0 && x+offset_x5 < width && y+offset_y5 < height ) {
-                                        int pixel = fast_bitmap5[thread_index].getPixel(x+offset_x5, y+offset_y5);
+                                        //int pixel = fast_bitmap5[thread_index].getPixel(x+offset_x5, y+offset_y5);
+                                        int pixel = bitmap5_cache_pixels[y_rel_bitmap5_cache*width+(x+offset_x5)];
                                         pixels_r[5] = (pixel >> 16) & 0xFF;
                                         pixels_g[5] = (pixel >> 8) & 0xFF;
                                         pixels_b[5] = pixel & 0xFF;
@@ -1978,7 +2052,8 @@ public class JavaImageFunctions {
 
                                     if( n_bitmaps > 6 ) {
                                         if( x+offset_x6 >= 0 && y+offset_y6 >= 0 && x+offset_x6 < width && y+offset_y6 < height ) {
-                                            int pixel = fast_bitmap6[thread_index].getPixel(x+offset_x6, y+offset_y6);
+                                            //int pixel = fast_bitmap6[thread_index].getPixel(x+offset_x6, y+offset_y6);
+                                            int pixel = bitmap6_cache_pixels[y_rel_bitmap6_cache*width+(x+offset_x6)];
                                             pixels_r[6] = (pixel >> 16) & 0xFF;
                                             pixels_g[6] = (pixel >> 8) & 0xFF;
                                             pixels_b[6] = pixel & 0xFF;
