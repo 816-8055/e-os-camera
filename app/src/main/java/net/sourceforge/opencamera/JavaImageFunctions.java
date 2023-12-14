@@ -980,6 +980,7 @@ public class JavaImageFunctions {
         private final int width, height;
         private final DROBrightenApplyFunction brighten;
         private final float median_filter_strength, black_level, white_level;
+        private final float [] value_to_gamma_scale_lut = new float[256]; // look up table for performance
 
         AvgBrightenApplyFunction(/*int [] pixels_in,*/ float [] pixels_in_rgbf, int width, int height, float gain, float gamma, float low_x, float mid_x, float max_x, float median_filter_strength, float black_level) {
             //this.pixels_in = pixels_in;
@@ -990,6 +991,11 @@ public class JavaImageFunctions {
             this.median_filter_strength = median_filter_strength;
             this.black_level = black_level;
             this.white_level = 255.0f / (255.0f - black_level);
+
+            for(int value=0;value<256;value++) {
+                float new_value =  (float)Math.pow(value/brighten.max_x, brighten.gamma) * 255.0f;
+                value_to_gamma_scale_lut[value] = new_value / value;
+            }
         }
 
         @Override
@@ -1317,14 +1323,17 @@ public class JavaImageFunctions {
                         // gain_A and gain_B should be set so that new_value meets the commented out code above
                         // This code is critical for performance!
 
-                        fr *= (brighten.gain_A + brighten.gain_B/value);
-                        fg *= (brighten.gain_A + brighten.gain_B/value);
-                        fb *= (brighten.gain_A + brighten.gain_B/value);
+                        float scale = (brighten.gain_A + brighten.gain_B/value);
+                        fr *= scale;
+                        fg *= scale;
+                        fb *= scale;
                     }
                     else {
-                        float new_value =  (float)Math.pow(value/brighten.max_x, brighten.gamma) * 255.0f;
+                        // use LUT for performance
+                        /*float new_value =  (float)Math.pow(value/brighten.max_x, brighten.gamma) * 255.0f;
+                        float gamma_scale = new_value / value;*/
+                        float gamma_scale = value_to_gamma_scale_lut[(int)(value+0.5f)];
 
-                        float gamma_scale = new_value / value;
                         fr *= gamma_scale;
                         fg *= gamma_scale;
                         fb *= gamma_scale;
