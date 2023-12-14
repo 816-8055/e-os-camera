@@ -1171,15 +1171,16 @@ public class JavaImageFunctions {
                                         //L = 0.0f; // test no wiener filter
                                         float weight = L/(L+C);
 
-                                        float weight1 = 1.0f-weight;
+                                        /*float weight1 = 1.0f-weight;
                                         this_fr = weight * fr + weight1 * this_fr;
                                         this_fg = weight * fg + weight1 * this_fg;
-                                        this_fb = weight * fb + weight1 * this_fb;
+                                        this_fb = weight * fb + weight1 * this_fb;*/
 
                                         // faster version:
-                                        /*this_fr = this_fr + weight * diff_r;
+                                        this_fr = this_fr + weight * diff_r;
                                         this_fg = this_fg + weight * diff_g;
                                         this_fb = this_fb + weight * diff_b;*/
+                                        this_fb = this_fb + weight * diff_b;
                                     }
                                     sum_fr += this_fr;
                                     sum_fg += this_fg;
