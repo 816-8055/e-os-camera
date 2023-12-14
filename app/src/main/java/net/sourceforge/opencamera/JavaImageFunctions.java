@@ -1179,7 +1179,6 @@ public class JavaImageFunctions {
                                         // faster version:
                                         this_fr = this_fr + weight * diff_r;
                                         this_fg = this_fg + weight * diff_g;
-                                        this_fb = this_fb + weight * diff_b;*/
                                         this_fb = this_fb + weight * diff_b;
                                     }
                                     sum_fr += this_fr;
