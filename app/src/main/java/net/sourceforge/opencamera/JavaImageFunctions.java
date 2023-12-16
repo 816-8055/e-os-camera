@@ -1055,7 +1055,74 @@ public class JavaImageFunctions {
                         rgbf_luminances[4].setRGB(pixels_in_rgbf, x, y+1, width);
 
                         // if changing this code, see if the test code in UnitTest.findMedian() should be updated
+
+                        // new faster version:
                         if( rgbf_luminances[0].lum > rgbf_luminances[1].lum ) {
+                            RGBf_luminance temp_p = rgbf_luminances[0];
+                            rgbf_luminances[0] = rgbf_luminances[1];
+                            rgbf_luminances[1] = temp_p;
+                        }
+                        if( rgbf_luminances[3].lum > rgbf_luminances[4].lum ) {
+                            RGBf_luminance temp_p = rgbf_luminances[3];
+                            rgbf_luminances[3] = rgbf_luminances[4];
+                            rgbf_luminances[4] = temp_p;
+                        }
+                        if( rgbf_luminances[0].lum > rgbf_luminances[3].lum ) {
+                            RGBf_luminance temp_p = rgbf_luminances[0];
+                            rgbf_luminances[0] = rgbf_luminances[3];
+                            rgbf_luminances[3] = temp_p;
+
+                            temp_p = rgbf_luminances[1];
+                            rgbf_luminances[1] = rgbf_luminances[4];
+                            rgbf_luminances[4] = temp_p;
+                        }
+                        if( rgbf_luminances[1].lum > rgbf_luminances[2].lum ) {
+                            if( rgbf_luminances[2].lum > rgbf_luminances[3].lum ) {
+                                if( rgbf_luminances[2].lum > rgbf_luminances[4].lum ) {
+                                    RGBf_luminance temp_p = rgbf_luminances[2];
+                                    rgbf_luminances[2] = rgbf_luminances[4];
+                                    rgbf_luminances[4] = temp_p;
+                                }
+                                // else median is rgbf_luminances[2]
+                            }
+                            else {
+                                if( rgbf_luminances[1].lum > rgbf_luminances[3].lum ) {
+                                    RGBf_luminance temp_p = rgbf_luminances[2];
+                                    rgbf_luminances[2] = rgbf_luminances[3];
+                                    rgbf_luminances[3] = temp_p;
+                                }
+                                else {
+                                    RGBf_luminance temp_p = rgbf_luminances[2];
+                                    rgbf_luminances[2] = rgbf_luminances[1];
+                                    rgbf_luminances[1] = temp_p;
+                                }
+                            }
+                        }
+                        else {
+                            if( rgbf_luminances[1].lum > rgbf_luminances[3].lum ) {
+                                if( rgbf_luminances[1].lum > rgbf_luminances[4].lum ) {
+                                    RGBf_luminance temp_p = rgbf_luminances[2];
+                                    rgbf_luminances[2] = rgbf_luminances[4];
+                                    rgbf_luminances[4] = temp_p;
+                                }
+                                else {
+                                    RGBf_luminance temp_p = rgbf_luminances[2];
+                                    rgbf_luminances[2] = rgbf_luminances[1];
+                                    rgbf_luminances[1] = temp_p;
+                                }
+                            }
+                            else {
+                                if( rgbf_luminances[2].lum > rgbf_luminances[3].lum ) {
+                                    RGBf_luminance temp_p = rgbf_luminances[2];
+                                    rgbf_luminances[2] = rgbf_luminances[3];
+                                    rgbf_luminances[3] = temp_p;
+                                }
+                                // else median is rgbf_luminances[2]
+                            }
+                        }
+
+                        // original slower version:
+                        /*if( rgbf_luminances[0].lum > rgbf_luminances[1].lum ) {
                             RGBf_luminance temp = rgbf_luminances[0];
                             rgbf_luminances[0] = rgbf_luminances[1];
                             rgbf_luminances[1] = temp;
@@ -1103,6 +1170,8 @@ public class JavaImageFunctions {
                             rgbf_luminances[4] = temp;
                         }
                         // don't care about sorting p3 and p4
+                        */
+
                         fr = (1.0f - median_filter_strength) * fr + median_filter_strength * rgbf_luminances[2].fr;
                         fg = (1.0f - median_filter_strength) * fg + median_filter_strength * rgbf_luminances[2].fg;
                         fb = (1.0f - median_filter_strength) * fb + median_filter_strength * rgbf_luminances[2].fb;
