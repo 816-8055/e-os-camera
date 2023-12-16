@@ -409,6 +409,7 @@ public class JavaImageFunctions {
         private final float low_x;
         private final float mid_x;
         private final float max_x;
+        private final float [] value_to_gamma_scale_lut = new float[256]; // look up table for performance
 
         DROBrightenApplyFunction(float gain, float gamma, float low_x, float mid_x, float max_x) {
             /* We want A and B s.t.:
@@ -436,6 +437,11 @@ public class JavaImageFunctions {
             else {
                 this.gain_A = 1.0f;
                 this.gain_B = 0.0f;
+            }
+
+            for(int value=0;value<256;value++) {
+                float new_value =  (float)Math.pow(value/max_x, gamma) * 255.0f;
+                value_to_gamma_scale_lut[value] = new_value / value;
             }
         }
 
@@ -479,12 +485,15 @@ public class JavaImageFunctions {
                         fb *= (gain_A + gain_B/value);
                     }
                     else {
-                        float new_value =  (float)Math.pow(value/max_x, gamma) * 255.0f;
+                        // use LUT for performance
+                        /*float new_value =  (float)Math.pow(value/max_x, gamma) * 255.0f;
+                        float gamma_scale = new_value / value;*/
+                        float gamma_scale = value_to_gamma_scale_lut[(int)(value+0.5f)];
 
-                        float gamma_scale = new_value / value;
                         fr *= gamma_scale;
                         fg *= gamma_scale;
                         fb *= gamma_scale;
+
                     }
 
                     r = (int)(fr+0.5f);
