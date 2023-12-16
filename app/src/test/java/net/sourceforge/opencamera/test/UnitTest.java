@@ -595,7 +595,8 @@ public class UnitTest {
      */
     @SuppressWarnings("UnusedAssignment")
     private float4 findMedian(float4 p0, float4 p1, float4 p2, float4 p3, float4 p4) {
-        if( p0.a > p1.a ) {
+        // old version
+        /*if( p0.a > p1.a ) {
             float4 temp_p = p0;
             p0 = p1;
             p1 = temp_p;
@@ -641,7 +642,61 @@ public class UnitTest {
             float4 temp_p = p2;
             p2 = p4;
             p4 = temp_p;
+        }*/
+
+        // new version
+        if( p0.a > p1.a ) {
+            float4 temp_p = p0;
+            p0 = p1;
+            p1 = temp_p;
         }
+        if( p3.a > p4.a ) {
+            float4 temp_p = p3;
+            p3 = p4;
+            p4 = temp_p;
+        }
+        if( p0.a > p3.a ) {
+            float4 temp_p = p0;
+            p0 = p3;
+            p3 = temp_p;
+
+            temp_p = p1;
+            p1 = p4;
+            p4 = temp_p;
+        }
+        if( p1.a > p2.a ) {
+            if( p2.a > p3.a ) {
+                if( p2.a > p4.a ) {
+                    p2 = p4;
+                }
+                // else median is p2
+            }
+            else {
+                if( p1.a > p3.a ) {
+                    p2 = p3;
+                }
+                else {
+                    p2 = p1;
+                }
+            }
+        }
+        else {
+            if( p1.a > p3.a ) {
+                if( p1.a > p4.a ) {
+                    p2 = p4;
+                }
+                else {
+                    p2 = p1;
+                }
+            }
+            else {
+                if( p2.a > p3.a ) {
+                    p2 = p3;
+                }
+                // else median is p2
+            }
+        }
+
         Log.d(TAG, "median is: " + p2.r + " , " + p2.g + " , " + p2.b + " , " + p2.a);
         return p2;
     }
@@ -676,6 +731,60 @@ public class UnitTest {
                 new float4(0, 51, 53, 53)
         );
         assertEquals(m2, new float4(49, 49, 71, 71));
+
+        float4 m3 = findMedian(
+                new float4(127, 0, 64, 127),
+                new float4(49, 149, 71, 149),
+                new float4(120, 120, 121, 121),
+                new float4(27, 51, 64, 64),
+                new float4(0, 51, 53, 53)
+        );
+        assertEquals(m3, new float4(120, 120, 121, 121));
+
+        float4 m4 = findMedian(
+                new float4(127, 0, 64, 127),
+                new float4(49, 149, 71, 149),
+                new float4(120, 120, 121, 121),
+                new float4(27, 51, 64, 64),
+                new float4(0, 51, 153, 153)
+        );
+        assertEquals(m4, new float4(127, 0, 64, 127));
+
+        float4 m5 = findMedian(
+                new float4(130, 0, 64, 130),
+                new float4(49, 149, 71, 149),
+                new float4(120, 120, 121, 121),
+                new float4(127, 51, 64, 127),
+                new float4(0, 51, 153, 153)
+        );
+        assertEquals(m5, new float4(130, 0, 64, 130));
+
+        float4 m6 = findMedian(
+                new float4(130, 0, 64, 130),
+                new float4(49, 49, 71, 71),
+                new float4(120, 120, 121, 121),
+                new float4(27, 51, 64, 64),
+                new float4(0, 0, 0, 0)
+        );
+        assertEquals(m6, new float4(49, 49, 71, 71));
+
+        float4 m7 = findMedian(
+                new float4(130, 0, 64, 130),
+                new float4(49, 49, 71, 71),
+                new float4(120, 120, 121, 121),
+                new float4(27, 51, 64, 64),
+                new float4(0, 100, 0, 100)
+        );
+        assertEquals(m7, new float4(0, 100, 0, 100));
+
+        float4 m8 = findMedian(
+                new float4(130, 0, 64, 130),
+                new float4(49, 49, 71, 71),
+                new float4(120, 181, 121, 181),
+                new float4(27, 51, 164, 164),
+                new float4(0, 100, 0, 100)
+        );
+        assertEquals(m8, new float4(130, 0, 64, 130));
     }
 
     @Test
