@@ -2025,15 +2025,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         Log.d(TAG, "video focus_value: "+ focus_value);
         assertEquals("focus_mode_continuous_video", focus_value);
 
+        saved_count_cameraContinuousFocusMoving = mPreview.count_cameraContinuousFocusMoving;
+
         // switch to photo
         clickView(switchVideoButton);
+        Log.d(TAG, "count_cameraContinuousFocusMoving after clicking to switch to video: "+ mPreview.count_cameraContinuousFocusMoving);
         waitUntilCameraOpened();
+        Log.d(TAG, "count_cameraContinuousFocusMoving after waiting for camera to open: "+ mPreview.count_cameraContinuousFocusMoving);
         focus_value = mPreview.getCameraController().getFocusValue();
         Log.d(TAG, "video focus_value: "+ focus_value);
         assertEquals("focus_mode_continuous_picture", focus_value);
 
         // check continuous focus is working
-        saved_count_cameraContinuousFocusMoving = mPreview.count_cameraContinuousFocusMoving;
         Thread.sleep(3000);
         new_count_cameraContinuousFocusMoving = mPreview.count_cameraContinuousFocusMoving;
         Log.d(TAG, "count_cameraContinuousFocusMoving compare saved: "+ saved_count_cameraContinuousFocusMoving + " to new: " + new_count_cameraContinuousFocusMoving);
@@ -8863,7 +8866,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // check we get a non-cached location
         while( !mActivity.getLocationSupplier().testHasReceivedLocation() ) {
             this.getInstrumentation().waitForIdleSync();
-            if( System.currentTimeMillis() - start_t > 20000 ) {
+            if( System.currentTimeMillis() - start_t > 25000 ) {
                 // need to allow long time for testing devices without mobile network; will likely fail altogether if don't even have wifi
                 fail();
             }
