@@ -1445,9 +1445,10 @@ public class TestUtils {
                     assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME));
                     assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL));
                     assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED));
-                    assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME));
-                    assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL));
-                    assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED));
+                    // TAG_OFFSET_TIME at least no longer saved on Pixel 6 Pro
+                    //assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME));
+                    //assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL));
+                    //assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED));
                 }
             }
             else {
