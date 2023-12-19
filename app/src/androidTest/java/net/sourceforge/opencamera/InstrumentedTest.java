@@ -7,7 +7,11 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.endsWith;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
@@ -38,6 +42,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
+import foundation.e.camera.R;
 
 interface PhotoTests {}
 
@@ -6168,7 +6174,7 @@ public class InstrumentedTest {
 
         if( !single_tap_photo && !double_tap_photo ) {
             mActivityRule.getScenario().onActivity(activity -> {
-                View takePhotoButton = activity.findViewById(net.sourceforge.opencamera.R.id.take_photo);
+                View takePhotoButton = activity.findViewById(R.id.take_photo);
                 assertFalse( activity.hasThumbnailAnimation() );
                 Log.d(TAG, "about to click take photo");
                 clickView(takePhotoButton);
