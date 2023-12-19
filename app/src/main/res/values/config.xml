@@ -22,4 +22,9 @@
     <string-array name="config_ignoredCameraIds">
         <!-- <item>4</item> -->
     </string-array>
+
+    <!-- Add default resolution for each camera IDs -->
+    <string-array name="config_e_os_camera_default_resolution_lens">
+        <!-- <item>0:4000x2256</item> -->
+   </string-array>
 </resources>
