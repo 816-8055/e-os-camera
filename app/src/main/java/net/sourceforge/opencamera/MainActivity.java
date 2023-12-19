@@ -997,6 +997,23 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
+        String[] defaultResolutions = getResources().getStringArray(
+                R.array.config_e_os_camera_default_resolution_lens);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        for (String entry : defaultResolutions) {
+            if (!entry.matches("\\d+:\\d+x\\d+")) continue;
+
+            String[] mainParts = entry.split(":");
+            String[] resParts = mainParts[1].split("x");
+            int cameraId = Integer.parseInt(mainParts[0]);
+            String resolution = resParts[0] + " " + resParts[1];
+
+            editor.putString(PreferenceKeys.getResolutionPreferenceKey(cameraId), resolution);
+        }
+
+        editor.apply();
     }
 
     /** Switches modes if required, if called from a relevant intent/tile.
