@@ -3671,6 +3671,8 @@ public class MainActivity extends AppCompatActivity {
     private class SettingsOnBackPressedCallback extends OnBackPressedCallback {
         public SettingsOnBackPressedCallback(boolean enabled) {
             super(enabled);
+            if( MyDebug.LOG )
+                Log.d(TAG, "SettingsOnBackPressedCallback, enabled: " + enabled);
         }
 
         @Override
