@@ -783,6 +783,7 @@
     <string name="exposure_unlock">Unlock exposure</string>
 
     <string name="preference_nr_mode_low_light_message">Low light mode: please hold the camera steady</string>
+    <string name="preference_failed_focus_mode_message">Please hold the camera steady for better photos.</string>
 
     <string name="photo_mode_panorama">Pano</string> <!-- keep short, as this shows in the popup menu; probably shouldn't be translated? -->
     <string name="photo_mode_panorama_full">Panorama</string>
