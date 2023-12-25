@@ -180,7 +180,7 @@ public class CameraController2 extends CameraController {
     private boolean previewIsVideoMode;
     private AutoFocusCallback autofocus_cb;
     private long autofocus_time_ms = -1; // time we set autofocus_cb to non-null
-    private static final long autofocus_timeout_c = 1000; // timeout for calling autofocus_cb (applies for both auto and continuous focus)
+    private static final long autofocus_timeout_c = 250; // timeout for calling autofocus_cb (applies for both auto and continuous focus)
     private boolean capture_follows_autofocus_hint;
     private boolean ready_for_capture;
     private FaceDetectionListener face_detection_listener;
@@ -265,8 +265,8 @@ public class CameraController2 extends CameraController {
     private static final int STATE_WAITING_FAKE_PRECAPTURE_DONE = 5;
     private int state = STATE_NORMAL;
     private long precapture_state_change_time_ms = -1; // time we changed state for precapture modes
-    private static final long precapture_start_timeout_c = 2000;
-    private static final long precapture_done_timeout_c = 3000;
+    private static final long precapture_start_timeout_c = 500;
+    private static final long precapture_done_timeout_c = 1000;
 
     private boolean use_fake_precapture; // see CameraController.setUseCamera2FakeFlash() for details - this is the user/application setting, see use_fake_precapture_mode for whether fake precapture is enabled (as we may do this for other purposes, e.g., front screen flash)
     private boolean use_fake_precapture_mode; // true if either use_fake_precapture is true, or we're temporarily using fake precapture mode (e.g., for front screen flash or exposure bracketing)
