@@ -2548,7 +2548,7 @@ public class DrawPreview {
         if( camera_controller != null && this.thumbnail_anim && last_thumbnail != null ) {
             int ui_rotation = preview.getUIRotation();
             long time = time_ms - this.thumbnail_anim_start_ms;
-            final long duration = 500;
+            final long duration = 400;
             if( time > duration ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "thumbnail_anim finished");
