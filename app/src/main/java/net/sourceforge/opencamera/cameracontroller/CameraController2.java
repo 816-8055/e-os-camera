@@ -3,6 +3,7 @@ package net.sourceforge.opencamera.cameracontroller;
 import net.sourceforge.opencamera.ContinuousBurstImageRunningAction;
 import net.sourceforge.opencamera.HDRProcessor;
 import net.sourceforge.opencamera.MyDebug;
+import net.sourceforge.opencamera.R;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -64,6 +65,7 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.TextureView;
+import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -102,6 +104,8 @@ public class CameraController2 extends CameraController {
     private boolean supports_exposure_time;
     private long min_exposure_time;
     private long max_exposure_time;
+
+    private int toastCounter = 0;
 
     private final static int tonemap_log_max_curve_points_c = 64;
     private final static float [] jtvideo_values_base = new float[] {
@@ -183,7 +187,7 @@ public class CameraController2 extends CameraController {
     private boolean previewIsVideoMode;
     private AutoFocusCallback autofocus_cb;
     private long autofocus_time_ms = -1; // time we set autofocus_cb to non-null
-    private static final long autofocus_timeout_c = 250; // timeout for calling autofocus_cb (applies for both auto and continuous focus)
+    private static final long autofocus_timeout_c = 500; // timeout for calling autofocus_cb (applies for both auto and continuous focus)
     private boolean capture_follows_autofocus_hint;
     private boolean ready_for_capture;
     private FaceDetectionListener face_detection_listener;
@@ -8408,14 +8412,17 @@ public class CameraController2 extends CameraController {
                         // need to check af_state != null, I received Google Play crash in 1.33 where it was null
                         boolean focus_success = af_state != null && ( af_state == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED );
                         if( MyDebug.LOG ) {
-                            if( focus_success )
+                            if( focus_success ) {
                                 Log.d(TAG, "autofocus success");
-                            else
+                            } else {
                                 Log.d(TAG, "autofocus failed");
-                            if( af_state == null )
+                                onFocusFailed();
+                            }
+                            if( af_state == null ) {
                                 Log.e(TAG, "continuous focus mode but af_state is null");
-                            else
+                            } else {
                                 Log.d(TAG, "af_state: " + af_state);
+                            }
                         }
                         if( af_state == null ) {
                             test_af_state_null_focus++;
@@ -8468,10 +8475,12 @@ public class CameraController2 extends CameraController {
                     ) {
                         boolean focus_success = af_state == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED;
                         if( MyDebug.LOG ) {
-                            if( focus_success )
+                            if( focus_success ) {
                                 Log.d(TAG, "onCaptureCompleted: autofocus success");
-                            else
+                            } else {
                                 Log.d(TAG, "onCaptureCompleted: autofocus failed");
+                                onFocusFailed();
+                            }
                             Log.d(TAG, "af_state: " + af_state);
                         }
                         state = STATE_NORMAL;
@@ -8658,6 +8667,18 @@ public class CameraController2 extends CameraController {
                     precapture_state_change_time_ms = -1;
                     takePictureAfterPrecapture();
                 }
+            }
+        }
+
+        private void onFocusFailed() {
+            // Show only if focus failed twice.
+            if (toastCounter == 1) {
+                Toast.makeText(context,
+                        R.string.preference_failed_focus_mode_message,
+                        Toast.LENGTH_SHORT).show();
+                toastCounter = 0;
+            } else {
+                toastCounter++;
             }
         }
 
