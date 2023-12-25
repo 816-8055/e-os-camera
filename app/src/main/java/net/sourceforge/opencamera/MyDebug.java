@@ -1,6 +1,5 @@
 package net.sourceforge.opencamera;
 
-import foundation.e.camera.BuildConfig;
 
 /** Global constant to control logging, should always be set to false in
  *  released versions.
