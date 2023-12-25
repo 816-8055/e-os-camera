@@ -1067,6 +1067,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
         String[] defaultResolutions = getResources().getStringArray(
                 R.array.config_e_os_camera_default_resolution_lens);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = sharedPreferences.edit();
 
         for (String entry : defaultResolutions) {
