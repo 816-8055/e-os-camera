@@ -73,6 +73,11 @@ import foundation.e.camera.R;
  *  Also note that passing via a bundle may be necessary to avoid accessing the
  *  preview, which can be null - see note about video resolutions below.
  *  Also see https://stackoverflow.com/questions/14093438/after-the-rotate-oncreate-fragment-is-called-before-oncreate-fragmentactivi .
+ *  If the application is destroyed when in background when the user is viewing
+ *  the settings, then the application and its fragments will be recreated -
+ *  so reading from the bundle means the state is restored, where as trying
+ *  to read camera settings won't be possible as the camera won't yet be
+ *  reopened.
  */
 public class MyPreferenceFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
     private static final String TAG = "MyPreferenceFragment";
