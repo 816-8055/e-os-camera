@@ -10,6 +10,16 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    signingConfigs {
+        // These are public keys provided by AOSP, Use different passcode protected keys for production
+        debug {
+            storeFile file('keys/platform.jks')
+            storePassword 'platform'
+            keyAlias 'platform'
+            keyPassword 'platform'
+        }
+    }
+
     defaultConfig {
         applicationId "foundation.e.camera"
         minSdkVersion 25
@@ -27,7 +37,8 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
+            //applicationIdSuffix ".debug"
+            signingConfig signingConfigs.debug
         }
 
         release {
