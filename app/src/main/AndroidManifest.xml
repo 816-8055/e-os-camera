@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="foundation.e.camera"
     android:versionCode="87"
     android:versionName="1.51.1"
     android:installLocation="auto"
@@ -40,6 +39,7 @@
         android:name="net.sourceforge.opencamera.OpenCameraApplication"
         android:theme="@style/AppTheme"
         android:largeHeap="true"
+        android:hardwareAccelerated="true"
         android:requestLegacyExternalStorage="true"
         >
         <!-- should not change the android:name, including moving to a subpackage - see http://android-developers.blogspot.co.uk/2011/06/things-that-cannot-change.html -->
