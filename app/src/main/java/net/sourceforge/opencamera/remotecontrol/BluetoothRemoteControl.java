@@ -1,5 +1,7 @@
 package net.sourceforge.opencamera.remotecontrol;
 
+import static android.content.Context.RECEIVER_NOT_EXPORTED;
+
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -262,7 +264,16 @@ public class BluetoothRemoteControl {
             if( MyDebug.LOG )
                 Log.d(TAG, "Remote enabled, starting service");
             main_activity.bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
-            main_activity.registerReceiver(remoteControlCommandReceiver, makeRemoteCommandIntentFilter());
+            // For Android 14 (UPSIDE_DOWN_CAKE) onwards, a flag of RECEIVER_EXPORTED or RECEIVER_NOT_EXPORTED must be specified when using
+            // registerReceiver with non-system intents, otherwise a SecurityException will be thrown.
+            // The if condition is for TIRAMISU as there seems no harm doing this for earlier versions too, but RECEIVER_NOT_EXPORTED
+            // requires Android 13.
+            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+                main_activity.registerReceiver(remoteControlCommandReceiver, makeRemoteCommandIntentFilter(), RECEIVER_NOT_EXPORTED);
+            }
+            else {
+                main_activity.registerReceiver(remoteControlCommandReceiver, makeRemoteCommandIntentFilter());
+            }
         }
         else {
             if( MyDebug.LOG )
