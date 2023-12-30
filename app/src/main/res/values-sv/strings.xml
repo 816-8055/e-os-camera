@@ -928,4 +928,5 @@
     <string name="preference_hdr_tonemapping_default">Standard</string>
     <string name="preference_remove_device_exif_summary">Huruvida enhetens EXIF-metadata ska tas bort från JPEG-bilder. Detta kommer inte ta bort exif-taggar för andra inställningar som applicerar EXIF-metadata (t.ex. plats/geotaggning). Dessa andra alternativ är fristående och kommer åsidosätta denna inställning. RAW/DNG och videor påverkas inte.
 \n%s</string>
+    <string name="preference_failed_focus_mode_message">Håll kamera stadigt för bättre foton.</string>
 </resources>
