@@ -124,7 +124,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 /** The main Activity for Open Camera.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements PreferenceFragment.OnPreferenceStartFragmentCallback {
     private static final String TAG = "MainActivity";
 
     private static int activity_count = 0;
@@ -3331,6 +3331,45 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    @Override
+    public boolean onPreferenceStartFragment(PreferenceFragment caller, Preference pref) {
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "onPreferenceStartFragment");
+            Log.d(TAG, "pref: " + pref.getFragment());
+        }
+
+        // instantiate the new fragment
+        //final Bundle args = pref.getExtras();
+        // we want to pass the caller preference fragment's bundle to the new sub-screen (this will be a
+        // copy of the bundle originally created in openSettings()
+        final Bundle args = new Bundle(caller.getArguments());
+
+        final Fragment fragment = Fragment.instantiate(this, pref.getFragment(), args);
+        fragment.setTargetFragment(caller, 0);
+        if( MyDebug.LOG )
+            Log.d(TAG, "replace fragment");
+        /*getFragmentManager().beginTransaction()
+                .replace(R.id.content, fragment)
+                .addToBackStack(null)
+                .commit();*/
+        getFragmentManager().beginTransaction().add(android.R.id.content, fragment, "PREFERENCE_FRAGMENT_"+pref.getFragment()).addToBackStack(null).commitAllowingStateLoss();
+
+        /*
+        // AndroidX version:
+        final Fragment fragment = getSupportFragmentManager().getFragmentFactory().instantiate(
+                getClassLoader(),
+                pref.getFragment());
+        fragment.setArguments(args);
+        fragment.setTargetFragment(caller, 0);
+        // replace the existing fragment with the new fragment:
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.content, fragment)
+                .addToBackStack(null)
+                .commit();
+         */
+        return true;
+    }
+
     public void updateForSettings(boolean update_camera) {
         updateForSettings(update_camera, null);
     }
@@ -3687,6 +3726,13 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.onBackPressed();
             }
         }
+    }
+
+    public boolean isSettingsOnBackPressedCallbackEnabled() {
+        if( settingsOnBackPressedCallback != null ) {
+            return settingsOnBackPressedCallback.isEnabled();
+        }
+        return false;
     }
 
     public void enableSettingsOnBackPressedCallback(boolean enabled) {
