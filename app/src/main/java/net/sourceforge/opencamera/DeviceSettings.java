@@ -31,4 +31,11 @@ public class DeviceSettings {
         final boolean is_GS290 = Build.DEVICE != null && Build.DEVICE.equals("GS290");
         return is_fairphone || is_xiaomi || is_GS290;
     }
+
+    public static boolean isMurenaOne() {
+        final boolean isMurena = Build.MANUFACTURER.equals("Secure_Phone")
+                || Build.MANUFACTURER.equals("Murena");
+        final boolean isOne = Build.DEVICE.equals("one") || Build.DEVICE.equals("X2");
+        return isMurena && isOne;
+    }
 }
