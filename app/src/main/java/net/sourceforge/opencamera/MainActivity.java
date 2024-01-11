@@ -375,11 +375,20 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: time after updating folder history: " + (System.currentTimeMillis() - debug_time));
 
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        if (DeviceSettings.isMurenaOne()) {
+            boolean isFirstTime = sharedPreferences.getBoolean("isFirstTimeMurenaOne", true);
+            if (isFirstTime && applicationInterface.getEdgeModePref().equals("default")) {
+                editor.putString(PreferenceKeys.EdgeModePreferenceKey, "off");
+                editor.putBoolean("isFirstTimeMurenaOne", false);
+                editor.apply();
+            }
+        }
+
         boolean isFirstTimeSaveLocation = sharedPreferences.getBoolean("isFirstTimeSaveLocation", true);
         String save_location = sharedPreferences.getString(PreferenceKeys.SaveLocationPreferenceKey, "Camera");
 
         if (isFirstTimeSaveLocation && save_location.equals("OpenCamera")) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString(PreferenceKeys.SaveLocationPreferenceKey, "Camera");
             editor.putBoolean("isFirstTimeSaveLocation", false);
             editor.apply();
@@ -808,7 +817,6 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 // We set the latest_version whether or not the dialog is shown - if we showed the first time dialog, we don't
                 // want to then show the What's New dialog next time we run! Similarly if the user had disabled showing the dialog,
                 // but then enables it, we still shouldn't show the dialog until the new time Open Camera upgrades.
-                SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putInt(PreferenceKeys.LatestVersionPreferenceKey, version_code);
                 editor.apply();
             }
