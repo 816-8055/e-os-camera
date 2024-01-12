@@ -1078,23 +1078,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             }
         }
 
-        String[] defaultResolutions = getResources().getStringArray(
-                R.array.config_e_os_camera_default_resolution_lens);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-
-        for (String entry : defaultResolutions) {
-            if (!entry.matches("\\d+:\\d+x\\d+")) continue;
-
-            String[] mainParts = entry.split(":");
-            String[] resParts = mainParts[1].split("x");
-            int cameraId = Integer.parseInt(mainParts[0]);
-            String resolution = resParts[0] + " " + resParts[1];
-
-            editor.putString(PreferenceKeys.getResolutionPreferenceKey(cameraId), resolution);
-        }
-
-        editor.apply();
+        updateCameraResolution();
     }
 
     /** Switches modes if required, if called from a relevant intent/tile.
@@ -3253,6 +3237,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( preview.getCurrentPictureSize() != null ) {
             bundle.putInt("resolution_width", preview.getCurrentPictureSize().width);
             bundle.putInt("resolution_height", preview.getCurrentPictureSize().height);
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+            if (pref.getBoolean("isFirstTimeResolution_" + preview.getCameraId(), true)) {
+                updateCameraResolution();
+            }
         }
 
         //List<String> video_quality = this.preview.getVideoQualityHander().getSupportedVideoQuality();
@@ -3401,6 +3389,38 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 .commit();
          */
         return true;
+    }
+
+    private void updateCameraResolution() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = pref.edit();
+        String[] defaultResolutions = getResources().getStringArray(
+                R.array.config_e_os_camera_default_resolution_lens);
+        for (String entry : defaultResolutions) {
+            if (!entry.matches("\\d+:\\d+x\\d+")) continue;
+
+            String[] mainParts = entry.split(":");
+            String[] resParts = mainParts[1].split("x");
+            int cameraId = Integer.parseInt(mainParts[0]);
+            String resolution = resParts[0] + " " + resParts[1];
+
+            boolean existing = true;
+            if (preview != null && preview.getSupportedPictureSizes(false) != null) {
+                List<CameraController.Size> supportedResolutions =
+                        preview.getSupportedPictureSizes(false);
+                String highestResolution = supportedResolutions.get(0).width + " "
+                        + supportedResolutions.get(0).height;
+                String currentResolution = pref.getString(
+                        PreferenceKeys.getResolutionPreferenceKey(cameraId), "");
+                existing = highestResolution.equals(currentResolution) && cameraId == preview.getCameraId();
+            }
+            if (existing) {
+                editor.putString(PreferenceKeys.getResolutionPreferenceKey(cameraId), resolution);
+                editor.putBoolean("isFirstTimeResolution_" + cameraId, false);
+            }
+        }
+
+        editor.apply();
     }
 
     public void updateForSettings(boolean update_camera) {
