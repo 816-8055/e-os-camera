@@ -848,8 +848,6 @@ public class MainActivity extends AppCompatActivity {
         }).start();
 
         // handle on back behaviour
-        settingsOnBackPressedCallback = new SettingsOnBackPressedCallback(false);
-        this.getOnBackPressedDispatcher().addCallback(this, settingsOnBackPressedCallback);
         popupOnBackPressedCallback = new PopupOnBackPressedCallback(false);
         this.getOnBackPressedDispatcher().addCallback(this, popupOnBackPressedCallback);
         pausePreviewOnBackPressedCallback = new PausePreviewOnBackPressedCallback(false);
@@ -3626,7 +3624,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** Call when the settings is going to be closed.
      */
-    private void settingsClosing() {
+    void settingsClosing() {
         if( MyDebug.LOG )
             Log.d(TAG, "close settings");
         setWindowFlagsForCamera();
@@ -3663,37 +3661,6 @@ public class MainActivity extends AppCompatActivity {
                 // sync (e.g., changing the Repeat Mode)
                 mainUI.destroyPopup();
             }
-        }
-    }
-
-    private SettingsOnBackPressedCallback settingsOnBackPressedCallback;
-
-    private class SettingsOnBackPressedCallback extends OnBackPressedCallback {
-        public SettingsOnBackPressedCallback(boolean enabled) {
-            super(enabled);
-            if( MyDebug.LOG )
-                Log.d(TAG, "SettingsOnBackPressedCallback, enabled: " + enabled);
-        }
-
-        @Override
-        public void handleOnBackPressed() {
-            if( MyDebug.LOG )
-                Log.d(TAG, "SettingsOnBackPressedCallback.handleOnBackPressed");
-            if( settingsIsOpen() ) {
-                settingsClosing();
-                // we still want the back button to take effect (we have a callback to know when the back button is pressed during
-                // settings, so we can call settingsClosing())
-                this.setEnabled(false); // need to disable this so we don't get this callback just being called again
-                MainActivity.this.onBackPressed();
-            }
-        }
-    }
-
-    public void enableSettingsOnBackPressedCallback(boolean enabled) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "enableSettingsOnBackPressedCallback: " + enabled);
-        if( settingsOnBackPressedCallback != null ) {
-            settingsOnBackPressedCallback.setEnabled(enabled);
         }
     }
 
