@@ -1052,7 +1052,7 @@
 
     <string name="preference_screen_licences">Open Source licences</string>
     <string name="preference_licence_open_camera">Camera</string>
-    <string name="preference_licence_open_camera_text">Camera is © 2013–2023 Mark Harman, released under the GPL v3 or later. Tap here for full licence text.</string>
+    <string name="preference_licence_open_camera_text">Camera is © 2013–2024 Mark Harman, released under the GPL v3 or later. Tap here for full licence text.</string>
     <string name="preference_licence_google_icons">Google\'s Material Design icons</string>
     <string name="preference_licence_google_icons_text">Camera uses icons from Google\'s Material Design icons
         (https://developer.android.com/design/downloads/index.html ,
