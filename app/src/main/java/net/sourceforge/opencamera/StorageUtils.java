@@ -965,7 +965,6 @@ public class StorageUtils {
         MEDIASTORE_VIDEOS
     }
 
-    @SuppressLint("InlinedApi") // complains MediaColumns constants only available on API 29 (even though it was available on older versions, but looks like it was moved?); for some reason doesn't allow putting this at the actual comments?!
     private Media getLatestMediaCore(Uri baseUri, String bucket_id, UriType uri_type) {
         if( MyDebug.LOG ) {
             Log.d(TAG, "getLatestMediaCore");
@@ -1383,6 +1382,10 @@ public class StorageUtils {
                     }
 
                     String this_filename = cursor.getString(column_name_c);
+                    if (this_filename != null && this_filename.length() > 0 && this_filename.charAt(0) == '.') {
+                        // skip hidden file
+                        continue;
+                    }
                     /*if( MyDebug.LOG ) {
                         Log.d(TAG, "Date: " + this_date + " doc_id: " + doc_id + " Name: " + this_filename + " Uri: " + this_uri);
                     }*/
