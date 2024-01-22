@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Open Camera</string>
+    <string name="app_name">Камера</string>
     <string name="action_settings">Налаштування</string>
     <string name="action_popup">Налаштування зринаючих вікон</string>
     <string name="intro_ok">"Гаразд (Більше це повідомлення не з'явиться.)"</string>
@@ -107,14 +107,14 @@
     <string name="preference_audio_noise_control_sensitivity">Чутливість керування</string>
     <string name="preference_save_location">Тека збереження</string>
     <string name="preference_save_location_summary">"Ім'я теки для збереження фото та відео (також може бути повний шлях)"</string>
-    <string name="preference_using_saf_summary">Використовувати Storage Access Framework для збереження фото та відео</string>
+    <string name="preference_using_saf_summary">Чи використовувати Storage Access Framework для збереження фотографій і відео. Це потрібно ввімкнути, щоб дозволити збереження на зовнішні SD-карти. На Android 10+ цю опцію слід увімкнути, якщо ви хочете зберігати в папку за межами DCIM.</string>
     <string name="preference_save_photo_prefix">Префікс для фото</string>
     <string name="preference_save_photo_prefix_summary">Префікс імен файлів для знімків</string>
     <string name="preference_save_video_prefix">Префікс для відео</string>
     <string name="preference_save_video_prefix_summary">Префікс імен файлів для відео</string>
     <string name="preference_save_zulu_time">Формат часу для імені файлу</string>
     <string name="preference_show_when_locked">Камера на екрані блокування</string>
-    <string name="preference_show_when_locked_summary">Якщо увімкнуто, то Open Camera все одно буде показуватись над будь-яким екраном блокування (ви можете отримати доступ до налаштувань, галереї и т.п.)</string>
+    <string name="preference_show_when_locked_summary">Якщо увімкнено, Камера все одно відображатиметься над будь-яким екраном блокування (вам все одно доведеться розблокувати, щоб отримати доступ до Налаштувань, Галереї тощо)</string>
     <string name="preference_startup_focus">Автофокус під час запуску</string>
     <string name="preference_lock_video">Блокувати екран під час запису відео</string>
     <string name="preference_lock_video_summary">Під час запису відео, графічний інтерфейс буде заблоковано, аби запобігати випадковому припиненню запису. Проведіть по екрану, аби розблокувати. Зверніть увагу, що запис відео припиниться, якщо додаток перейде у фоновий режим або ж згасне екран.</string>
@@ -151,14 +151,14 @@
     <!-- short form of Show a grid -->
     <string name="preference_crop_guide">Порадник по обрізанню фото</string>
     <string name="preference_crop_guide_summary">Показ прямокутника, який показуватиме відношення сторін - корисно, якщо ви плануєте обрізати фото/відео. Потребує WYSIWYG режим фотознімку чи режим відео\n%s</string>
-    <string name="preference_show_toasts">Зринаючі повідомлення</string>
-    <string name="preference_show_toasts_summary">Показувати зринаючі повідомлення під час роботи</string>
+    <string name="preference_show_toasts">Показувати екранні повідомлення</string>
+    <string name="preference_show_toasts_summary">Чи відображати тимчасові інформаційні повідомлення на екрані</string>
     <string name="preference_thumbnail_animation">Показувати ескіз анімації</string>
     <string name="preference_thumbnail_animation_summary">Показ пересування ескізу анімації під час знімку фотографії</string>
     <string name="preference_take_photo_border">Показувати рамку під час фотографування</string>
     <string name="preference_take_photo_border_summary">Показувати рамку на екрані для індикації режиму фотографування</string>
     <string name="preference_keep_display_on">Не вимикати екран</string>
-    <string name="preference_keep_display_on_summary">Якщо увімкнуто, екран не буде вимикатися, доки активний інтерфейс Open Camera</string>
+    <string name="preference_keep_display_on_summary">Якщо увімкнено, екран не вимикається, поки активний основний інтерфейс камери</string>
     <string name="preference_max_brightness">Максимальна яскравість</string>
     <string name="preference_max_brightness_summary">Встановлення максимальної яскравості під час зйомки</string>
     <string name="preference_category_camera_quality">Якість фото та відео</string>
@@ -194,11 +194,12 @@
     <string name="preference_force_video_4k">Якість відео 4K UHD (експериментально)</string>
     <string name="preference_force_video_4k_summary">При виборі розширення (3840х2160) для запису через задню камеру, це буде працювати лише тоді, якщо ваш пристрій підтримує вказаний формат!</string>
     <string name="preference_video_stabilization">Увімкнути стабілізацію відео</string>
-    <string name="preference_video_stabilization_summary">Стабілізація відео зменшує тряску, через рух камерою</string>
+    <string name="preference_video_stabilization_summary">Стабілізація відео зменшує тремтіння, спричинене рухом камери, як у попередньому перегляді, так і в записаному відео. Це може бути непотрібним, якщо ваш пристрій підтримує оптичну стабілізацію зображення (OIS).</string>
     <string name="preference_video_bitrate">Відео бітрейт (приблизно)</string>
     <string name="preference_video_bitrate_summary">Вибір бітрейту відео (чим вище, тим краще якість, але файл буде займати більше місця на флеш-картці. Якщо бітрейт не підтримується, це може викликати помилку під час запису відео)\n%s</string>
     <string name="preference_video_fps">Частота кадрів відео (приблизно)</string>
-    <string name="preference_video_fps_summary">Кількість кадрів на секунду (FPS) у відео (може викликати помилку під час запису, якщо частота не підтримується)\n%s</string>
+    <string name="preference_video_fps_summary">Встановіть частоту кадрів (FPS) для відео (може бути приблизною, не гарантується, що буде досягнуто, і може призвести до збою запису відео, якщо частота кадрів не підтримується). Будь ласка, перевірте отримані відео, щоб дізнатися фактичну частоту кадрів. Зверніть увагу, що цей параметр ігнорується для сповільнених відео.
+\n%s</string>
     <string name="preference_video_max_duration">Максимальна тривалість відео</string>
     <string name="preference_video_max_duration_summary">Відеозапис припиниться, через вказаний час\n%s</string>
     <string name="preference_video_restart">Записати нове відео, коли буде досягнуто ліміту</string>
@@ -431,7 +432,7 @@
     <string name="preferences_source_code">Вихідний код</string>
     <string name="preferences_licence">Ліцензія</string>
     <string name="preferences_app_info_title">Інформація про камеру</string>
-    <string name="preferences_service_terms">Умови обслуговування</string>
+    <string name="preferences_service_terms">Умови користування послугами</string>
     <string name="preference_immersive_mode_off">Вимкнути</string>
     <string name="preference_immersive_mode_navigation">Приховати кнопки навігації</string>
     <string name="preference_immersive_mode_gui">Приховати GUI</string>
@@ -440,4 +441,6 @@
     <string name="preference_audio_control_noise">Низький шум</string>
     <string name="preference_audio_control_voice">Голосова команда: \"сир\"</string>
     <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
+    <string name="preference_startup_focus_summary">Чи виконувати автофокусування під час запуску камери. Якщо у вас виникла проблема ввімкнення спалаху під час запуску, вимкніть цю опцію</string>
+    <string name="preference_audio_noise_control_sensitivity_summary">Чутливість до рівня шуму для опції аудіо (гучний шум)</string>
 </resources>
