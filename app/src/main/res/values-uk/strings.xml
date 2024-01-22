@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Open Camera</string>
     <string name="action_settings">Налаштування</string>
     <string name="action_popup">Налаштування зринаючих вікон</string>
     <string name="intro_ok">"Гаразд (Більше це повідомлення не з'явиться.)"</string>
-
-    <string name="on">Увімк</string> <!-- whether a setting is turned on, e.g., "Auto-stabilise: On" -->
-    <string name="off">Вимк</string> <!-- whether a setting is turned off, e.g., "Auto-stabilise: Off" -->
-
+    <string name="on">Увімк</string>
+    <!-- whether a setting is turned on, e.g., "Auto-stabilise: On" -->
+    <string name="off">Вимк</string>
+    <!-- whether a setting is turned off, e.g., "Auto-stabilise: Off" -->
     <string name="choose_save_location">Виберіть теку для збереження:</string>
     <string name="clear_folder_history">Очистити історію теки</string>
     <string name="clear_folder_history_question">Очистити історію теки?</string>
     <string name="choose_another_folder">Вибрати іншу теку</string>
     <string name="changed_save_location">Теку для збереження змінено на:</string>
     <string name="stopped_recording_video">Запис зупинено</string>
-    <string name="repeats_to_go">повторів залишилось</string> <!--  intentionally starts lower case -->
+    <string name="repeats_to_go">повторів залишилось</string>
+    <!--  intentionally starts lower case -->
     <string name="failed_to_reconnect_camera">"Не вдалося з'єднатися з камерою"</string>
     <string name="video_may_be_corrupted">Помилка, відеофайл може бути пошкоджено</string>
-    <string name="not_supported">Не підтримується на вашому пристрою</string> <!--  intentionally starts lower case -->
+    <string name="not_supported">Не підтримується на вашому пристрою</string>
+    <!--  intentionally starts lower case -->
     <string name="video_error_unknown">Невідома помилка, відео зупинено</string>
     <string name="video_error_server_died">Сервер впав, відео зупинено</string>
     <string name="video_max_duration">Відео досягло максимальної тривалості</string>
@@ -57,7 +58,6 @@
     <string name="color_effect">Кольоровий ефект</string>
     <string name="scene_mode">Сцена</string>
     <string name="white_balance">Баланс білого</string>
-
     <string name="angle">Кут</string>
     <string name="direction">Напрямок</string>
     <string name="failed_to_open_camera_1">Не вділося відкрити камеру.</string>
@@ -68,10 +68,8 @@
     <string name="free_memory">"Пам'ять"</string>
     <string name="screen_lock_message_1">[Заблоковано:</string>
     <string name="screen_lock_message_2">Проведіть по екрану, аби розблокувати]</string>
-
     <string name="failed_to_stamp">Не вдалося додати відмітку</string>
     <string name="metres_abbreviation">м</string>
-
     <string name="preference_category_camera_effects">Ефекти</string>
     <string name="preference_auto_stabilise">Авто-стабілізація</string>
     <string name="preference_auto_stabilise_summary">Зображення буде стабілізуватися. Не рекомендується на слабких пристроях</string>
@@ -89,7 +87,6 @@
     <string name="preference_lock_orientation_summary">Ігнорування системної орієнтації екрану пристрою\n%s</string>
     <string name="preference_face_detection">Розпізнавання облич</string>
     <string name="preference_face_detection_summary">"Розпізнавання облич в об'єктиві для фокусування"</string>
-
     <string name="preference_category_camera_controls">Керування</string>
     <string name="preference_timer">Таймер</string>
     <string name="preference_timer_beep">Звук таймеру</string>
@@ -107,9 +104,7 @@
     <string name="preference_shutter_sound_summary">Відтворення звуку під час знімку фотографії</string>
     <string name="preference_volume_keys">Кнопки гучності</string>
     <string name="preference_audio_control">Налаштування керування звуком</string>
-
     <string name="preference_audio_noise_control_sensitivity">Чутливість керування</string>
-
     <string name="preference_save_location">Тека збереження</string>
     <string name="preference_save_location_summary">"Ім'я теки для збереження фото та відео (також може бути повний шлях)"</string>
     <string name="preference_using_saf_summary">Використовувати Storage Access Framework для збереження фото та відео</string>
@@ -121,7 +116,6 @@
     <string name="preference_show_when_locked">Камера на екрані блокування</string>
     <string name="preference_show_when_locked_summary">Якщо увімкнуто, то Open Camera все одно буде показуватись над будь-яким екраном блокування (ви можете отримати доступ до налаштувань, галереї и т.п.)</string>
     <string name="preference_startup_focus">Автофокус під час запуску</string>
-
     <string name="preference_lock_video">Блокувати екран під час запису відео</string>
     <string name="preference_lock_video_summary">Під час запису відео, графічний інтерфейс буде заблоковано, аби запобігати випадковому припиненню запису. Проведіть по екрану, аби розблокувати. Зверніть увагу, що запис відео припиниться, якщо додаток перейде у фоновий режим або ж згасне екран.</string>
     <string name="preference_rotate_preview">Поворот попереднього перегляду</string>
@@ -153,7 +147,8 @@
     <string name="preference_show_battery">Показувати батарею</string>
     <string name="preference_show_battery_summary">Показувати поточний рівень заряду батареї</string>
     <string name="preference_grid">Показати сітку</string>
-    <string name="grid">Сітка</string> <!-- short form of Show a grid -->
+    <string name="grid">Сітка</string>
+    <!-- short form of Show a grid -->
     <string name="preference_crop_guide">Порадник по обрізанню фото</string>
     <string name="preference_crop_guide_summary">Показ прямокутника, який показуватиме відношення сторін - корисно, якщо ви плануєте обрізати фото/відео. Потребує WYSIWYG режим фотознімку чи режим відео\n%s</string>
     <string name="preference_show_toasts">Зринаючі повідомлення</string>
@@ -166,7 +161,6 @@
     <string name="preference_keep_display_on_summary">Якщо увімкнуто, екран не буде вимикатися, доки активний інтерфейс Open Camera</string>
     <string name="preference_max_brightness">Максимальна яскравість</string>
     <string name="preference_max_brightness_summary">Встановлення максимальної яскравості під час зйомки</string>
-
     <string name="preference_category_camera_quality">Якість фото та відео</string>
     <string name="preference_screen_photo_settings">Налаштування фото…</string>
     <string name="preference_screen_video_settings">Налаштування відео…</string>
@@ -210,9 +204,6 @@
     <string name="preference_video_restart">Записати нове відео, коли буде досягнуто ліміту</string>
     <string name="preference_video_restart_summary">При досягненні ліміту тривалості, буде записано нове відео. (стільки разів, скільки ви вказали)\n%s</string>
     <string name="preference_video_max_filesize">Максимальний розмір файлу відео</string>
-
-
-
     <string name="preference_record_audio">Запис звуку</string>
     <string name="preference_record_audio_summary">Запис звуку під час запису відео</string>
     <string name="preference_record_audio_src">Джерело звуку</string>
@@ -221,7 +212,6 @@
     <string name="preference_record_audio_channels_summary">Налаштування моно чи стереозвуку (стерео доступно не для всіх пристроїв)</string>
     <string name="preference_video_flash">Спалах під час запису відео</string>
     <string name="preference_video_flash_summary">Якщо увімкнуто, спалах буде вмикатися/вимикатися під час запису відео (можна використовувати, аби виконувати запис на відстані)</string>
-
     <string name="preference_category_online">Різне</string>
     <string name="preference_online_help">Онлайн допомога</string>
     <string name="preference_online_help_summary">Відкрити сайт Open Camera в веб браузері</string>
@@ -234,11 +224,9 @@
     <string name="preference_reset">Скидання налаштувань</string>
     <string name="preference_reset_summary">Скинути всі налаштування Open Camera на стандартні значення</string>
     <string name="preference_reset_question">Ви дійсно бажаєте скинути всі налаштування Open Camera на стандартні значення?</string>
-
     <string name="about_available">Доступно</string>
     <string name="about_not_available">Не доступно</string>
     <string name="about_copy_to_clipboard">Копіювати до буферу</string>
-
     <string name="take_photo">Зробити фото</string>
     <string name="gallery">Галерея</string>
     <string name="exposure">Експозиція</string>
@@ -247,11 +235,10 @@
     <string name="flash_mode">Спалах</string>
     <string name="switch_to_front_camera">Перейти на фронтальну камеру</string>
     <string name="switch_to_back_camera">Перейти на основну камеру</string>
-    <string name="switch_to_video">>Перейти до відео-режиму</string>
-    <string name="switch_to_photo">>Перейти до фото-режиму</string>
+    <string name="switch_to_video">&gt;Перейти до відео-режиму</string>
+    <string name="switch_to_photo">&gt;Перейти до фото-режиму</string>
     <string name="trash">Видалити останній знімок</string>
     <string name="share">Поділитися</string>
-
     <string name="parent_folder">Батьківська тека</string>
     <string name="new_folder">Нова тека</string>
     <string name="cant_write_folder">Неможливо записати до даної теки</string>
@@ -259,99 +246,52 @@
     <string name="enter_new_folder">"Введіть ім'я нової теки"</string>
     <string name="failed_create_folder">Не вдалося створити теку</string>
     <string name="folder_exists">Тека вже існує</string>
-
     <string name="saf_select_save_location">Оберіть місце для збереження</string>
     <string name="saf_cancelled">Storage Access Framework скасовано</string>
-
     <!-- the permission names such as Microphone should match what Android calls them in the App permission settings -->
     <string name="permission_record_audio_not_available">Доступ до мікрофона не надано</string>
     <string name="permission_location_not_available">Доступ до місця-розташування не надано</string>
-
     <string name="start_video">Почати запис відео</string>
     <string name="stop_video">Зупинити запис відео</string>
-
     <string name="max_filesize">Максимальний розмір файлу</string>
-    <string name="mb_abbreviation">МБ</string> <!-- symbol short for megabytes -->
-    <string name="gb_abbreviation">ГБ</string> <!-- symbol short for gigabytes -->
-
+    <string name="mb_abbreviation">МБ</string>
+    <!-- symbol short for megabytes -->
+    <string name="gb_abbreviation">ГБ</string>
+    <!-- symbol short for gigabytes -->
     <string name="audio_control_start">Увімкнути керування звуком</string>
     <string name="audio_control_stop">Вимкнути керування звуком</string>
     <string name="speech_recognizer_started">Скажіть \"сир\"</string>
     <string name="audio_listener_started">Створіть сильний шум</string>
-
-
-
-
-
     <string name="dont_show_again">Надалі не показувати</string>
-
     <string name="photo_mode">Режим фото</string>
-    <string name="photo_mode_standard">Std</string> <!-- keep short, as this shows in the popup menu -->
+    <string name="photo_mode_standard">Std</string>
+    <!-- keep short, as this shows in the popup menu -->
     <string name="photo_mode_standard_full">Стандартний</string>
     <string name="photo_mode_hdr">HDR</string>
     <string name="photo_mode_expo_bracketing">Expo {}</string>
-
     <string name="preference_category_stamp">Штамп на фото</string>
     <string name="preference_hdr_save_expo">Зберішати всі зображення в режимі HDR</string>
-
-
-
-
-
-
-
-
-
     <string name="preference_category_photo_debugging">Налаштування відлагодження</string>
     <string name="preference_category_video_debugging">Налаштування відлагодження</string>
-
-
-
-
-
-
-
-
-    <string name="seconds_abbreviation">с</string> <!-- short for seconds -->
-
+    <string name="seconds_abbreviation">с</string>
+    <!-- short for seconds -->
     <string name="video_no_free_space">Недостатньо вільного міця для запису відео</string>
     <string name="video_power_critical">Запис відео зупинено\nКритично низький рівень заряду батареї</string>
-
-
-
-    <string name="dark">Темніше</string> <!-- exposure compensation dark -->
-    <string name="bright">Світліше</string> <!-- exposure compensation bright -->
+    <string name="dark">Темніше</string>
+    <!-- exposure compensation dark -->
+    <string name="bright">Світліше</string>
+    <!-- exposure compensation bright -->
     <string name="exposure_shutter_speed">Витримка</string>
-
     <string name="camera_error">Суттєва помилка камери</string>
-
-
-
-
     <string name="camera">Камера</string>
     <string name="record_video">Записати відео</string>
     <string name="selfie">Селфі</string>
-
-
-
-
     <string name="preference_calibrate_level">Калібрувати рівень кута</string>
-
-
     <string name="preference_calibrate_level_calibrate">Калібрувати</string>
     <string name="preference_calibrate_level_reset">Скинути</string>
     <string name="preference_calibrate_level_calibrated">Рівень відкалібровано</string>
     <string name="preference_calibrate_level_calibration_reset">Скидання калібровки рівня</string>
-
     <string name="photo_mode_dro">DRO</string>
-
-
-
-
-
-
-
-
     <string name="duration_unlimited">Без обмеження</string>
     <string name="duration_3s">3 секунди</string>
     <string name="duration_5s">5 секунд</string>
@@ -376,30 +316,20 @@
     <string name="duration_30m">30 хвилин</string>
     <string name="duration_45m">45 хвилин</string>
     <string name="duration_1h">Година</string>
-
-
-
-
     <string name="video_pause">Запис відео призупинено</string>
     <string name="video_resume">Запис відео продовжено</string>
     <string name="pause_video">Призупинити запис відео</string>
     <string name="resume_video">Продовжити запис відео</string>
-
     <string name="capturing">Захоплення…</string>
-
     <string name="audio_listener_failed">Не вдалося ініціалізувати прослуховування аудіо</string>
-
     <string name="preference_video_fps_default">Типово</string>
-
     <string name="preference_raw_no">ЛишеJPEG</string>
     <string name="preference_raw_yes">JPEG та DNG (RAW)</string>
-
     <string name="preference_stamp_dateformat_default">Типово</string>
     <string name="preference_stamp_dateformat_yyyymmdd">рррр-мм-дд</string>
     <string name="preference_stamp_dateformat_ddmmyyyy">дд/мм/рррр</string>
     <string name="preference_stamp_dateformat_mmddyyyy">мм/дд/рррр</string>
     <string name="preference_stamp_dateformat_none">Відсутня</string>
-
     <string name="flash_off">Спалах Вимк.</string>
     <string name="flash_auto">Спалах Авто</string>
     <string name="flash_on">Спалах Увімк.</string>
@@ -407,12 +337,10 @@
     <string name="flash_red_eye">Червоні очі</string>
     <string name="flash_frontscreen_auto">Спалах екрану Авто</string>
     <string name="flash_frontscreen_on">Спалах екрану Увімк.</string>
-
     <string name="preference_record_audio_src_camcorder">Відеокамера</string>
     <string name="preference_record_audio_src_mic">Зовнішній мікрофон (якщо є)</string>
     <string name="preference_record_audio_src_default">Типово</string>
     <string name="preference_record_audio_src_voice_communication">Внутрішній мікрофон</string>
-
     <string name="preference_video_bitrate_default">Типово</string>
     <string name="preference_video_bitrate_100000">100kbps</string>
     <string name="preference_video_bitrate_200000">200kbps</string>
@@ -437,7 +365,6 @@
     <string name="preference_video_bitrate_80000000">80Mbps</string>
     <string name="preference_video_bitrate_90000000">90Mbps</string>
     <string name="preference_video_bitrate_100000000">100Mbps</string>
-
     <string name="preference_burst_mode_off">Вимкнуто</string>
     <string name="preference_burst_mode_2x">2x</string>
     <string name="preference_burst_mode_3x">3x</string>
@@ -452,7 +379,6 @@
     <string name="preference_burst_mode_200x">200x</string>
     <string name="preference_burst_mode_500x">500x</string>
     <string name="preference_burst_mode_unlimited">Постійно</string>
-
     <string name="preference_burst_interval_no_delay">Без затримки</string>
     <string name="preference_burst_interval_1s">Секунда</string>
     <string name="preference_burst_interval_2s">2 секунди</string>
@@ -470,14 +396,12 @@
     <string name="preference_burst_interval_30m">30 хвилин</string>
     <string name="preference_burst_interval_1h">Година</string>
     <string name="preference_burst_interval_2h">2 години</string>
-
     <string name="preference_video_max_filesize_default">Типово для пристрою</string>
     <string name="preference_video_max_filesize_100mb">100МБ</string>
     <string name="preference_video_max_filesize_200mb">200МБ</string>
     <string name="preference_video_max_filesize_300mb">300МБ</string>
     <string name="preference_video_max_filesize_500mb">500МБ</string>
     <string name="preference_video_max_filesize_1gb">1ГБ</string>
-
     <string name="preference_crop_guide_none">Немає</string>
     <string name="preference_crop_guide_1">1 (1:1)</string>
     <string name="preference_crop_guide_1_25">1.25 (5:4)</string>
@@ -489,7 +413,6 @@
     <string name="preference_crop_guide_2_33">2.33 (21:9)</string>
     <string name="preference_crop_guide_2_35">2.35 (47:20)</string>
     <string name="preference_crop_guide_2_4">2.4 (12:5)</string>
-
     <string name="preference_audio_noise_control_sensitivity_3">+3 (висока чутливість)</string>
     <string name="preference_audio_noise_control_sensitivity_2">+2</string>
     <string name="preference_audio_noise_control_sensitivity_1">+1</string>
@@ -497,28 +420,24 @@
     <string name="preference_audio_noise_control_sensitivity_m1">-1</string>
     <string name="preference_audio_noise_control_sensitivity_m2">-2</string>
     <string name="preference_audio_noise_control_sensitivity_m3">-3 (низька чутливість)</string>
-
     <string name="preference_ui_placement_left">Інтерфейс для лівші</string>
     <string name="preference_ui_placement_right">Інтерфейс для правші</string>
-
     <string name="preference_stamp_style_shadowed">Текст с тінью</string>
     <string name="preference_stamp_style_plain">Звичайний текст</string>
     <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Збірка версії</string>
     <string name="preferences_about_app">Камера роздвоєна від OpenCamera</string>
-    <string name="preferences_authors">Автор</string>
+    <string name="preferences_authors">Автори</string>
     <string name="preferences_source_code">Вихідний код</string>
     <string name="preferences_licence">Ліцензія</string>
     <string name="preferences_app_info_title">Інформація про камеру</string>
     <string name="preferences_service_terms">Умови обслуговування</string>
-
     <string name="preference_immersive_mode_off">Вимкнути</string>
     <string name="preference_immersive_mode_navigation">Приховати кнопки навігації</string>
     <string name="preference_immersive_mode_gui">Приховати GUI</string>
     <string name="preference_immersive_mode_everything">Приховати все</string>
-
     <string name="preference_audio_control_none">Немає</string>
     <string name="preference_audio_control_noise">Низький шум</string>
-    <string name="preference_audio_control_voice">Голосова команда: \"сир\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
-
+    <string name="preference_audio_control_voice">Голосова команда: \"сир\"</string>
+    <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 </resources>
