@@ -336,6 +336,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     private int current_size_index = -1; // this is an index into the sizes array, or -1 if sizes not yet set
 
     public List<Integer> supported_extensions; // if non-null, list of supported camera vendor extensions, see https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics
+    public List<Integer> supported_extensions_zoom; // if non-null, list of camera vendor extensions that support zoom
 
     private boolean supports_video;
     private boolean has_capture_rate_factor; // whether we have a capture rate for faster (timelapse) or slow motion
@@ -534,7 +535,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             // for CameraController2, except testing on Nexus 6 shows that we shouldn't change "result" for front facing camera.
             boolean mirror = (camera_controller.getFacing() == CameraController.Facing.FACING_FRONT);
             camera_to_preview_matrix.setScale(1, mirror ? -1 : 1);
-            int degrees = getDisplayRotationDegrees();
+            int degrees = getDisplayRotationDegrees(false);
             int result = (camera_controller.getCameraOrientation() - degrees + 360) % 360;
             if( MyDebug.LOG ) {
                 Log.d(TAG, "orientation of display relative to natural orientation: " + degrees);
@@ -730,7 +731,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
 
         // don't take a photo on touch if the user is touching to unpause!
-        if( !this.is_video && !was_paused && touch_capture ) {
+        if( !was_paused && touch_capture ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "touch to capture");
             // Interpret as if user had clicked take photo/video button, except that we set the focus/metering areas.
@@ -763,15 +764,20 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         private int multitouch_start_zoom_factor = 0;
 
         @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-            if (Preview.this.camera_controller != null && Preview.this.has_zoom) {
-                Preview.this.scaleZoom(detector.getScaleFactor());
+        public boolean onScale(@NonNull ScaleGestureDetector detector) {
+            if( Preview.this.camera_controller != null && Preview.this.has_zoom ) {
+                float scale_factor = detector.getScaleFactor();
+                if( MyDebug.LOG )
+                    Log.d(TAG, "onScale: " + scale_factor);
+                // make pinch zoom more sensitive:
+                scale_factor = 1.0f + 2.0f*(scale_factor - 1.0f);
+                Preview.this.scaleZoom(scale_factor);
             }
             return true;
         }
 
         @Override
-        public boolean onScaleBegin(ScaleGestureDetector detector) {
+        public boolean onScaleBegin(@NonNull ScaleGestureDetector detector) {
             if( has_zoom && camera_controller != null ) {
                 has_multitouch_start_zoom_factor = true;
                 multitouch_start_zoom_factor = camera_controller.getZoom();
@@ -788,7 +794,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
 
         @Override
-        public void onScaleEnd(ScaleGestureDetector detector) {
+        public void onScaleEnd(@NonNull ScaleGestureDetector detector) {
             if( MyDebug.LOG )
                 Log.d(TAG, "onScaleEnd");
             if( has_multitouch_start_zoom_factor && has_zoom && camera_controller != null && zoom_ratios.get(0) < 100 ) {
@@ -825,7 +831,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     /** Returns whether we will take a photo on a double tap.
      */
     private boolean takePhotoOnDoubleTap() {
-        return !is_video && applicationInterface.getDoubleTapCapturePref();
+        return applicationInterface.getDoubleTapCapturePref();
     }
 
     @SuppressWarnings("SameReturnValue")
@@ -846,7 +852,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
     private class DoubleTapListener extends GestureDetector.SimpleOnGestureListener {
         @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
+        public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
             if( MyDebug.LOG )
                 Log.d(TAG, "onSingleTapConfirmed");
             // If we're taking a photo on double tap, then for single taps we need to wait until these are confirmed
@@ -866,7 +872,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
 
         @Override
-        public boolean onDoubleTap(MotionEvent e) {
+        public boolean onDoubleTap(@NonNull MotionEvent e) {
             if( MyDebug.LOG )
                 Log.d(TAG, "onDoubleTap");
             return Preview.this.onDoubleTap();
@@ -905,6 +911,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
         int previewWidth = MeasureSpec.getSize(widthSpec);
         int previewHeight = MeasureSpec.getSize(heightSpec);
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "previewWidth: " + previewWidth);
+            Log.d(TAG, "previewHeight: " + previewHeight);
+        }
 
         // Get the padding of the border background.
         int hPadding = cameraSurface.getView().getPaddingLeft() + cameraSurface.getView().getPaddingRight();
@@ -914,20 +924,51 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         previewWidth -= hPadding;
         previewHeight -= vPadding;
 
-        boolean widthLonger = previewWidth > previewHeight;
-        int longSide = (widthLonger ? previewWidth : previewHeight);
-        int shortSide = (widthLonger ? previewHeight : previewWidth);
-        if (longSide > shortSide * aspect_ratio) {
-            longSide = (int) ((double) shortSide * aspect_ratio);
-        } else {
-            shortSide = (int) ((double) longSide / aspect_ratio);
+        int result;
+        if( camera_controller != null ) {
+            // We shouldn't assume that previewWidth > previewHeight means the device is in landscape
+            // orientation - this isn't necessarily true for split-screen or multi-window mode.
+            // Important to use prefer_later==true, as in split-screen or multi-window mode, we don't always get a call
+            // to MainActivity.onConfigurationChanged() when device orientation changes, so have no way to know to
+            // reset the cached rotation. But we want the latest rotation value here anyway.
+            int degrees = getDisplayRotationDegrees(true);
+            result = (camera_controller.getCameraOrientation() - degrees + 360) % 360;
+            if( MyDebug.LOG ) {
+                Log.d(TAG, "orientation of display relative to natural orientation: " + degrees);
+                Log.d(TAG, "orientation of display relative to camera orientation: " + result);
+            }
         }
-        if (widthLonger) {
-            previewWidth = longSide;
-            previewHeight = shortSide;
-        } else {
-            previewWidth = shortSide;
-            previewHeight = longSide;
+        else {
+            // fall back to guessing via the window dimensions
+            result = (previewWidth > previewHeight) ? 0 : 90;
+        }
+        if( MyDebug.LOG )
+            Log.d(TAG, "aspect_ratio: " + aspect_ratio);
+        if( result % 180 != 0 ) {
+            // Usually this means the device is in portrait mode, and hence e.g. an aspect ratio of
+            // 4:3 should give an on-screen preview of 3:4 (since the device is rotated 90 degrees
+            // compared to the natural camera orientation).
+            // It's important to use this code instead of checking if the display is in portrait
+            // (or that previewWidth < previewHeight), for split-screen or multi-window displays.
+            // E.g., if the device orientation is in portrait, it might still be that Open Camera
+            // is running in landscape with previewWidth > previewHeight, because of running in
+            // split-screen mode, or more generally in multi-window mode where the window is resized
+            // to landscape orientation.
+            // See https://developer.android.com/training/camera2/camera-preview#relative_rotation .
+            aspect_ratio = 1.0f / aspect_ratio;
+            if( MyDebug.LOG )
+                Log.d(TAG, "aspect_ratio rotated to: " + aspect_ratio);
+        }
+
+        if( previewWidth > previewHeight * aspect_ratio ) {
+            previewWidth = (int) ((double) previewHeight * aspect_ratio);
+        }
+        else {
+            previewHeight = (int) ((double) previewWidth / aspect_ratio);
+        }
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "previewWidth is now: " + previewWidth);
+            Log.d(TAG, "previewHeight is now: " + previewHeight);
         }
 
         // Add the padding of the border.
@@ -1064,9 +1105,16 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "nothing to do");
             return;
         }
-        if (MyDebug.LOG)
+        if( MyDebug.LOG ) {
             Log.d(TAG, "textureview size: " + textureview_w + ", " + textureview_h);
-        int rotation = applicationInterface.getDisplayRotation();
+            Log.d(TAG, "preview size: " + preview_w + ", " + preview_h);
+        }
+        // Important to use prefer_later==true, as in split-screen or multi-window mode, we don't always get a call
+        // to MainActivity.onConfigurationChanged() when device orientation changes, so have no way to know to
+        // reset the cached rotation. But we want the latest rotation value here anyway.
+        int rotation = applicationInterface.getDisplayRotation(true);
+        if( MyDebug.LOG )
+            Log.d(TAG, "configureTransform rotation: " + rotation);
         Matrix matrix = new Matrix();
         RectF viewRect = new RectF(0, 0, this.textureview_w, this.textureview_h);
         RectF bufferRect = new RectF(0, 0, this.preview_h, this.preview_w);
@@ -1754,7 +1802,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 public void onError() {
                     if (MyDebug.LOG)
                         Log.e(TAG, "error from CameraController: camera device failed");
-                    if (camera_controller != null) {
+                    if( camera_controller != null ) {
+                        if( MyDebug.LOG )
+                            Log.e(TAG, "set camera_controller to null");
                         camera_controller = null;
                         camera_open_state = CameraOpenState.CAMERAOPENSTATE_CLOSED;
                         applicationInterface.onCameraError();
@@ -2341,11 +2391,12 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             this.video_quality_handler.setVideoSizesHighSpeed(camera_features.video_sizes_high_speed);
             this.supported_preview_sizes = camera_features.preview_sizes;
             this.supported_extensions = camera_features.supported_extensions;
+            this.supported_extensions_zoom = camera_features.supported_extensions_zoom;
 
             // need to do zoom last, as applicationInterface.allowZoom() may depend on the supported
-            // camera features (e.g., zoom not supported with camera extensions, so we need to have first
+            // camera features (e.g., zoom not necessarily supported with camera extensions, so we need to have first
             // stored supported_extensions - otherwise starting up in an extension photo mode will still
-            // show zoom controls)
+            // show zoom controls even if zoom not supported)
             this.camera_controller_supports_zoom = camera_features.is_zoom_supported;
             this.has_zoom = camera_features.is_zoom_supported && applicationInterface.allowZoom();
             if( this.has_zoom ) {
@@ -3797,12 +3848,14 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             // (b) on some devices (e.g., Nokia 8), when coming back from the Settings when device is held in Preview,
             // display size is returned in portrait format! (To reproduce, enable "Maximise preview size"; or if that's
             // already enabled, change the setting off and on.)
-            if (display_size.x < display_size.y) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "display_size: " + display_size.x + " x " + display_size.y);
+            if( display_size.x < display_size.y ) {
                 //noinspection SuspiciousNameCombination
                 display_size.set(display_size.y, display_size.x);
+                if( MyDebug.LOG )
+                    Log.d(TAG, "swapped display_size to: " + display_size.x + " x " + display_size.y);
             }
-            if (MyDebug.LOG)
-                Log.d(TAG, "display_size: " + display_size.x + " x " + display_size.y);
         }
         double targetRatio = calculateTargetRatioForPreview(display_size);
         int targetHeight = Math.min(display_size.y, display_size.x);
@@ -3932,28 +3985,18 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
     /** Returns the rotation in degrees of the display relative to the natural device orientation.
      */
-    private int getDisplayRotationDegrees() {
-        if (MyDebug.LOG)
-            Log.d(TAG, "getDisplayRotationDegrees");
-        int rotation = applicationInterface.getDisplayRotation();
+    private int getDisplayRotationDegrees(boolean prefer_later) {
+        int rotation = applicationInterface.getDisplayRotation(prefer_later);
         int degrees = 0;
         switch (rotation) {
-            case Surface.ROTATION_0:
-                degrees = 0;
-                break;
-            case Surface.ROTATION_90:
-                degrees = 90;
-                break;
-            case Surface.ROTATION_180:
-                degrees = 180;
-                break;
-            case Surface.ROTATION_270:
-                degrees = 270;
-                break;
+            case Surface.ROTATION_0: degrees = 0; break;
+            case Surface.ROTATION_90: degrees = 90; break;
+            case Surface.ROTATION_180: degrees = 180; break;
+            case Surface.ROTATION_270: degrees = 270; break;
             default:
                 break;
         }
-        if (MyDebug.LOG)
+        if( MyDebug.LOG )
             Log.d(TAG, "    degrees = " + degrees);
         return degrees;
     }
@@ -3967,12 +4010,13 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "camera not opened!");
             return;
         }
-        if (using_android_l) {
+        if( using_android_l ) {
             // need to configure the textureview
             configureTransform();
-        } else {
-            int degrees = getDisplayRotationDegrees();
-            if (MyDebug.LOG)
+        }
+        else {
+            int degrees = getDisplayRotationDegrees(true);
+            if( MyDebug.LOG )
                 Log.d(TAG, "    degrees = " + degrees);
             // note the code to make the rotation relative to the camera sensor is done in camera_controller.setDisplayOrientation()
             camera_controller.setDisplayOrientation(degrees);
@@ -4070,8 +4114,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         } else {
             int cameraRotationOffset = camera_controller.getCameraOrientation();
             boolean isFrontFacing = camera_controller.getFacing() == CameraController.Facing.FACING_FRONT;
-            int rotation = isFrontFacing ? cameraRotationOffset + getDisplayRotationDegrees() :
-                    cameraRotationOffset - getDisplayRotationDegrees();
+            int rotation = isFrontFacing ? cameraRotationOffset + getDisplayRotationDegrees(true) :
+                    cameraRotationOffset - getDisplayRotationDegrees(true);
 
             current_rotation = (360 + rotation) % 360;
         }
@@ -4136,31 +4180,77 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 if( has_smooth_zoom )
                     smooth_zoom = zoom_ratios.get(max_zoom_factor)/100.0f;
             }
-            else {
-                // find the closest zoom level
-                if (scale_factor > 1.0f) {
+            else if( has_smooth_zoom ) {
+                // Find the closest zoom level by rounding to nearest.
+                // Important to have same behaviour whether zooming in or out, otherwise problem when touching with two fingers and not
+                // moving - we'll get very small scale factors alternately between zooming in and out.
+                // The only reason we have separate codepath for zooming in or out is for performance (since we know to only look at
+                // higher or lower zoom ratios).
+                float dist = Math.abs(zoom_ratio - zoom_ratios.get(zoom_factor)/100.0f);
+                if( MyDebug.LOG )
+                    Log.d(TAG, "    current dist: " + dist);
+
+                if( scale_factor > 1.0f ) {
                     // zooming in
-                    for (int i = zoom_factor; i < zoom_ratios.size(); i++) {
-                        if (zoom_ratios.get(i) / 100.0f >= zoom_ratio) {
-                            if (MyDebug.LOG)
-                                Log.d(TAG, "zoom int, found new zoom by comparing " + zoom_ratios.get(i) / 100.0f + " >= " + zoom_ratio);
+                    for(int i=zoom_factor+1;i<zoom_ratios.size();i++) {
+                        float this_dist = Math.abs(zoom_ratio - zoom_ratios.get(i)/100.0f);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "    this_dist: " + this_dist);
+                        if( this_dist < dist ) {
                             new_zoom_factor = i;
+                            dist = this_dist;
+                            if( MyDebug.LOG )
+                                Log.d(TAG, "zoom in, found new zoom by comparing " + zoom_ratios.get(i)/100.0f + " to " + zoom_ratio + " , dist " + dist);
+                        }
+                        else if( this_dist > dist+1.0e-5f ) {
                             break;
                         }
                     }
-                } else {
+                }
+                else {
                     // zooming out
-                    for (int i = zoom_factor; i >= 0; i--) {
-                        if (zoom_ratios.get(i) / 100.0f <= zoom_ratio) {
-                            if (MyDebug.LOG)
-                                Log.d(TAG, "zoom out, found new zoom by comparing " + zoom_ratios.get(i) / 100.0f + " <= " + zoom_ratio);
+                    for(int i=zoom_factor-1;i>=0;i--) {
+                        float this_dist = Math.abs(zoom_ratio - zoom_ratios.get(i)/100.0f);
+                        if( this_dist < dist ) {
+                            new_zoom_factor = i;
+                            dist = this_dist;
+                            if( MyDebug.LOG )
+                                Log.d(TAG, "zoom out, found new zoom by comparing " + zoom_ratios.get(i)/100.0f + " to " + zoom_ratio + " , dist " + dist);
+                        }
+                        else if( this_dist > dist+1.0e-5f ) {
+                            break;
+                        }
+                    }
+                }
+
+                smooth_zoom = zoom_ratio;
+            }
+            else {
+                // find the closest zoom level
+                // unclear if we need this code anymore (smooth_zoom should always be true?)
+
+                if( scale_factor > 1.0f ) {
+                    // zooming in
+                    for(int i=zoom_factor;i<zoom_ratios.size();i++) {
+                        if( zoom_ratios.get(i)/100.0f >= zoom_ratio ) {
+                            if( MyDebug.LOG )
+                                Log.d(TAG, "zoom in, found new zoom by comparing " + zoom_ratios.get(i)/100.0f + " >= " + zoom_ratio);
                             new_zoom_factor = i;
                             break;
                         }
                     }
                 }
-                if( has_smooth_zoom )
-                    smooth_zoom = zoom_ratio;
+                else {
+                    // zooming out
+                    for(int i=zoom_factor;i>=0;i--) {
+                        if( zoom_ratios.get(i)/100.0f <= zoom_ratio ) {
+                            if( MyDebug.LOG )
+                                Log.d(TAG, "zoom out, found new zoom by comparing " + zoom_ratios.get(i)/100.0f + " <= " + zoom_ratio);
+                            new_zoom_factor = i;
+                            break;
+                        }
+                    }
+                }
             }
             if (MyDebug.LOG) {
                 Log.d(TAG, "zoom_ratio is now " + zoom_ratio);
@@ -4615,8 +4705,12 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     public void switchVideo(boolean during_startup, boolean change_user_pref) {
         if (MyDebug.LOG)
             Log.d(TAG, "switchVideo()");
-        if (camera_controller == null) {
-            if (MyDebug.LOG)
+        if( camera_controller == null && during_startup ) {
+            // if during_startup==false at least, we should allow switching to/from video mode if
+            // camera failed to open (it may be that the failure to open is specific to video mode
+            // for example, so should allow user to switch back to photo mode - e.g., setting
+            // video profile to sRGB on Pixel 6 Pro)
+            if( MyDebug.LOG )
                 Log.d(TAG, "camera not opened!");
             return;
         }
@@ -7204,6 +7298,12 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         return this.supported_extensions != null && this.supported_extensions.contains(extension);
     }
 
+    /** Whether the camera vendor extensions supports zoom.
+     */
+    public boolean supportsZoomForCameraExtension(int extension) {
+        return this.supported_extensions_zoom != null && this.supported_extensions_zoom.contains(extension);
+    }
+
     public boolean supportsRaw() {
         return this.supports_raw;
     }
@@ -7674,14 +7774,20 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             return;
         }
 
-        if (MyDebug.LOG)
+        if( MyDebug.LOG ) {
             Log.d(TAG, "showToast: " + message);
+            Log.d(TAG, "use_fake_toast: " + use_fake_toast);
+        }
 
-        if (this.app_is_paused) {
-            if (MyDebug.LOG)
-                Log.e(TAG, "don't show toast as application is paused: " + message);
-            // when targeting Android 11+, toasts with custom views won't be shown in background anyway - in theory we
-            // shouldn't be making toasts when in background, but check just in case
+        if( this.app_is_paused && use_fake_toast ) {
+            if( MyDebug.LOG )
+                Log.e(TAG, "don't show fake toast as application is paused: " + message);
+            // When targeting Android 11+, toasts with custom views won't be shown in background anyway - in theory we
+            // shouldn't be making toasts when in background, but check just in case.
+            // However we no longer use custom views when use_fake_toast==false, so fine to allow those - and indeed this
+            // is useful for cases where the toast is created shortly before Open Camera resumes, e.g., cancelling SAF
+            // (see toast in MainActivity.onActivityResult()), or denying location permission (see toast from
+            // PermissionHandler.onRequestPermissionsResult()).
             return;
         }
 
@@ -7691,9 +7797,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         // Also for the use_fake_toast code, running the creation code, and the postDelayed code (and the code in clearActiveFakeToast()), on the UI thread avoids threading issues
         activity.runOnUiThread(new Runnable() {
             public void run() {
-                if (Preview.this.app_is_paused) {
-                    if (MyDebug.LOG)
-                        Log.e(TAG, "don't show toast as application is paused: " + message);
+                if( Preview.this.app_is_paused && use_fake_toast ) {
+                    if( MyDebug.LOG )
+                        Log.e(TAG, "don't show fake toast as application is paused: " + message);
                     // see note above
                     return;
                 }
@@ -7930,8 +8036,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             final int downscale = 4;
             int bitmap_width = textureview_w / downscale;
             int bitmap_height = textureview_h / downscale;
-            int rotation = getDisplayRotationDegrees();
-            if (rotation == 90 || rotation == 270) {
+            int rotation = getDisplayRotationDegrees(false);
+            if( rotation == 90 || rotation == 270 ) {
                 int dummy = bitmap_width;
                 //noinspection SuspiciousNameCombination
                 bitmap_width = bitmap_height;
@@ -8295,7 +8401,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     // The original orientation of the bitmap we get from textureView.getBitmap() needs to be rotated to
                     // account for the orientation of camera vs device, but not to account for the current orientation
                     // of the device
-                    int rotation_degrees = preview.getDisplayRotationDegrees();
+                    int rotation_degrees = preview.getDisplayRotationDegrees(false);
 					/*if( MyDebug.LOG ) {
 						Log.d(TAG, "orientation of display relative to natural orientation: " + rotation_degrees);
 					}*/
@@ -8354,8 +8460,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     output_allocation.destroy();
 
                     // See comments above for zebra stripes
-                    int rotation_degrees = preview.getDisplayRotationDegrees();
-                    if (MyDebug.LOG)
+                    int rotation_degrees = preview.getDisplayRotationDegrees(false);
+                    if( MyDebug.LOG )
                         Log.d(TAG, "time before creating new_focus_peaking_bitmap: " + (System.currentTimeMillis() - debug_time));
                     Matrix matrix = new Matrix();
                     matrix.postRotate(-rotation_degrees);

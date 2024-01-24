@@ -349,7 +349,7 @@ public class PopupView extends LinearLayout {
                 // don't show auto-stabilise checkbox on popup if there's an on-screen icon
                 CheckBox checkBox = new CheckBox(main_activity);
                 checkBox.setText(getResources().getString(R.string.preference_auto_stabilise));
-                checkBox.setTextSize(TypedValue.COMPLEX_UNIT_DIP, standard_text_size_dip);
+                checkBox.setTextSize(TypedValue.COMPLEX_UNIT_SP, standard_text_size_dip);
                 checkBox.setTextColor(Color.WHITE);
                 {
                     // align the checkbox a bit better
@@ -1462,7 +1462,7 @@ public class PopupView extends LinearLayout {
                     ll2.addView(view);
 
                     button.setText(button_string);
-                    button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, button_text_size_dip);
+                    button.setTextSize(TypedValue.COMPLEX_UNIT_SP, button_text_size_dip);
                     button.setTextColor(Color.WHITE);
                     // need 0 padding so we have enough room to display text for ISO buttons, when there are 6 ISO settings
                     final int padding = (int) (0 * scale + 0.5f); // convert dps to pixels
@@ -1564,7 +1564,7 @@ public class PopupView extends LinearLayout {
         final TextView text_view = view.findViewById(R.id.text_view);
 
         text_view.setText(title + ":");
-        text_view.setTextSize(TypedValue.COMPLEX_UNIT_DIP, title_text_size_dip);
+        text_view.setTextSize(TypedValue.COMPLEX_UNIT_SP, title_text_size_dip);
         text_view.setTypeface(null, Typeface.BOLD);
         text_view.setPadding(0, 5, 0, 5);
         //text_view.setBackgroundColor(Color.GRAY); // debug
@@ -1627,7 +1627,7 @@ public class PopupView extends LinearLayout {
 
             final TextView text_view = new TextView(this.getContext());
             text_view.setText(title);
-            text_view.setTextSize(TypedValue.COMPLEX_UNIT_DIP, standard_text_size_dip);
+            text_view.setTextSize(TypedValue.COMPLEX_UNIT_SP, standard_text_size_dip);
             text_view.setTextColor(Color.WHITE);
             text_view.setGravity(Gravity.CENTER);
             text_view.setSingleLine(true); // if text too long for the button, we'd rather not have wordwrap, even if it means cutting some text off
@@ -1757,7 +1757,7 @@ public class PopupView extends LinearLayout {
             button.setId(count);
 
             button.setText(supported_option_entry);
-            button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, standard_text_size_dip);
+            button.setTextSize(TypedValue.COMPLEX_UNIT_SP, standard_text_size_dip);
             button.setTextColor(Color.WHITE);
             if( MyDebug.LOG )
                 Log.d(TAG, "addRadioOptionsToGroup time 3: " + (System.nanoTime() - debug_time));
@@ -1851,7 +1851,7 @@ public class PopupView extends LinearLayout {
 
             setArrayOptionsText(supported_options, title, text_view, title_in_options, title_in_options_first_only, current_index);
             //text_view.setBackgroundColor(Color.GRAY); // debug
-            text_view.setTextSize(TypedValue.COMPLEX_UNIT_DIP, standard_text_size_dip);
+            text_view.setTextSize(TypedValue.COMPLEX_UNIT_SP, standard_text_size_dip);
             text_view.setSingleLine(true); // if text too long for the button, we'd rather not have wordwrap, even if it means cutting some text off
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
             // Yuck! We want the arrow_button_w to be fairly large so that users can touch the arrow buttons easily, but if
