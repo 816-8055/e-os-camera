@@ -3718,6 +3718,10 @@ public class ImageSaver extends Thread {
     private Bitmap rotateForExif(Bitmap bitmap, byte [] data) {
         if( MyDebug.LOG )
             Log.d(TAG, "rotateForExif");
+        if( bitmap == null ) {
+            // support thumbnail being null - as this can happen according to Google Play crashes, see comment in saveSingleImageNow()
+            return null;
+        }
         InputStream inputStream = null;
         try {
             ExifInterface exif;
