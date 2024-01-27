@@ -3033,7 +3033,15 @@ public class CameraController2 extends CameraController {
         }
 
         if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ) {
-            List<Integer> extensions = extension_characteristics.getSupportedExtensions();
+            List<Integer> extensions = null;
+            try {
+                extensions = extension_characteristics.getSupportedExtensions();
+            }
+            catch(Exception e) {
+                // have IllegalArgumentException at least from Google Play crashes
+                if( MyDebug.LOG )
+                    Log.e(TAG, "exception from getSupportedExtensions");
+            }
             if( extensions != null ) {
                 camera_features.supported_extensions = new ArrayList<>();
                 camera_features.supported_extensions_zoom = new ArrayList<>();
@@ -3041,77 +3049,86 @@ public class CameraController2 extends CameraController {
                     if( MyDebug.LOG )
                         Log.d(TAG, "vendor extension: " + extension);
 
-                    // we assume that the allowed extension sizes are a subset of the full sizes - makes things easier to manage
+                    try {
+                        // we assume that the allowed extension sizes are a subset of the full sizes - makes things easier to manage
 
-                    List<android.util.Size> extension_picture_sizes = extension_characteristics.getExtensionSupportedSizes(extension, ImageFormat.JPEG);
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "    extension_picture_sizes: " + extension_picture_sizes);
-                    boolean has_picture_resolution = false;
-                    for(CameraController.Size size : camera_features.picture_sizes) {
-                        if( extension_picture_sizes.contains(new android.util.Size(size.width, size.height)) ) {
-                            if( MyDebug.LOG ) {
-                                Log.d(TAG, "    picture size supports extension: " + size.width + " , " + size.height);
-                            }
-                            has_picture_resolution = true;
-                            if( size.supported_extensions == null ) {
-                                size.supported_extensions = new ArrayList<>();
-                            }
-                            size.supported_extensions.add(extension);
-                        }
-                        else {
-                            if( MyDebug.LOG ) {
-                                Log.d(TAG, "    picture size does NOT support extension: " + size.width + " , " + size.height);
-                            }
-                        }
-                    }
-
-                    List<android.util.Size> extension_preview_sizes = extension_characteristics.getExtensionSupportedSizes(extension, SurfaceTexture.class);
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "    extension_preview_sizes: " + extension_preview_sizes);
-                    boolean has_preview_resolution = false;
-                    for(CameraController.Size size : camera_features.preview_sizes) {
-                        if( extension_preview_sizes.contains(new android.util.Size(size.width, size.height)) ) {
-                            if( MyDebug.LOG ) {
-                                Log.d(TAG, "    preview size supports extension: " + size.width + " , " + size.height);
-                            }
-                            has_preview_resolution = true;
-                            if( size.supported_extensions == null ) {
-                                size.supported_extensions = new ArrayList<>();
-                            }
-                            size.supported_extensions.add(extension);
-                        }
-                        else {
-                            if( MyDebug.LOG ) {
-                                Log.d(TAG, "    preview size does NOT support extension: " + size.width + " , " + size.height);
-                            }
-                        }
-                    }
-
-                    if( has_picture_resolution && has_preview_resolution ) {
+                        List<android.util.Size> extension_picture_sizes = extension_characteristics.getExtensionSupportedSizes(extension, ImageFormat.JPEG);
                         if( MyDebug.LOG )
-                            Log.d(TAG, "    extension is supported: " + extension);
-                        camera_features.supported_extensions.add(extension);
-
-                        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
-                            Set<CaptureRequest.Key> extension_supported_request_keys = extension_characteristics.getAvailableCaptureRequestKeys(extension);
-                            for(CaptureRequest.Key<?> key : extension_supported_request_keys) {
-                                if( MyDebug.LOG )
-                                    Log.d(TAG, "    supported capture request key: " + key.getName());
-                                if( key == CaptureRequest.CONTROL_ZOOM_RATIO ) {
-                                    camera_features.supported_extensions_zoom.add(extension);
+                            Log.d(TAG, "    extension_picture_sizes: " + extension_picture_sizes);
+                        boolean has_picture_resolution = false;
+                        for(CameraController.Size size : camera_features.picture_sizes) {
+                            if( extension_picture_sizes.contains(new android.util.Size(size.width, size.height)) ) {
+                                if( MyDebug.LOG ) {
+                                    Log.d(TAG, "    picture size supports extension: " + size.width + " , " + size.height);
+                                }
+                                has_picture_resolution = true;
+                                if( size.supported_extensions == null ) {
+                                    size.supported_extensions = new ArrayList<>();
+                                }
+                                size.supported_extensions.add(extension);
+                            }
+                            else {
+                                if( MyDebug.LOG ) {
+                                    Log.d(TAG, "    picture size does NOT support extension: " + size.width + " , " + size.height);
                                 }
                             }
-                            Set<CaptureResult.Key> extension_supported_result_keys = extension_characteristics.getAvailableCaptureResultKeys(extension);
-                            for(CaptureResult.Key<?> key : extension_supported_result_keys) {
-                                if( MyDebug.LOG )
-                                    Log.d(TAG, "    supported capture result key: " + key.getName());
+                        }
+
+                        List<android.util.Size> extension_preview_sizes = extension_characteristics.getExtensionSupportedSizes(extension, SurfaceTexture.class);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "    extension_preview_sizes: " + extension_preview_sizes);
+                        boolean has_preview_resolution = false;
+                        for(CameraController.Size size : camera_features.preview_sizes) {
+                            if( extension_preview_sizes.contains(new android.util.Size(size.width, size.height)) ) {
+                                if( MyDebug.LOG ) {
+                                    Log.d(TAG, "    preview size supports extension: " + size.width + " , " + size.height);
+                                }
+                                has_preview_resolution = true;
+                                if( size.supported_extensions == null ) {
+                                    size.supported_extensions = new ArrayList<>();
+                                }
+                                size.supported_extensions.add(extension);
+                            }
+                            else {
+                                if( MyDebug.LOG ) {
+                                    Log.d(TAG, "    preview size does NOT support extension: " + size.width + " , " + size.height);
+                                }
                             }
                         }
-                        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ) {
-                            if( MyDebug.LOG ) {
-                                Log.d(TAG, "    isCaptureProcessProgressAvailable: " + extension_characteristics.isCaptureProcessProgressAvailable(extension));
+
+                        if( has_picture_resolution && has_preview_resolution ) {
+                            if( MyDebug.LOG )
+                                Log.d(TAG, "    extension is supported: " + extension);
+                            camera_features.supported_extensions.add(extension);
+
+                            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+                                Set<CaptureRequest.Key> extension_supported_request_keys = extension_characteristics.getAvailableCaptureRequestKeys(extension);
+                                for(CaptureRequest.Key<?> key : extension_supported_request_keys) {
+                                    if( MyDebug.LOG )
+                                        Log.d(TAG, "    supported capture request key: " + key.getName());
+                                    if( key == CaptureRequest.CONTROL_ZOOM_RATIO ) {
+                                        camera_features.supported_extensions_zoom.add(extension);
+                                    }
+                                }
+                                Set<CaptureResult.Key> extension_supported_result_keys = extension_characteristics.getAvailableCaptureResultKeys(extension);
+                                for(CaptureResult.Key<?> key : extension_supported_result_keys) {
+                                    if( MyDebug.LOG )
+                                        Log.d(TAG, "    supported capture result key: " + key.getName());
+                                }
+                            }
+                            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE ) {
+                                if( MyDebug.LOG ) {
+                                    Log.d(TAG, "    isCaptureProcessProgressAvailable: " + extension_characteristics.isCaptureProcessProgressAvailable(extension));
+                                }
                             }
                         }
+                    }
+                    catch(Exception exception) {
+                        // have IllegalArgumentException from getExtensionSupportedSizes() and getAvailableCaptureRequestKeys() at least from Google Play crashes
+                        if( MyDebug.LOG )
+                            Log.e(TAG, "exception trying to query extension: " + extension);
+                        camera_features.supported_extensions.remove(extension);
+                        camera_features.supported_extensions_zoom.remove(extension);
                     }
                 }
             }
