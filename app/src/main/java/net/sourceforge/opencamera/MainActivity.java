@@ -43,6 +43,7 @@ import android.provider.MediaStore;
 import android.renderscript.RenderScript;
 import android.speech.tts.TextToSpeech;
 
+import android.text.Html;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Spanned;
@@ -713,6 +714,31 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        // set up switch camera button long click - must be done after setting is_multi_cam
+        if( n_cameras > 2 ) {
+            View.OnLongClickListener long_click_listener = new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if( !allowLongPress() ) {
+                        // return false, so a regular click will still be triggered when the user releases the touch
+                        return false;
+                    }
+                    longClickedSwitchMultiCamera();
+                    return true;
+                }
+            };
+            switchCameraButton.setOnLongClickListener(long_click_listener);
+
+            /* Some multi-camera devices might not show the switch_multi_camera icon, e.g.:
+                   Device only has e.g. back cameras but has 3 or more of them
+                   Device has e.g. 2 back cameras and 1 front camera, and the current camera is the front camera.
+               It seems simpler to just allow long pressing on either of these icons.
+             */
+            View switchMultiCameraButton = findViewById(R.id.switch_multi_camera);
+            switchMultiCameraButton.setOnLongClickListener(long_click_listener);
+        }
+
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: time after setting long click listeners: " + (System.currentTimeMillis() - debug_time));
 
@@ -2741,6 +2767,69 @@ public class MainActivity extends AppCompatActivity {
             String text = getString(R.string.switch_multi_camera_lens) + " " + (index + 1);
             multiCameraButton.setText(text);
         }
+    }
+
+    /** User can long-click on switch multi cam icon to bring up a menu to switch to any camera.
+     */
+    private void longClickedSwitchMultiCamera() {
+        if( MyDebug.LOG )
+            Log.d(TAG, "longClickedSwitchMultiCamera");
+
+        showPreview(false);
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+        alertDialog.setTitle(R.string.choose_camera);
+
+        int n_cameras = preview.getCameraControllerManager().getNumberOfCameras();
+        CharSequence [] items = new CharSequence[n_cameras];
+        int index=0;
+        int curr_camera_id = getActualCameraId();
+        // history is stored in order most-recent-last
+        for(int i=0;i<n_cameras;i++) {
+            String camera_name = i + ": " + preview.getCameraControllerManager().getDescription(this, i);
+            if( i == curr_camera_id ) {
+                String html_camera_name = "<b>[" + camera_name + "]</b>";
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    items[index++] = Html.fromHtml(html_camera_name, Html.FROM_HTML_MODE_LEGACY);
+                }
+                else {
+                    items[index++] = Html.fromHtml(html_camera_name);
+                }
+            }
+            else
+                items[index++] = camera_name;
+        }
+
+        alertDialog.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "selected: " + which);
+                int n_cameras = preview.getCameraControllerManager().getNumberOfCameras();
+                if( which >= 0 && which < n_cameras ) {
+                    if( preview.isOpeningCamera() ) {
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "already opening camera in background thread");
+                        return;
+                    }
+                    MainActivity.this.closePopup();
+                    if( MainActivity.this.preview.canSwitchCamera() ) {
+                        pushCameraIdToast(which);
+                        userSwitchToCamera(which, true);
+                    }
+                }
+                setWindowFlagsForCamera();
+                showPreview(true);
+            }
+        });
+        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface arg0) {
+                setWindowFlagsForCamera();
+                showPreview(true);
+            }
+        });
+        setWindowFlagsForSettings();
+        showAlert(alertDialog.create());
     }
 
     /**
