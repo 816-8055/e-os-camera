@@ -375,8 +375,15 @@ public class MainActivity extends AppCompatActivity {
             setDeviceDefaults();
         }
 
-        // set up window flags for normal operation
-        setWindowFlagsForCamera();
+        boolean settings_is_open = settingsIsOpen();
+        if( MyDebug.LOG )
+            Log.d(TAG, "settings_is_open?: " + settings_is_open);
+        // settings_is_open==true can happen if application is recreated when settings is open
+        // to reproduce: go to settings, then turn screen off and on (and unlock)
+        if( !settings_is_open ) {
+            // set up window flags for normal operation
+            setWindowFlagsForCamera();
+        }
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: time after setting window flags: " + (System.currentTimeMillis() - debug_time));
 
@@ -442,6 +449,11 @@ public class MainActivity extends AppCompatActivity {
         preview = new Preview(applicationInterface, (this.findViewById(R.id.preview)));
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: time after creating preview: " + (System.currentTimeMillis() - debug_time));
+
+        if( settings_is_open ) {
+            // must be done after creating preview
+            setWindowFlagsForSettings();
+        }
 
         if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 ) {
             // don't show orientation animations

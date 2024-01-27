@@ -1615,6 +1615,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "don't open camera as preview in background");
             // note, even if the application never tries to reopen the camera in the background, we still need this check to avoid the camera
             // opening from mySurfaceCreated()
+            // for example, this is needed when the application is recreated when settings are open (a new Preview and surface is created, but
+            // we don't want the camera to be opened) - to test this, go to settings then turn screen off and on (and unlock)
             return;
         }
         else if( camera_open_state == CameraOpenState.CAMERAOPENSTATE_OPENING ) {
