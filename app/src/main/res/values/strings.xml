@@ -1019,6 +1019,8 @@
     <string name="preference_remove_device_exif_on">Remove device EXIF data</string>
     <string name="preference_remove_device_exif_keep_datetime">Remove except date/time</string>
 
+    <string name="choose_camera">Choose camera:</string>
+
     <!-- The following strings should not be translated (and shouldn't be included in language-specific strings.xml), in case they need updating -->
 
     <string name="preference_privacy_policy" translatable="false">Privacy policy</string>

@@ -290,6 +290,10 @@ public abstract class CameraController {
          */
         void onRawBurstPictureTaken(List<RawImage> raw_images);
 
+        /** Reports percentage progress for vendor camera extensions. Note that not all devices support this being called.
+         */
+        void onExtensionProgress(int progress);
+
         /* This is called for when burst mode is BURSTTYPE_FOCUS or BURSTTYPE_CONTINUOUS, to ask whether it's safe to take
          * n_raw extra RAW images and n_jpegs extra JPEG images, or whether to wait.
          */

@@ -257,5 +257,6 @@ public interface ApplicationInterface {
     boolean onRawBurstPictureTaken(List<RawImage> raw_images, Date current_date);
     void onCaptureStarted(); // called immediately before we start capturing the picture
     void onPictureCompleted(); // called after all picture callbacks have been called and returned
+    void onExtensionProgress(int progress); // Reports percentage progress for vendor camera extensions. Note that not all devices support this being called.
     void onContinuousFocusMove(boolean start); // called when focusing starts/stop in continuous picture mode (in photo mode only)
 }

@@ -2760,6 +2760,9 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         if( MyDebug.LOG )
             Log.d(TAG, "onPictureCompleted");
 
+        // clear any toasts displayed during progress (e.g., preference_nr_mode_low_light_message, or onExtensionProgress())
+        main_activity.getPreview().clearActiveFakeToast();
+
         PhotoMode photo_mode = getPhotoMode();
         if( main_activity.getPreview().isVideo() ) {
             if( MyDebug.LOG )
@@ -2800,6 +2803,15 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         // call this, so that if pause-preview-after-taking-photo option is set, we remove the "taking photo" border indicator straight away
         // also even for normal (not pausing) behaviour, good to remove the border asap
         drawPreview.cameraInOperation(false);
+    }
+
+    @Override
+    public void onExtensionProgress(int progress) {
+        String message = "";
+        if( getPhotoMode() == PhotoMode.X_Night ) {
+            message = getContext().getResources().getString(R.string.preference_nr_mode_low_light_message) + "\n";
+        }
+        main_activity.getPreview().showToast(null, message + progress + "%", true);
     }
 
     @Override

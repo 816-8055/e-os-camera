@@ -6500,6 +6500,12 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 }
             }
 
+            public void onExtensionProgress(int progress) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "onExtensionProgress: " + progress);
+                applicationInterface.onExtensionProgress(progress);
+            }
+
             public boolean imageQueueWouldBlock(int n_raw, int n_jpegs) {
                 if (MyDebug.LOG)
                     Log.d(TAG, "imageQueueWouldBlock");

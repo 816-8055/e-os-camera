@@ -667,6 +667,10 @@ public abstract class BasicApplicationInterface implements ApplicationInterface 
     }
 
     @Override
+    public void onExtensionProgress(int progress) {
+    }
+
+    @Override
     public void onContinuousFocusMove(boolean start) {
 
     }
