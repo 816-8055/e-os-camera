@@ -730,7 +730,7 @@
     <string name="preference_camera_api_camera2">Camera2 API</string>
     <string name="preference_select_remote">Veldu fjartengt tæki</string>
     <string name="unknown_device_no_permission">Óþekkt tæki (heimild fyrir bluetooth-tengingar er ekki til staðar)</string>
-    <string name="preference_licence_open_camera_text">Myndavél/Camera er © 2013–2019 Mark Harman, gefið út með GPL útg.3 eða síðari. Ýttu hér til að sjá allan texta notkunarleyfisins.</string>
+    <string name="preference_licence_open_camera_text">Myndavél/Camera er © 2013–2023 Mark Harman, gefið út með GPL útg.3 eða síðari. Ýttu hér til að sjá allan texta notkunarleyfisins.</string>
     <string name="preference_licence_google_icons_text">Myndavél/Camera notar táknmyndir úr Material-hönnun Google (https://developer.android.com/design/downloads/index.html , https://design.google.com/icons/ , https://github.com/google/material-design-icons/ , https://google.github.io/material-design-icons/) samkvæmt Apache notkunarleyfi útgáfu 2.0. Sumum táknmyndum hefur verið breytt. Ýttu hér til að sjá allan texta notkunarleyfisins.</string>
     <string name="slow_motion_enabled">Hægtaka virk</string>
     <string name="slow_motion_disabled">Hægtaka óvirk</string>
@@ -757,7 +757,7 @@
     <string name="preference_iso_summary">Hærra gildi þýðir meiri ljósnæmni (virkar mögulega ekki á sumum tækjum)</string>
     <string name="preference_exposure_summary">Settu á 0 fyrir sjálfgefna jöfnun á lýsingu</string>
     <string name="preference_white_balance_summary">Veldu stillingu til að aðlaga hvítvægi (white balance)</string>
-    <string name="preference_touch_capture_summary">Taktu ljósmynd einfaldlega með því að snerta eða tvíbanka á forskoðunina</string>
+    <string name="preference_touch_capture_summary">Taktu ljósmynd eða myndskeið einfaldlega með því að snerta eða tvíbanka á forskoðunina</string>
     <string name="preference_pause_preview_summary">Setja skjáinn í bið eftir að mynd er tekin, með valkostum um að deila eða eyða myndinni</string>
     <string name="preference_audio_noise_control_sensitivity_summary">Valkostur varðandi næmi á styrk truflana í hljóði (hávaða)</string>
     <string name="preference_rotate_preview_summary">Valkostur um að snúa forskoðuninni (hefur ekki áhrif á teknar myndir/myndskeið)
