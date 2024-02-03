@@ -12,7 +12,7 @@
     <string name="preference_timer_speak_summary">Tala nedräkningen för självutlösare eller vid fördröjning av upprepningsläge (från 60 sekunder)</string>
     <string name="preference_burst_interval">Intervall för upprepningsläge</string>
     <string name="preference_screen_camera_controls_more">Fler kamerakontroller …</string>
-    <string name="preference_touch_capture_summary">Ta ett foto genom att trycka eller dubbeltrycka på förhandsgranskningen</string>
+    <string name="preference_touch_capture_summary">Ta ett foto eller spela in video genom att trycka eller dubbeltrycka på förhandsgranskningen</string>
     <string name="preference_pause_preview">Pausa efter att ha tagit ett foto</string>
     <string name="preference_pause_preview_summary">Pausa skärmen efter att ha tagit ett foto, med möjlighet att dela eller radera fotot</string>
     <string name="preference_shutter_sound">Slutarljud</string>
@@ -599,7 +599,7 @@
     <string name="error_features_bitrate">Bithastighet</string>
     <string name="error_features_frame_rate">Bildhastighet</string>
     <string name="preference_screen_licences">Öppen källkodslicens</string>
-    <string name="preference_licence_open_camera_text">Camera is © 2013–2019 Mark Harman, publicerad under GPL v3 eller senare. Tryck här för hela licenstexten.</string>
+    <string name="preference_licence_open_camera_text">Camera is © 2013–2023 Mark Harman, publicerad under GPL v3 eller senare. Tryck här för hela licenstexten.</string>
     <string name="preference_licence_google_icons">Googles Material Design-ikoner</string>
     <string name="preferences_about_app">Kamera är avgrenad från OpenCamera</string>
     <string name="preferences_licence">Licens</string>
