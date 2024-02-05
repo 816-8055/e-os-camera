@@ -626,6 +626,6 @@
 \n
 \nPrecisión actual:</string>
     <string name="accuracy_unreliable">Inestable</string>
-    <string name="accuracy_low">Bajo</string>
-    <string name="accuracy_medium">Medio</string>
+    <string name="accuracy_low">Baja</string>
+    <string name="accuracy_medium">Media</string>
 </resources>
