@@ -620,6 +620,10 @@
     <string name="preference_video_bitrate_200000000">200Mbps</string>
     <string name="focus_bracketing_add_infinity">Añadir distancia infinita</string>
     <string name="photo_mode_focus_bracketing_full">Enfoque horquillado</string>
-    <string name="magnetic_accuracy_title">Dirección de la brújula</string>
+    <string name="magnetic_accuracy_title">Dirección del compás</string>
     <string name="photo_mode_focus_bracketing">Enfoque {}</string>
+    <string name="magnetic_accuracy_info">El compás de tu dispositivo necesita calibrarse para mejorar su precisión. Para ello, mueve el dispositivo en forma de 8.
+\n
+\nPrecisión actual:</string>
+    <string name="accuracy_unreliable">Inestable</string>
 </resources>
