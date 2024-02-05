@@ -607,4 +607,15 @@
     <string name="preference_video_log_off">Predeterminado</string>
     <string name="preference_video_log_fine">Registro (Fino)</string>
     <string name="preference_video_log_low">Registro (Bajo)</string>
+    <string name="no_burst">sin ráfaga</string>
+    <string name="preference_video_log_strong">Registro (Fuerte)</string>
+    <string name="preference_video_log_extra_strong">Registro (Extra fuerte)</string>
+    <string name="video_log">Perfil de registro</string>
+    <string name="preference_record_audio_src_voice_recognition">Optimizado para el reconocimiento de voz</string>
+    <string name="preference_video_bitrate_150000000">150Mbps</string>
+    <string name="preference_show_video_max_amp_summary">Mostrar o no el nivel de audio en la pantalla al grabar vídeo</string>
+    <string name="preference_show_video_max_amp">Mostrar medidor de nivel de audio</string>
+    <string name="preference_video_log_medium">Registro (Medio)</string>
+    <string name="preference_record_audio_src_unprocessed">Sin procesar</string>
+    <string name="preference_video_bitrate_200000000">200Mbps</string>
 </resources>
