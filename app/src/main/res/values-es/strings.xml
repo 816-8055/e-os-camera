@@ -628,5 +628,5 @@
     <string name="accuracy_unreliable">Inestable</string>
     <string name="accuracy_low">Baja</string>
     <string name="accuracy_medium">Media</string>
-    <string name="accuracy_high">Alto</string>
+    <string name="accuracy_high">Alta</string>
 </resources>
