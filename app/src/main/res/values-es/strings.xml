@@ -605,4 +605,5 @@
     <string name="permission_rationale_storage">Permiso de lectura/escritura requerido para guardar los archivos resultantes, como fotos o vídeos</string>
     <string name="preference_video_log_summary">Definir perfil de imagen estándar o plana para el modo de vídeo %s</string>
     <string name="preference_video_log_off">Predeterminado</string>
+    <string name="preference_video_log_fine">Registro (Fino)</string>
 </resources>
