@@ -629,4 +629,6 @@
     <string name="accuracy_low">Baja</string>
     <string name="accuracy_medium">Media</string>
     <string name="accuracy_high">Alta</string>
+    <string name="accuracy_unknown">Desconocido</string>
+    <string name="preference_units_distance">Unidad de distancia</string>
 </resources>
