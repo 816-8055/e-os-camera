@@ -99,7 +99,7 @@
     <string name="preference_burst_interval">Serienbild-Intervall</string>
     <string name="preference_screen_camera_controls_more">Mehr Kamera-Einstellungen…</string>
     <string name="preference_touch_capture">Aufnahme bei Berührung</string>
-    <string name="preference_touch_capture_summary">Fotoaufnahme durch Berührung oder Doppelklick der Vorschau starten</string>
+    <string name="preference_touch_capture_summary">Aufnahme eines Fotos oder Videos durch Tippen oder Doppelklicken auf die Vorschau</string>
     <string name="preference_pause_preview">Pause nach der Fotoaufnahme</string>
     <string name="preference_pause_preview_summary">Nach der Aufnahme pausieren mit der Möglichkeit, das Foto zu teilen oder zu löschen</string>
     <string name="preference_shutter_sound">Auslöseton</string>
@@ -892,7 +892,7 @@
     <string name="preferences_about_app">Kamera ist eine Abänderung von OpenCamera</string>
     <string name="preferences_build_version">Build-Version</string>
     <string name="preference_licence_google_icons">Material-Design-Symbole von Google</string>
-    <string name="preference_licence_open_camera_text">Kamera © 2013–2019 Mark Harman, veröffentlicht unter GPL v3 oder später. Tippe hier für den vollständigen Lizenztext.</string>
+    <string name="preference_licence_open_camera_text">Kamera © 2013–2023 Mark Harman, veröffentlicht unter GPL v3 oder später. Tippe hier für den vollständigen Lizenztext.</string>
     <string name="preference_licence_open_camera">Kamera</string>
     <string name="preference_screen_licences">Open-Source-Lizenzen</string>
     <string name="preferences_licence">Lizenz</string>
