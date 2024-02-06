@@ -8,6 +8,7 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences;
@@ -1508,22 +1509,12 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                             public void onClick(DialogInterface dialog, int which) {
                                 if( MyDebug.LOG )
                                     Log.d(TAG, "user confirmed reset");
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.clear();
-                                editor.putBoolean(PreferenceKeys.FirstTimePreferenceKey, true);
-                                try {
-                                    PackageInfo pInfo = MyPreferenceFragment.this.getActivity().getPackageManager().getPackageInfo(MyPreferenceFragment.this.getActivity().getPackageName(), 0);
-                                    int version_code = pInfo.versionCode;
-                                    editor.putInt(PreferenceKeys.LatestVersionPreferenceKey, version_code);
-                                }
-                                catch(NameNotFoundException e) {
-                                    if (MyDebug.LOG)
-                                        Log.d(TAG, "NameNotFoundException exception trying to get version number");
-                                    e.printStackTrace();
-                                }
-                                editor.apply();
+                                // Clear the default SharedPreferences
+                                SharedPreferences defaultPref = MyPreferenceFragment.this.getContext().getSharedPreferences(
+                                        "_has_set_default_values", Context.MODE_PRIVATE);
+                                sharedPreferences.edit().clear().apply();
+                                defaultPref.edit().clear().apply();
                                 MainActivity main_activity = (MainActivity)MyPreferenceFragment.this.getActivity();
-                                main_activity.setDeviceDefaults();
                                 if( MyDebug.LOG )
                                     Log.d(TAG, "user clicked reset - need to restart");
                                 main_activity.restartOpenCamera();
