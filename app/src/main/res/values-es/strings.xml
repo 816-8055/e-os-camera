@@ -816,4 +816,34 @@
     <string name="preference_panorama_save_all_plus_debug">Guarda imágenes originales y el XML de depuración</string>
     <string name="exposure_compensation_seekbar">Barra de búsqueda para cambiar la compensación de exposición</string>
     <string name="preference_camera_api">Cámara API</string>
+    <string name="preference_camera2_dummy_capture_hack_summary">Activa esta opción si tu dispositivo tiene problemas al tomar fotos con los modos HDR o Expo (si las imágenes expo salen con las mismas exposiciones). Solo es relevante si la opción rápida HDR/expo de abajo también está activada.</string>
+    <string name="array_seekbar_preference_seekbar">Barra de búsqueda para cambiar el valor de preferencia actual</string>
+    <string name="preference_camera2_dummy_capture_hack">Activar captura ficticia HDR/expo fix</string>
+    <string name="permission_rationale_bluetooth_scan_connect">Los permisos de escaneo/conexión Bluetooth son necesarios para descubrir y conectarse a dispositivos de control remoto Bluetooth LE.</string>
+    <string name="switch_to_unknown_camera">Cambiar cámara</string>
+    <string name="preference_zebra_stripes_background_color">Color de fondo de las rayas de cebra</string>
+    <string name="preference_zebra_stripes_background_color_summary">Color a utilizar para la franja de fondo cuando se muestran las rayas de cebra.
+\n%s</string>
+    <string name="preference_zebra_stripes_color_black">Negro</string>
+    <string name="preference_zebra_stripes_color_orange">Naranja</string>
+    <string name="preference_zebra_stripes_color_transparent">Transparente</string>
+    <string name="preference_zebra_stripes_color_white">Blanco</string>
+    <string name="ultrawide">Ultra-ancho</string>
+    <string name="preference_multi_cam_button">ícono de cámaras múltiples</string>
+    <string name="preference_multi_cam_button_summary">Si está activado, utiliza botones separados para cambiar entre la cámara frontal y traseras, y para cambiar entre varias cámaras delanteras y traseras. Si está desactivado, el icono de cambio de cámara pasará por todas las cámaras.</string>
+    <string name="preference_show_camera_id">Mostrar ID de la cámara</string>
+    <string name="preference_show_camera_id_summary">Mostrar número de identificación de la cámara actual en pantalla</string>
+    <string name="preference_allow_long_press">Permitir acciones de pulsación larga</string>
+    <string name="preference_allow_long_press_summary">Permitir acciones de pulsación larga (por ejemplo, pulsación larga en galería para cambiar donde guardar).</string>
+    <string name="error_features_frame_rate">Velocidad de cuadro</string>
+    <string name="preference_comment_ypr_summary">Guardar viraje, cabeceo y balanceo del dispositivo en el comentario Exif de usuario de la foto (sólo en formato JPEG)</string>
+    <string name="preference_comment_ypr">Guardar viraje cabeceo y balanceo</string>
+    <string name="error_features_bitrate">Tasa de bits</string>
+    <string name="error_features_slow_motion">Cámara lenta</string>
+    <string name="aperture">Apertura</string>
+    <string name="preference_zebra_stripes_color_red">Rojo</string>
+    <string name="external_camera">Cámara externa</string>
+    <string name="switch_to_external_camera">Cambiar a cámara externa</string>
+    <string name="switch_multi_camera">Cambiar entre cámaras múltiples</string>
+    <string name="error_features_4k">4K UHD</string>
 </resources>
