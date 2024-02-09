@@ -59,6 +59,8 @@ interface PanoramaTests {}
 public class InstrumentedTest {
 
     private static final String TAG = "InstrumentedTest";
+    public static final boolean test_camera2 = false;
+    //public static final boolean test_camera2 = true;
 
     static final Intent intent;
     static {
@@ -68,7 +70,7 @@ public class InstrumentedTest {
         intent.putExtra("test_project_junit4", true);
 
         // need to run this here, not in before(), so it's run before activity is created (otherwise Camera2 won't be enabled)
-        TestUtils.initTest(ApplicationProvider.getApplicationContext());
+        TestUtils.initTest(ApplicationProvider.getApplicationContext(), test_camera2);
     }
 
     @Rule
@@ -104,7 +106,7 @@ public class InstrumentedTest {
         // state after running tests.
         mActivityRule.getScenario().onActivity(activity -> {
             Log.d(TAG, "after: init");
-            TestUtils.initTest(activity);
+            TestUtils.initTest(activity, test_camera2);
         });
 
         Log.d(TAG, "after done");
@@ -454,8 +456,7 @@ public class InstrumentedTest {
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
             //checkHistogramDetails(hdrHistogramDetails, 3, 43, 251);
-            //checkHistogramDetails(hdrHistogramDetails, 6, 42, 251);
-            checkHistogramDetails(hdrHistogramDetails, 6, 49, 252);
+            checkHistogramDetails(hdrHistogramDetails, 6, 42, 251);
         });
     }
 
@@ -708,7 +709,7 @@ public class InstrumentedTest {
 
             //checkHistogramDetails(hdrHistogramDetails, 0, 48, 255);
             //checkHistogramDetails(hdrHistogramDetails, 0, 65, 255);
-            checkHistogramDetails(hdrHistogramDetails, 0, 72, 255);
+            checkHistogramDetails(hdrHistogramDetails, 0, 62, 254);
         });
     }
 
@@ -1011,8 +1012,8 @@ public class InstrumentedTest {
             int [] exp_offsets_y = {0, 0};
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
-            //checkHistogramDetails(hdrHistogramDetails, 33, 78, 250);
-            checkHistogramDetails(hdrHistogramDetails, 17, 75, 250);
+            //checkHistogramDetails(hdrHistogramDetails, 13, 72, 250);
+            checkHistogramDetails(hdrHistogramDetails, 24, 72, 250);
         });
     }
 
@@ -1064,7 +1065,7 @@ public class InstrumentedTest {
 
             //checkHistogramDetails(hdrHistogramDetails, 17, 81, 255);
             //checkHistogramDetails(hdrHistogramDetails, 32, 74, 255);
-            checkHistogramDetails(hdrHistogramDetails, 23, 71, 255);
+            checkHistogramDetails(hdrHistogramDetails, 29, 68, 255);
         });
     }
 
@@ -1091,8 +1092,8 @@ public class InstrumentedTest {
             int [] exp_offsets_y = {0, 0, 0, 0};
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
-            //checkHistogramDetails(hdrHistogramDetails, 31, 75, 254);
-            checkHistogramDetails(hdrHistogramDetails, 23, 74, 254);
+            //checkHistogramDetails(hdrHistogramDetails, 15, 69, 254);
+            checkHistogramDetails(hdrHistogramDetails, 24, 70, 254);
         });
     }
 
@@ -1122,8 +1123,7 @@ public class InstrumentedTest {
 
             //checkHistogramDetails(hdrHistogramDetails, 17, 81, 255);
             //checkHistogramDetails(hdrHistogramDetails, 28, 82, 255);
-            //checkHistogramDetails(hdrHistogramDetails, 21, 74, 255);
-            checkHistogramDetails(hdrHistogramDetails, 17, 74, 255);
+            checkHistogramDetails(hdrHistogramDetails, 21, 74, 255);
         });
     }
 
@@ -1152,8 +1152,8 @@ public class InstrumentedTest {
             int [] exp_offsets_y = {0, 0, 0, 0, 0, 0};
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
-            //checkHistogramDetails(hdrHistogramDetails, 32, 76, 254);
-            checkHistogramDetails(hdrHistogramDetails, 25, 75, 254);
+            //checkHistogramDetails(hdrHistogramDetails, 15, 70, 254);
+            checkHistogramDetails(hdrHistogramDetails, 25, 71, 254);
         });
     }
 
@@ -1943,8 +1943,7 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR47_exp5_output.jpg", false, -1, -1);
 
-            //checkHistogramDetails(hdrHistogramDetails, 1, 73, 255);
-            checkHistogramDetails(hdrHistogramDetails, 1, 80, 255);
+            checkHistogramDetails(hdrHistogramDetails, 1, 73, 255);
         });
     }
 
@@ -1971,8 +1970,7 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR47_exp7_output.jpg", false, -1, -1);
 
-            //checkHistogramDetails(hdrHistogramDetails, 1, 73, 255);
-            checkHistogramDetails(hdrHistogramDetails, 1, 80, 255);
+            checkHistogramDetails(hdrHistogramDetails, 1, 73, 255);
         });
     }
 
@@ -2021,8 +2019,7 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR48_exp5_output.jpg", false, -1, -1);
 
-            //checkHistogramDetails(hdrHistogramDetails, 0, 59, 241);
-            checkHistogramDetails(hdrHistogramDetails, 0, 67, 241);
+            checkHistogramDetails(hdrHistogramDetails, 0, 59, 241);
         });
     }
 
@@ -2043,8 +2040,7 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR49_exp2_output.jpg", false, -1, -1);
 
-            //checkHistogramDetails(hdrHistogramDetails, 12, 120, 251);
-            checkHistogramDetails(hdrHistogramDetails, 0, 122, 251);
+            checkHistogramDetails(hdrHistogramDetails, 0, 92, 250);
         });
     }
 
@@ -2068,7 +2064,7 @@ public class InstrumentedTest {
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR49_output.jpg", false, -1, -1);
 
             //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
-            checkHistogramDetails(hdrHistogramDetails, 0, 89, 254);
+            checkHistogramDetails(hdrHistogramDetails, 0, 81, 254);
         });
     }
 
@@ -2091,7 +2087,8 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR49_exp4_output.jpg", false, -1, -1);
 
-            checkHistogramDetails(hdrHistogramDetails, 19, 109, 244);
+            //checkHistogramDetails(hdrHistogramDetails, 0, 100, 245);
+            checkHistogramDetails(hdrHistogramDetails, 0, 94, 244);
         });
     }
 
@@ -2116,8 +2113,7 @@ public class InstrumentedTest {
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR49_exp5_output.jpg", false, -1, -1);
 
             //checkHistogramDetails(hdrHistogramDetails, 0, 72, 244);
-            //checkHistogramDetails(hdrHistogramDetails, 0, 78, 243);
-            checkHistogramDetails(hdrHistogramDetails, 0, 87, 243);
+            checkHistogramDetails(hdrHistogramDetails, 0, 78, 243);
         });
     }
 
@@ -2206,7 +2202,7 @@ public class InstrumentedTest {
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR53_output.jpg", false, 103, 1000000000L/5381);
 
             //checkHistogramDetails(hdrHistogramDetails, 0, 55, 254);
-            checkHistogramDetails(hdrHistogramDetails, 0, 72, 255);
+            checkHistogramDetails(hdrHistogramDetails, 0, 64, 255);
         });
     }
 
@@ -2385,7 +2381,7 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR61_output.jpg", false, 50, 1000000000L/5025);
 
-            checkHistogramDetails(hdrHistogramDetails, 0, 93, 255);
+            checkHistogramDetails(hdrHistogramDetails, 0, 86, 254);
 
             int [] exp_offsets_x = {0, 0, 1};
             int [] exp_offsets_y = {0, 0, -2};
@@ -6312,7 +6308,6 @@ public class InstrumentedTest {
             }
         });
     }
-
     /** Tests option to remove device exif info, but keeping datetime tags.
      */
     @Category(PhotoTests.class)

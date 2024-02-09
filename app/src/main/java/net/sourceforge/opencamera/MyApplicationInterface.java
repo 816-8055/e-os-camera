@@ -1459,14 +1459,13 @@ public class MyApplicationInterface extends BasicApplicationInterface {
     /** Returns the ROTATION_* enum of the display relative to the natural device orientation, but
      *  also checks for the preview being rotated due to user preference
      *  RotatePreviewPreferenceKey.
-     *  See ApplicationInterface.getDisplayRotation() for more details, including for prefer_later.
      */
     @Override
-    public int getDisplayRotation(boolean prefer_later) {
+    public int getDisplayRotation() {
         // important to use cached rotation to reduce issues of incorrect focus square location when
         // rotating device, due to strange Android behaviour where rotation changes shortly before
         // the configuration actually changes
-        int rotation = main_activity.getDisplayRotation(prefer_later);
+        int rotation = main_activity.getDisplayRotation();
 
         String rotate_preview = sharedPreferences.getString(PreferenceKeys.RotatePreviewPreferenceKey, "0");
         if( MyDebug.LOG )
@@ -1839,12 +1838,9 @@ public class MyApplicationInterface extends BasicApplicationInterface {
 
     @Override
     public boolean allowZoom() {
-        if( getPhotoMode() == PhotoMode.Panorama ) {
+        if( getPhotoMode() == PhotoMode.Panorama || isCameraExtensionPref() ) {
             // don't allow zooming in panorama mode, the algorithm isn't set up to support this!
-            return false;
-        }
-        else if( isCameraExtensionPref() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&  !main_activity.getPreview().supportsZoomForCameraExtension(getCameraExtensionPref()) ) {
-            // zoom not supported for camera extension
+            // zoom also not supported for camera extensions
             return false;
         }
         return true;
@@ -1993,11 +1989,10 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                 if( MyDebug.LOG )
                     Log.d(TAG, "TargetCallback.onTooFar");
 
-                // it's better not to cancel the panorama if the user moves the device too far in wrong direction
-                /*if( !main_activity.is_test ) {
+                if( !main_activity.is_test ) {
                     main_activity.getPreview().showToast(null, R.string.panorama_cancelled, true);
                     MyApplicationInterface.this.stopPanorama(true);
-                }*/
+                }
             }
 
         });
