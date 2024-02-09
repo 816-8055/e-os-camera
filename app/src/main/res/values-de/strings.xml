@@ -903,4 +903,17 @@
     <string name="preference_camera2_dummy_capture_hack">Dummy-HDR-Aufnahme/Expositionsberichtigung aktivieren</string>
     <string name="switch_multi_camera_lens">LINSEN</string>
     <string name="preference_camera2_dummy_capture_hack_summary">Wenn dein Gerät Probleme bei der Aufnahme von HDR oder Expo-Foto-Modi hat (wenn Expo-Bilder mit derselben Belichtung herauskommen), versuche, diese Option zu aktivieren. Dies funktioniert nur, wenn die schnelle HDR/Expo-Option unterhalb auch aktiviert ist.</string>
+    <string name="preference_hdr_tonemapping_default">Standard</string>
+    <string name="preference_remove_device_exif_keep_datetime">Entfernen, außer Datum und Zeit</string>
+    <string name="preference_failed_focus_mode_message">Für bessere Fotos die Kamera bitte ruhig halten.</string>
+    <string name="preference_hdr_tonemapping">HDR Dynamikkompression</string>
+    <string name="preference_remove_device_exif_summary">Hiermit können die EXIF-Metadaten von JPEG-Fotos entfernt werden. Dies entfernt nicht die EXIF-Kennzeichen aus anderen Einstellungen, wie z.B. Standort oder Geotagging. Diese anderen Einstellungen sind unabhängig und setzen sich über diese Einstellung hier hinweg. RAW/DNG und Video werden durch diese Einstellung nicht betroffen.
+\n%s</string>
+    <string name="preference_remove_device_exif_off">EXIF-Daten nicht entfernen</string>
+    <string name="preference_hdr_tonemapping_clamp">Simple clamp</string>
+    <string name="preference_remove_device_exif">EXIF-Daten des Gerätes entfernen</string>
+    <string name="preference_hdr_tonemapping_summary">Der benutzte Algorithmus für Dynamikkompression im HDR Fotomodus: 
+\n%s</string>
+    <string name="preference_hdr_tonemapping_exponential">Exponentiell</string>
+    <string name="preference_remove_device_exif_on">EXIF-Daten entfernen</string>
 </resources>
