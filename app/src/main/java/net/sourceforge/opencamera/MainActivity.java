@@ -374,30 +374,28 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             Log.d(TAG, "onCreate: time after updating folder history: " + (System.currentTimeMillis() - debug_time));
 
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        if (DeviceSettings.isMurenaOne()) {
-            boolean isFirstTime = sharedPreferences.getBoolean("isFirstTimeMurenaOne", true);
-            if (isFirstTime && applicationInterface.getEdgeModePref().equals("default")) {
-                editor.putString(PreferenceKeys.EdgeModePreferenceKey, "off");
-                editor.putBoolean("isFirstTimeMurenaOne", false);
-                editor.apply();
-            }
+        int isFirstTime = sharedPreferences.getInt("isFirstTimeChange", 0);
+        switch (isFirstTime) {
+            case 0:
+                String edge_pref = applicationInterface.getEdgeModePref();
+                if (DeviceSettings.isMurenaOne() && edge_pref.equals("default")) {
+                    editor.putString(PreferenceKeys.EdgeModePreferenceKey, "off");
+                }
+                String save_location = sharedPreferences.getString(
+                        PreferenceKeys.SaveLocationPreferenceKey, "Camera");
+                if (save_location.equals("OpenCamera")) {
+                    editor.putString(PreferenceKeys.SaveLocationPreferenceKey, "Camera");
+                }
+                isFirstTime++;
+            case 1:
+                editor.putBoolean(PreferenceKeys.MaxBrightnessPreferenceKey, false);
+                isFirstTime++;
+                break;
+            default:
+                break;
         }
 
-        boolean isFirstTimeSaveLocation = sharedPreferences.getBoolean("isFirstTimeSaveLocation", true);
-        String save_location = sharedPreferences.getString(PreferenceKeys.SaveLocationPreferenceKey, "Camera");
-
-        if (isFirstTimeSaveLocation && save_location.equals("OpenCamera")) {
-            editor.putString(PreferenceKeys.SaveLocationPreferenceKey, "Camera");
-            editor.putBoolean("isFirstTimeSaveLocation", false);
-            editor.apply();
-        }
-
-        boolean isFirstTimeMaxBrightness = sharedPreferences.getBoolean("isFirstTimeMaxBrightness", true);
-        if (isFirstTimeMaxBrightness) {
-            editor.putBoolean(PreferenceKeys.MaxBrightnessPreferenceKey, false);
-            editor.putBoolean("isFirstTimeMaxBrightness", false);
-            editor.apply();
-        }
+        editor.putInt("isFirstTimeChange", isFirstTime).apply();
 
         // set up sensors
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
