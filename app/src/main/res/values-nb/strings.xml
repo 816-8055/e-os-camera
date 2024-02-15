@@ -36,26 +36,26 @@
     <string name="exposure_locked">Eksponering låst</string>
     <string name="exposure_unlocked">Eksponering ulåst</string>
     <string name="cancelled_timer">Avbrutt timer</string>
-    <string name="cancelled_repeat_mode">Avbrøt seriefotograferingsmodusen</string>
-    <string name="started_timer">Startet nedtelling</string>
+    <string name="cancelled_repeat_mode">Avbrutt gjentagelsesmodus</string>
+    <string name="started_timer">Startet timer</string>
     <string name="failed_to_save_video">Kunne ikke lagre videofil</string>
     <string name="failed_to_record_video">Kunne ikke ta opp video</string>
     <string name="started_recording_video">Opptak av video har begynt</string>
     <string name="sorry">Beklager</string>
     <string name="failed_to_save_photo">Kunne ikke lagre bilde</string>
     <string name="failed_to_save_photo_raw">Kunne ikke lagre RAW-bilde</string>
-    <string name="failed_to_auto_stabilise">Kunne ikke auto-stabilisere</string>
+    <string name="failed_to_auto_stabilise">Kunne ikke nivåjustere automatisk</string>
     <string name="failed_to_start_camera_preview">Kunne ikke starte kameraforhåndsvisning</string>
     <string name="taking_photo">Tar bilde</string>
     <string name="failed_to_take_picture">Kunne ikke ta bilde</string>
-    <string name="location_not_available">GPS-posisjon er ikke tilgjengelig</string>
+    <string name="location_not_available">GPS-lokasjon er ikke tilgjengelig</string>
     <string name="photo_deleted">Bildet ble slettet</string>
-    <string name="no_gallery_app">Ingen galleriapper er tilgjengelige</string>
+    <string name="no_gallery_app">Ingen applikasjon for bildegalleri er tilgjengelig</string>
     <string name="screen_is_locked">Skjerm er låst
-\nsveip skjermen for å låse opp</string>
+\nsveip over skjermen for å låse opp</string>
     <string name="unlocked">Låst opp</string>
-    <string name="auto_stabilise_not_supported">Beklager, men auto-vater støttes
-\nikke på denne enheten</string>
+    <string name="auto_stabilise_not_supported">Beklager, automatisk nivåjustering støttes ikke
+\npå denne enheten</string>
     <string name="audio_disabled">Lyd er deaktivert</string>
     <string name="max_duration">Maks varighet</string>
     <string name="color_effect">Fargeffekt</string>
