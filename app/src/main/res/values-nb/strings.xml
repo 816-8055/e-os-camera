@@ -1,41 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Camera</string>
+    <string name="app_name">Kamera</string>
     <!-- shouldn't be translated -->
     <string name="action_settings">Innstillinger</string>
-    <string name="action_popup">Oppsprettsinnstillinger</string>
+    <string name="action_popup">Innstillinger for dialogboks</string>
     <string name="intro_ok">OK (Denne meldingen vil ikke bli vist igjen)</string>
     <string name="on">På</string>
     <!-- whether a setting is turned on, e.g., "Auto-level: On" -->
     <string name="off">Av</string>
     <!-- whether a setting is turned off, e.g., "Auto-level: Off" -->
-    <string name="choose_save_location">Velg lagringsplassering:</string>
+    <string name="choose_save_location">Velg lagringsplass:</string>
     <string name="clear_folder_history">Slett mappehistorikken</string>
     <string name="clear_folder_history_question">Vil du slette mappehistorikken?</string>
     <string name="choose_another_folder">Velg en annen mappe</string>
-    <string name="changed_save_location">Endret lagreplasseringen til:</string>
+    <string name="changed_save_location">Endret lagringsplass til:</string>
     <string name="stopped_recording_video">Avsluttet videoopptak</string>
     <string name="repeats_to_go">omspillinger igjen</string>
     <!--  intentionally starts lower case -->
     <string name="failed_to_reconnect_camera">Klarte ikke å koble til kameraet igjen</string>
-    <string name="video_may_be_corrupted">En feil har oppstått, videofilen din kan være korrumpert</string>
+    <string name="video_may_be_corrupted">Feil, videofilen kan være ødelagt</string>
     <string name="not_supported">støttes ikke på enheten din</string>
     <!--  intentionally starts lower case -->
     <string name="video_error_unknown">Ukjent feil, videoen har stoppet</string>
     <string name="video_error_server_died">Tjeneren har kollapset, videoen har stoppet</string>
-    <string name="video_max_duration">Videoen har nådd maksvarigheten</string>
-    <string name="video_max_filesize">Videoen har nådd maksfilstørrelsen</string>
+    <string name="video_max_duration">Videoen har nådd maks varighet</string>
+    <string name="video_max_filesize">Videoen har nådd maksimal filstørrelse</string>
     <string name="exposure_compensation">Eksponeringskompensasjon</string>
-    <string name="fps"> bilder i sekundet</string>
-    <string name="focus_distance">Fokusdistanse</string>
+    <string name="fps">bilder per sekund</string>
+    <string name="focus_distance">Fokusavstand</string>
     <string name="infinite">Uendelig</string>
     <string name="front_camera">Frontkamera</string>
     <string name="back_camera">Bakkamera</string>
     <string name="photo">Foto</string>
     <string name="video">Video</string>
-    <string name="exposure_locked">Eksponeringen er låst</string>
-    <string name="exposure_unlocked">Eksponeringen er låst opp</string>
-    <string name="cancelled_timer">Nedtellingen er avbrutt</string>
+    <string name="exposure_locked">Eksponering låst</string>
+    <string name="exposure_unlocked">Eksponering ulåst</string>
+    <string name="cancelled_timer">Avbrutt timer</string>
     <string name="cancelled_repeat_mode">Avbrøt seriefotograferingsmodusen</string>
     <string name="started_timer">Startet nedtelling</string>
     <string name="failed_to_save_video">Kunne ikke lagre videofil</string>
