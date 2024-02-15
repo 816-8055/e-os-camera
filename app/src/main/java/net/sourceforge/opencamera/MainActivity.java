@@ -399,6 +399,13 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             editor.apply();
         }
 
+        boolean isFirstTimeMaxBrightness = sharedPreferences.getBoolean("isFirstTimeMaxBrightness", true);
+        if (isFirstTimeMaxBrightness) {
+            editor.putBoolean(PreferenceKeys.MaxBrightnessPreferenceKey, false);
+            editor.putBoolean("isFirstTimeMaxBrightness", false);
+            editor.apply();
+        }
+
         // set up sensors
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
 
