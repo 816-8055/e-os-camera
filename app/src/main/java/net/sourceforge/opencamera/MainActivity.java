@@ -385,6 +385,13 @@ public class MainActivity extends AppCompatActivity {
             editor.apply();
         }
 
+        boolean isFirstTimeMaxBrightness = sharedPreferences.getBoolean("isFirstTimeMaxBrightness", true);
+        if (isFirstTimeMaxBrightness) {
+            editor.putBoolean(PreferenceKeys.MaxBrightnessPreferenceKey, false);
+            editor.putBoolean("isFirstTimeMaxBrightness", false);
+            editor.apply();
+        }
+
         // set up sensors
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
 
@@ -3906,7 +3913,7 @@ public class MainActivity extends AppCompatActivity {
         // done here rather than onCreate, so that changing it in preferences takes effect without restarting app
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final WindowManager.LayoutParams layout = getWindow().getAttributes();
-        if( force_max || sharedPreferences.getBoolean(PreferenceKeys.MaxBrightnessPreferenceKey, true) ) {
+        if( force_max || sharedPreferences.getBoolean(PreferenceKeys.MaxBrightnessPreferenceKey, false) ) {
             layout.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL;
         }
         else {
