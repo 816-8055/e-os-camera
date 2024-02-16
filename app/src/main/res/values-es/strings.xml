@@ -852,4 +852,32 @@
     <string name="preference_camera_api_camera2">Cámara a API</string>
     <string name="preference_audio_control_summary">Tomar fotos/vídeos cuando se detecta un ruido, o por orden de voz. Cuando está activado, utiliza el botón del micrófono en pantalla para iniciar/detener la escucha.
 \n%s</string>
+    <string name="preference_zebra_stripes_foreground_color_summary">Color usado para la franja de primer plano cuando se muestran rayas de cebra.
+\n%s</string>
+    <string name="intro_text">Toca para enfocar y pulsa el botón blanco de la cámara para tomar fotos.
+\n
+\nPara desactivar el brillo máximo de la pantalla, consulta Ajustes/Guía en pantalla/\"Forzar brillo máximo\". Para guardar en tarjetas SD en Android 5+, consulta Ajustes/Más controles de la cámara/\"Marco de acceso al almacenamiento\". Para obtener más ayuda, haz clic en \"Ayuda en línea\" desde Ajustes.</string>
+    <string name="preference_video_profile_gamma_1_8">1.8</string>
+    <string name="preference_video_profile_gamma_2_0">2.0</string>
+    <string name="preference_video_profile_gamma_2_1">2.1</string>
+    <string name="preference_video_profile_gamma_2_2">2.2</string>
+    <string name="preference_video_profile_gamma_2_3">2.3</string>
+    <string name="preference_video_profile_gamma_2_4">2.4</string>
+    <string name="preference_video_profile_gamma_2_6">2.6</string>
+    <string name="preference_stamp_geo_address_summary">Si es posible, obtener la dirección a partir del GPS. Ten en cuenta que si está activada, esta opción requiere que tu dispositivo transmita los datos de ubicación a través de Internet a terceros para convertir las coordenadas GPS en una dirección. Consulta https://developer.android.com/reference/android/location/Geocoder . 
+\n%s Esta función no ofrece garantías de disponibilidad o precisión. Los resultados son aproximados y no se garantiza que sean significativos o correctos.</string>
+    <string name="preference_video_srgb">sRGB</string>
+    <string name="preference_video_gamma">Gamma</string>
+    <string name="preference_video_profile_gamma">Valor gamma de vídeo</string>
+    <string name="preference_video_profile_gamma_summary">Valor gamma a utilizar para vídeo si el perfil de imagen de vídeo está configurado como Gamma</string>
+    <string name="preference_video_profile_gamma_1_9">1.9</string>
+    <string name="preference_immersive_mode_low_profile">Atenúar solamente los botones virtuales de navegación en pantalla</string>
+    <string name="preference_ghost_image_alpha">Opacidad de imagen Ghost</string>
+    <string name="preference_ghost_image_alpha_summary">Valor alfa usado para imágenes Ghost. Un valor más bajo significa más transparente, más alto significa más opaco.
+\n%s</string>
+    <string name="preference_zebra_stripes_foreground_color">Color de las rayas de cebra en primer plano</string>
+    <string name="preference_select_remote">Seleccionar mando remoto</string>
+    <string name="preference_video_profile_gamma_2_8">2.8</string>
+    <string name="preference_video_rec709">REC709</string>
+    <string name="preference_video_profile_gamma_1_6">1.6</string>
 </resources>
