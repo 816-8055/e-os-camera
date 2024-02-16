@@ -10,11 +10,11 @@
     <!-- whether a setting is turned off, e.g., "Auto-level: Off" -->
     <string name="choose_save_location">Guardar en:</string>
     <string name="clear_folder_history">Borrar el historial de carpetas</string>
-    <string name="clear_folder_history_question">Desea borrar el historial de carpetas\?</string>
+    <string name="clear_folder_history_question">Deseas borrar el historial de carpetas?</string>
     <string name="choose_another_folder">Seleccione otra carpeta</string>
     <string name="changed_save_location">Cambiar ruta de guardado a:</string>
-    <string name="stopped_recording_video">Se ha detenido la grabación de vídeo</string>
-    <string name="repeats_to_go">repeticiones por ir</string>
+    <string name="stopped_recording_video">Se detuvo la grabación de vídeo</string>
+    <string name="repeats_to_go">repeticiones por hacer</string>
     <!--  intentionally starts lower case -->
     <string name="failed_to_reconnect_camera">Falla en la reconexión con la cámara</string>
     <string name="video_may_be_corrupted">Error, el archivo de vídeo puede estar dañado</string>
@@ -22,8 +22,8 @@
     <!--  intentionally starts lower case -->
     <string name="video_error_unknown">Error desconocido, vídeo detenido</string>
     <string name="video_error_server_died">Servidor caído, video detenido</string>
-    <string name="video_max_duration">El video alcanzo la máxima duración</string>
-    <string name="video_max_filesize">El video alcanzo el tamaño máximo</string>
+    <string name="video_max_duration">El video alcanzó la máxima duración</string>
+    <string name="video_max_filesize">El video alcanzó el tamaño máximo</string>
     <string name="exposure_compensation">Compensación de exposición</string>
     <string name="fps">FPS</string>
     <string name="focus_distance">Distancia focal</string>
@@ -34,13 +34,13 @@
     <string name="video">Video</string>
     <string name="exposure_locked">Exposición bloqueada</string>
     <string name="exposure_unlocked">Exposición desbloqueada</string>
-    <string name="cancelled_timer">Temporizador anulado</string>
+    <string name="cancelled_timer">Temporizador cancelado</string>
     <string name="cancelled_repeat_mode">Modo de repetición cancelado</string>
     <string name="started_timer">Temporizador iniciado</string>
     <string name="failed_to_save_video">Error al guardar el video</string>
     <string name="failed_to_record_video">Error al grabar el video</string>
     <string name="started_recording_video">Grabando</string>
-    <string name="sorry">Lo lamento</string>
+    <string name="sorry">Perdón</string>
     <string name="failed_to_save_photo">Error al guardar foto</string>
     <string name="failed_to_save_photo_raw">Error al guardar la foto RAW</string>
     <string name="failed_to_auto_stabilise">Fallo en el autonivelado</string>
@@ -50,10 +50,12 @@
     <string name="location_not_available">Ubicación GPS no está disponible</string>
     <string name="photo_deleted">Foto eliminada</string>
     <string name="no_gallery_app">No hay aplicación de galería disponible</string>
-    <string name="screen_is_locked">La pantalla esta bloqueada\ndeslize el dedo por la\npantalla para desbloquear</string>
+    <string name="screen_is_locked">La pantalla esta bloqueada
+\ndesliza sobre la
+\npantalla para desbloquear</string>
     <string name="unlocked">Desbloqueado</string>
-    <string name="auto_stabilise_not_supported">Lo sentimos, autonivelador no esta
-\nsoportado en este dispositivo</string>
+    <string name="auto_stabilise_not_supported">Perdón, el nivelador automático no es compatible 
+\ncon este dispositivo</string>
     <string name="audio_disabled">Audio deshabilitado</string>
     <string name="max_duration">Duración máxima</string>
     <string name="color_effect">Efecto de color</string>
@@ -74,56 +76,56 @@
     <!-- symbol short for metres -->
     <string name="preference_category_camera_effects">Efectos de cámara</string>
     <string name="preference_auto_stabilise">Autonivelador</string>
-    <string name="preference_auto_stabilise_summary">Las imágenes se girarán para que queden automáticamente niveladas (sólo fotos) (es más lento hacer fotos y puede fallar en dispositivos con poca memoria)</string>
+    <string name="preference_auto_stabilise_summary">Las imágenes se rotarán para que estén niveladas automáticamente (sólo fotos) (es más lento tomar fotos y puede fallar en dispositivos con poca memoria)</string>
     <string name="preference_color_effect">Aplicar un efecto de color</string>
     <string name="preference_color_effect_summary">Aplica el efecto de color seleccionado a la foto</string>
-    <string name="preference_scene_mode">Aplicar modo de escena</string>
+    <string name="preference_scene_mode">Aplicar un modo de escena</string>
     <string name="preference_scene_mode_summary">Optimiza la foto para distintas escenas</string>
     <string name="preference_white_balance">Ajusta el balance de blancos</string>
     <string name="preference_white_balance_summary">Elige una opción para ajustar el balances de blancos</string>
     <string name="preference_iso">Ajustar ISO</string>
-    <string name="preference_iso_summary">Un valor más alto significa más sensibilidad a la luz (puede no funcionar en algunos dispositivos)</string>
+    <string name="preference_iso_summary">Un valor más alto significa más sensibilidad a la luz (puede que no funcione en algunos dispositivos)</string>
     <string name="preference_exposure">Ajusta la compensación de la exposición</string>
     <string name="preference_exposure_summary">Ajuste a 0 para la compensación de la exposición por defecto</string>
     <string name="preference_lock_orientation">Bloquear la orientación de fotos y videos</string>
     <string name="preference_lock_orientation_summary">Si se ajusta, la orientación del dispositivo será ignorada y la orientación de la foto/video será con respecto a la orientación especificada
 \n%s</string>
     <string name="preference_face_detection">Detección de rostro</string>
-    <string name="preference_face_detection_summary">Utilice la detección de rostro en lugar de las áreas de enfoque</string>
+    <string name="preference_face_detection_summary">Utilizar detección de rostro en lugar de áreas de enfoque</string>
     <string name="preference_category_camera_controls">Controles de cámara</string>
     <string name="preference_timer">Temporizador</string>
     <string name="preference_timer_beep">Sonido del temporizador</string>
     <string name="preference_timer_beep_summary">Sonar cuando el temporizador está en cuenta regresiva o para el retardo del modo de repetición</string>
     <string name="preference_timer_speak">Cuenta regresiva del temporizador por voz</string>
-    <string name="preference_timer_speak_summary">Activa la cuenta regresiva por voz para el temporizador o el modo de repeticion (desde 60 segundos)</string>
-    <string name="preference_burst_mode">Repetición</string>
+    <string name="preference_timer_speak_summary">Activa con la voz la cuenta atrás para el temporizador o el retardo del modo de repetición (a partir de 60 segundos)</string>
+    <string name="preference_burst_mode">Repetir</string>
     <!-- also used in popup menu, so shouldn't be too long a string -->
     <string name="preference_burst_interval">Intervalo de modo de repeticion</string>
     <string name="preference_screen_camera_controls_more">Más controles de cámara…</string>
     <string name="preference_touch_capture">Tocar para capturar</string>
     <string name="preference_touch_capture_summary">Toma una foto simplemente tocando una o dos veces en la pantalla</string>
     <string name="preference_pause_preview">Pausar después de tomar foto</string>
-    <string name="preference_pause_preview_summary">Pause la pantalla después de tomar una foto, con la opción de compartir o eliminar la foto</string>
+    <string name="preference_pause_preview_summary">Pause la pantalla después de tomar una foto, con opción de compartir o eliminar la foto</string>
     <string name="preference_shutter_sound">Sonido del obturador</string>
     <string name="preference_shutter_sound_summary">Sonido al tomar una foto</string>
     <string name="preference_volume_keys">Teclas de volumen</string>
     <string name="preference_audio_control">Opciones de control de audio</string>
-    <string name="preference_audio_noise_control_sensitivity">Sensibilidad de control de audio</string>
-    <string name="preference_audio_noise_control_sensitivity_summary">Sensibilidad al nivel de ruido para la opción de audio (ruido fuerte)</string>
+    <string name="preference_audio_noise_control_sensitivity">Sensibilidad del control de audio</string>
+    <string name="preference_audio_noise_control_sensitivity_summary">Sensibilidad del nivel de ruido para la opción de audio (ruido fuerte)</string>
     <string name="preference_save_location">Carpeta de almacenamiento</string>
     <string name="preference_save_location_summary">Carpeta para guardar los archivos de foto/video</string>
-    <string name="preference_using_saf_summary">Si se debe usar Storage Access Framework para guardar fotos y vídeos. Esto debe estar activado para permitir guardar en tarjetas SD externas. En Android 10+ esta opción debe estar activa si deseas guardar en una carpeta fuera de DCIM.</string>
-    <string name="preference_save_photo_prefix">Prefijo de foto</string>
+    <string name="preference_using_saf_summary">Si se debe usar Storage Access Framework para guardar fotos y vídeos. Debe estar activado si deseas guardar en tarjetas SD externas. En Android 10+ esta opción debe estar activa si deseas guardar en otra carpeta aparte de DCIM.</string>
+    <string name="preference_save_photo_prefix">Guardar prefijo de foto</string>
     <string name="preference_save_photo_prefix_summary">Prefijo utilizado para el nombre de las fotos</string>
-    <string name="preference_save_video_prefix">Prefijo de video</string>
+    <string name="preference_save_video_prefix">Guardar prefijo de video</string>
     <string name="preference_save_video_prefix_summary">Prefijo utilizado para el nombre de los videos</string>
     <string name="preference_save_zulu_time">Formato de hora para el nombre de archivo</string>
     <string name="preference_show_when_locked">Mostrar cámara aunque el dispositivo esté bloqueado</string>
-    <string name="preference_show_when_locked_summary">Si está activado, Camera se mostrará por encima de la pantalla de bloqueo (sin embargo tendrá que desbloquear para acceder a la Galería, Ajustes, etc)</string>
+    <string name="preference_show_when_locked_summary">Si está activado, la cámara se mostrará por encima de la pantalla de bloqueo (tendrás que desbloquear para acceder la Galería, Ajustes, etc)</string>
     <string name="preference_startup_focus">Realizar autoenfoque al iniciar</string>
-    <string name="preference_startup_focus_summary">Realice un autoenfoque cuando Camera se inicie. Si presenta el problema donde el flash se enciende al iniciar, desactive esta opción</string>
+    <string name="preference_startup_focus_summary">Si deseas auto-enfoque cuando se inicia la cámara. Si tienes el problema de que el flash se enciende al iniciar, desactiva esta opción</string>
     <string name="preference_lock_video">Bloquear pantalla al grabar video</string>
-    <string name="preference_lock_video_summary">Al grabar vídeo, la interfaz de pantalla se bloqueará para evitar detener accidentalmente la grabación. Desliza la pantalla para desbloquearla. Tenga en cuenta que la grabación de video siempre se detendrá si la aplicación entra en segundo plano o la pantalla se borra.</string>
+    <string name="preference_lock_video_summary">Al grabar vídeo, la pantalla se bloqueará para evitar detener accidentalmente la grabación. Desliza sobre la pantalla para desbloquear. Ten en cuenta que la grabación de vídeo siempre se detendrá si la aplicación pasa a segundo plano o se apaga la pantalla.</string>
     <string name="preference_rotate_preview">Rotar vista previa</string>
     <string name="preference_rotate_preview_summary">Opción para rotar la vista previa (no afectará a las fotos/videos resultantes)\n%s</string>
     <string name="preference_screen_gui">Interfaz de pantalla…</string>
@@ -131,10 +133,10 @@
     <string name="preference_ui_placement">Ubicación de la Interfaz de Usuario</string>
     <string name="preference_immersive_mode">Modo inmersivo</string>
     <string name="preference_show_zoom">Mostrar zoom</string>
-    <string name="preference_show_zoom_summary">Muestra el nivel de zoom actual de la cámara en la pantalla (cuando se amplía)</string>
+    <string name="preference_show_zoom_summary">Mostrar nivel de zoom actual de la cámara en pantalla (cuando se amplía)</string>
     <string name="preference_show_zoom_controls">Mostrar controles zoom -/+</string>
-    <string name="preference_show_zoom_controls_summary">Muestra los botones para el control del zoom -/+</string>
-    <string name="preference_show_zoom_slider_controls">Mostrar control deslizante del zoom</string>
+    <string name="preference_show_zoom_controls_summary">Muestra los botones -/+ para el control del zoom</string>
+    <string name="preference_show_zoom_slider_controls">Mostrar control deslizante de zoom</string>
     <string name="preference_show_zoom_slider_controls_summary">Muestra el control deslizante para controlar el zoom</string>
     <string name="preference_show_iso">Mostrar ISO</string>
     <string name="preference_show_iso_summary">Muestra el nivel de ISO actual (requiere API de Camera2)</string>
@@ -880,4 +882,35 @@
     <string name="preference_video_profile_gamma_2_8">2.8</string>
     <string name="preference_video_rec709">REC709</string>
     <string name="preference_video_profile_gamma_1_6">1.6</string>
+    <string name="unknown_device_no_permission">Dispositivo desconocido (permiso de conexión a bluetooth no disponible)</string>
+    <string name="photo_mode_x_auto_full">Extensión: Auto</string>
+    <string name="photo_mode_x_hdr">X-HDR</string>
+    <string name="photo_mode_x_hdr_full">Extensión: HDR</string>
+    <string name="photo_mode_x_night">Modo X-Night</string>
+    <string name="photo_mode_x_night_full">Extensión: Noche</string>
+    <string name="photo_mode_x_bokeh">Modo X-Bokeh</string>
+    <string name="photo_mode_x_bokeh_full">Extensión: Bokeh</string>
+    <string name="photo_mode_x_beauty">Modo X-Bty</string>
+    <string name="photo_mode_x_beauty_full">Extensión: Belleza / Retoque facial</string>
+    <string name="preference_screen_licences">Licencias de código abierto</string>
+    <string name="preference_licence_open_camera">Cámara</string>
+    <string name="preference_licence_open_camera_text">Cámara es © 2013-2019 Mark Harman, publicada bajo la GPL v3 o posterior. Toca aquí para ver el texto completo de la licencia.</string>
+    <string name="preference_licence_google_icons">íconos Material Design de Google</string>
+    <string name="back_button_label">Atrás</string>
+    <string name="preference_licence_google_icons_text">Cámara utiliza los iconos Material Design de Google (https://developer.android.com/design/downloads/index.html , https://design.google.com/icons/ , https://github.com/google/material-design-icons/ , https://google.github.io/material-design-icons/) bajo la licencia Apache versión 2.0. Algunos iconos incluyen modificaciones. Toca aquí para ver el texto completo de la licencia.</string>
+    <string name="next_button_label">Siguiente</string>
+    <string name="skip_button_label">Omitir</string>
+    <string name="switch_multi_camera_lens">LENS</string>
+    <string name="photo_mode_x_auto">Modo X-Auto</string>
+    <string name="preference_remove_device_exif_off">No eliminar datos EXIF del dispositivo</string>
+    <string name="preference_remove_device_exif_on">Eliminar datos EXIF del dispositivo</string>
+    <string name="preference_remove_device_exif_keep_datetime">Eliminar excepto fecha/hora</string>
+    <string name="preference_hdr_tonemapping">Mapeado tonal HDR</string>
+    <string name="preference_hdr_tonemapping_summary">Algoritmo para el mapeado tonal en el modo de foto HDR%s</string>
+    <string name="preference_hdr_tonemapping_clamp">Abrazadera simple</string>
+    <string name="preference_hdr_tonemapping_exponential">Exponencial</string>
+    <string name="preference_hdr_tonemapping_default">Estándar</string>
+    <string name="preference_remove_device_exif">Eliminar los datos EXIF del dispositivo</string>
+    <string name="preference_remove_device_exif_summary">Si deseas eliminar los metadatos EXIF del dispositivo de las fotos JPEG. Esto no eliminará las etiquetas EXIF aplicadas por otros ajustes que aplican metadatos EXIF (por ejemplo, ubicación/etiquetado). Esas otras opciones son independientes y anularán este ajuste. RAW/DNG y los vídeos no son afectados.
+\n %s</string>
 </resources>
