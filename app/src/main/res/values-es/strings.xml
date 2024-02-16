@@ -604,7 +604,7 @@
     <string name="permission_rationale_record_audio">Acceso al micrófono es requerido para grabar vídeo con audio, así como para utilizar las opciones de \"Control de audio\"</string>
     <string name="permission_rationale_storage">Permiso de lectura/escritura requerido para guardar los archivos resultantes, como fotos o vídeos</string>
     <string name="preference_video_log_summary">Definir perfil de imagen estándar o plana para el modo de vídeo %s</string>
-    <string name="preference_video_log_off">Predeterminado</string>
+    <string name="preference_video_log_off">Estándar</string>
     <string name="preference_video_log_fine">Registro (Fino)</string>
     <string name="preference_video_log_low">Registro (Bajo)</string>
     <string name="no_burst">sin ráfaga</string>
@@ -846,4 +846,10 @@
     <string name="switch_to_external_camera">Cambiar a cámara externa</string>
     <string name="switch_multi_camera">Cambiar entre cámaras múltiples</string>
     <string name="error_features_4k">4K UHD</string>
+    <string name="preference_camera_api_summary">Selecciona Cámara a API para activar funciones adicionales como los modos manuales para la exposición, el enfoque y el balance de blancos, junto con RAW (si el dispositivo lo permite). El cambio de la API provocará un reinicio.
+\n%s</string>
+    <string name="preference_camera_api_old">Cámara API original</string>
+    <string name="preference_camera_api_camera2">Cámara a API</string>
+    <string name="preference_audio_control_summary">Tomar fotos/vídeos cuando se detecta un ruido, o por orden de voz. Cuando está activado, utiliza el botón del micrófono en pantalla para iniciar/detener la escucha.
+\n%s</string>
 </resources>
