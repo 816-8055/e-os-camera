@@ -4502,9 +4502,12 @@ public class MainActivity extends AppCompatActivity {
      *  MediaStore uris, as well as allowing control over the resolution of the thumbnail.
      *  If sample_factor is 1, this returns a bitmap scaled to match the display resolution. If
      *  sample_factor is greater than 1, it will be scaled down to a lower resolution.
-     * @param exif_rotate Whether the rotate the bitmap due to exif orientation.
+     *  We now use this for photos in preference to APIs like
+     *  MediaStore.Images.Thumbnails.getThumbnail(). Advantages are simplifying the code, reducing
+     *  number of different codepaths, but also seems to help against device specific bugs
+     *  in getThumbnail() e.g. Pixel 6 Pro with x-night in portrait.
      */
-    private Bitmap loadThumbnailFromUri(Uri uri, int sample_factor, boolean exif_rotate) {
+    private Bitmap loadThumbnailFromUri(Uri uri, int sample_factor) {
         Bitmap thumbnail = null;
         try {
             //thumbnail = MediaStore.Images.Media.getBitmap(getContentResolver(), media.uri);
@@ -4561,9 +4564,7 @@ public class MainActivity extends AppCompatActivity {
             }
             is.close();
 
-            if( exif_rotate ) {
-                thumbnail = rotateForExif(thumbnail, uri);
-            }
+            thumbnail = rotateForExif(thumbnail, uri);
         }
         catch(IOException e) {
             Log.e(TAG, "failed to load bitmap for ghost image last");
@@ -4646,7 +4647,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "doInBackground");
                 StorageUtils.Media media = applicationInterface.getStorageUtils().getLatestMedia();
                 Bitmap thumbnail = null;
-                boolean rotate_for_orientation = true; // whether we should apply the media.orientation rotation
                 KeyguardManager keyguard_manager = (KeyguardManager)MainActivity.this.getSystemService(Context.KEYGUARD_SERVICE);
                 boolean is_locked = keyguard_manager != null && keyguard_manager.inKeyguardRestrictedInputMode();
                 if( MyDebug.LOG )
@@ -4661,62 +4661,54 @@ public class MainActivity extends AppCompatActivity {
                     if( ghost_image_last && !media.video ) {
                         if( MyDebug.LOG )
                             Log.d(TAG, "load full size bitmap for ghost image last photo");
-                        // if media.mediastore, we'll rotate below using the media.orientation
-                        thumbnail = loadThumbnailFromUri(media.uri, 1, !media.mediastore);
+                        // use sample factor of 1 so that it's full size for ghost image
+                        thumbnail = loadThumbnailFromUri(media.uri, 1);
                     }
                     if( thumbnail == null ) {
                         try {
-                            if( !media.mediastore ) {
-                                if( media.video ) {
-                                    if( MyDebug.LOG )
-                                        Log.d(TAG, "load thumbnail for video from SAF uri");
-                                    ParcelFileDescriptor pfd_saf = null; // keep a reference to this as long as retriever, to avoid risk of pfd_saf being garbage collected
-                                    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                            if( !media.video ) {
+                                if( MyDebug.LOG )
+                                    Log.d(TAG, "load thumbnail for photo");
+                                // use sample factor as this image is only used for thumbnail; and
+                                // unlike code in MyApplicationInterface.saveImage() we don't need to
+                                // worry about the thumbnail animation when taking/saving a photo
+                                thumbnail = loadThumbnailFromUri(media.uri, 8);
+                            }
+                            else if( !media.mediastore ) {
+                                if( MyDebug.LOG )
+                                    Log.d(TAG, "load thumbnail for video from SAF uri");
+                                ParcelFileDescriptor pfd_saf = null; // keep a reference to this as long as retriever, to avoid risk of pfd_saf being garbage collected
+                                MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                                try {
+                                    pfd_saf = getContentResolver().openFileDescriptor(media.uri, "r");
+                                    retriever.setDataSource(pfd_saf.getFileDescriptor());
+                                    thumbnail = retriever.getFrameAtTime(-1);
+                                }
+                                catch(Exception e) {
+                                    Log.d(TAG, "failed to load video thumbnail");
+                                    e.printStackTrace();
+                                }
+                                finally {
                                     try {
-                                        pfd_saf = getContentResolver().openFileDescriptor(media.uri, "r");
-                                        retriever.setDataSource(pfd_saf.getFileDescriptor());
-                                        thumbnail = retriever.getFrameAtTime(-1);
+                                        retriever.release();
                                     }
-                                    catch(Exception e) {
-                                        Log.d(TAG, "failed to load video thumbnail");
+                                    catch(RuntimeException ex) {
+                                        // ignore
+                                    }
+                                    try {
+                                        if( pfd_saf != null ) {
+                                            pfd_saf.close();
+                                        }
+                                    }
+                                    catch(IOException e) {
                                         e.printStackTrace();
                                     }
-                                    finally {
-                                        try {
-                                            retriever.release();
-                                        }
-                                        catch(RuntimeException ex) {
-                                            // ignore
-                                        }
-                                        try {
-                                            if( pfd_saf != null ) {
-                                                pfd_saf.close();
-                                            }
-                                        }
-                                        catch(IOException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
                                 }
-                                else {
-                                    if( MyDebug.LOG )
-                                        Log.d(TAG, "load thumbnail for photo from SAF uri");
-                                    thumbnail = loadThumbnailFromUri(media.uri, 4, true);
-                                }
-                            }
-                            else if( media.video ) {
-                                if( MyDebug.LOG )
-                                    Log.d(TAG, "load thumbnail for video");
-                                thumbnail = MediaStore.Video.Thumbnails.getThumbnail(getContentResolver(), media.id, MediaStore.Video.Thumbnails.MINI_KIND, null);
                             }
                             else {
                                 if( MyDebug.LOG )
-                                    Log.d(TAG, "load thumbnail for photo");
-                                thumbnail = MediaStore.Images.Thumbnails.getThumbnail(getContentResolver(), media.id, MediaStore.Images.Thumbnails.MINI_KIND, null);
-                                if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
-                                    // MediaStore.Images.Thumbnails.getThumbnail() is documented that as of Android Q, we no longer need to apply the orientation
-                                    rotate_for_orientation = false;
-                                }
+                                    Log.d(TAG, "load thumbnail for video");
+                                thumbnail = MediaStore.Video.Thumbnails.getThumbnail(getContentResolver(), media.id, MediaStore.Video.Thumbnails.MINI_KIND, null);
                             }
                         }
                         catch(Throwable exception) {
@@ -4725,28 +4717,6 @@ public class MainActivity extends AppCompatActivity {
                             if( MyDebug.LOG )
                                 Log.e(TAG, "thumbnail exception");
                             exception.printStackTrace();
-                        }
-                    }
-                    if( thumbnail != null && rotate_for_orientation ) {
-                        if( MyDebug.LOG )
-                            Log.d(TAG, "thumbnail orientation is " + media.orientation);
-                        if( media.orientation != 0 ) {
-                            if( MyDebug.LOG )
-                                Log.d(TAG, "thumbnail size is " + thumbnail.getWidth() + " x " + thumbnail.getHeight());
-                            Matrix matrix = new Matrix();
-                            matrix.setRotate(media.orientation, thumbnail.getWidth() * 0.5f, thumbnail.getHeight() * 0.5f);
-                            try {
-                                Bitmap rotated_thumbnail = Bitmap.createBitmap(thumbnail, 0, 0, thumbnail.getWidth(), thumbnail.getHeight(), matrix, true);
-                                // careful, as rotated_thumbnail is sometimes not a copy!
-                                if( rotated_thumbnail != thumbnail ) {
-                                    thumbnail.recycle();
-                                    thumbnail = rotated_thumbnail;
-                                }
-                            }
-                            catch(Throwable t) {
-                                if( MyDebug.LOG )
-                                    Log.d(TAG, "failed to rotate thumbnail");
-                            }
                         }
                     }
                 }
