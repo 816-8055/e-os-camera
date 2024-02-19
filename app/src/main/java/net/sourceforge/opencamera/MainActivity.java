@@ -2152,12 +2152,19 @@ public class MainActivity extends AppCompatActivity {
         applicationInterface.getImageSaver().waitUntilDone();
     }
 
+    /**
+     * @return True if the long-click is handled, otherwise return false to indicate that regular
+     * click should still be triggered when the user releases the touch.
+     */
     private boolean longClickedTakePhoto() {
         if( MyDebug.LOG )
             Log.d(TAG, "longClickedTakePhoto");
-        // need to check whether fast burst is supported (including for the current resolution),
-        // in case we're in Standard photo mode
-        if( supportsFastBurst() ) {
+        if( preview.isVideo() ) {
+            // no long-click action for video mode
+        }
+        else if( supportsFastBurst() ) {
+            // need to check whether fast burst is supported (including for the current resolution),
+            // in case we're in Standard photo mode
             CameraController.Size current_size = preview.getCurrentPictureSize();
             if( current_size != null && current_size.supports_burst ) {
                 MyApplicationInterface.PhotoMode photo_mode = applicationInterface.getPhotoMode();
