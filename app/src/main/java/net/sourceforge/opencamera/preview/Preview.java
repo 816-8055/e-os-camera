@@ -8773,6 +8773,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     public boolean isQRCode() {
         return functionalMode == FunctionalMode.QRCODE;
     }
+
+    /** Whether we are in video mode, or photo mode.
+     */
     public boolean isVideo() {
         return functionalMode == FunctionalMode.VIDEO;
     }
