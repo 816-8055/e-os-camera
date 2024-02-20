@@ -328,7 +328,6 @@ public class MainActivity extends AppCompatActivity {
         // risk of running out of memory on lower end devices, due to manipulation of large bitmaps
         ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         if( MyDebug.LOG ) {
-            Log.d(TAG, "standard max memory = " + activityManager.getMemoryClass() + "MB");
             Log.d(TAG, "large max memory = " + activityManager.getLargeMemoryClass() + "MB");
         }
         large_heap_memory = activityManager.getLargeMemoryClass();

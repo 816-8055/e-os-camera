@@ -1070,19 +1070,6 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                         about_string.append(Build.MANUFACTURER);
                         about_string.append("\nDevice model: ");
                         about_string.append(Build.MODEL);
-                        about_string.append("\nDevice code-name: ");
-                        about_string.append(Build.HARDWARE);
-                        about_string.append("\nDevice variant: ");
-                        about_string.append(Build.DEVICE);
-                        about_string.append("\nLanguage: ");
-                        about_string.append(Locale.getDefault().getLanguage());
-                        {
-                            ActivityManager activityManager = (ActivityManager) getActivity().getSystemService(Activity.ACTIVITY_SERVICE);
-                            about_string.append("\nStandard max heap?: ");
-                            about_string.append(activityManager.getMemoryClass());
-                            about_string.append("\nLarge max heap?: ");
-                            about_string.append(activityManager.getLargeMemoryClass());
-                        }
                         {
                             Point display_size = new Point();
                             Display display = MyPreferenceFragment.this.getActivity().getWindowManager().getDefaultDisplay();
