@@ -8,7 +8,7 @@ import android.view.View;
 
 import net.sourceforge.opencamera.MyDebug;
 
-/** Overlay for the Preview - this just redirects to Preview.onDraw to do the
+/** View for on top of the Preview - this just redirects to Preview.onDraw to do the
  *  work. Only used if using a MyTextureView (if using MySurfaceView, then that
  *  class can handle the onDraw()). TextureViews can't be used for both a
  *  camera preview, and used for drawing on.

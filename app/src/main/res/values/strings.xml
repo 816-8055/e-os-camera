@@ -528,7 +528,7 @@
     <string name="anti_banding_off">Off</string>
 
     <string name="preference_ghost_image">Ghost image</string>
-    <string name="preference_ghost_image_summary">Overlay an image, to help with alignment.\n%s</string>
+    <string name="preference_ghost_image_summary">Display an image over the preview, to help with alignment.\n%s</string>
     <string name="preference_ghost_image_off">Off</string>
     <string name="preference_ghost_image_last">Last photo taken</string>
     <string name="preference_ghost_image_selected">Selected image</string>
