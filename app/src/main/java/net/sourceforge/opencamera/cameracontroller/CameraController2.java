@@ -2924,6 +2924,20 @@ public class CameraController2 extends CameraController {
             want_raw = false; // just in case it got set to true somehow
         }
 
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            if( MyDebug.LOG ) {
+                android.util.Size [] jpeg_r_camera_picture_sizes = configs.getOutputSizes(ImageFormat.JPEG_R);
+                if( jpeg_r_camera_picture_sizes == null ) {
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "JPEG_R sizes: " + Arrays.toString(jpeg_r_camera_picture_sizes));
+                }
+                else {
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "JPEG_R not supported");
+                }
+            }
+        }
+
         ae_fps_ranges = new ArrayList<>();
         for (Range<Integer> r : characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)) {
             ae_fps_ranges.add(new int[] {r.getLower(), r.getUpper()});
