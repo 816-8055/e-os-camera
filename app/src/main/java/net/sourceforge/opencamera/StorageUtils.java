@@ -1612,6 +1612,7 @@ public class StorageUtils {
     }
 
     /** Return free memory in MB, or -1 if this was unable to be found.
+     *  Be careful of calling this on main UI thread, as this can be slow when SAF is enabled.
      */
     public long freeMemory() { // return free memory in MB
         if( MyDebug.LOG )

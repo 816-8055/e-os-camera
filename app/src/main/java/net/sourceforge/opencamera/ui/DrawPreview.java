@@ -22,6 +22,8 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.BatteryManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Pair;
@@ -48,6 +50,9 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.List;
 import java.util.Locale;
 
@@ -153,6 +158,64 @@ public class DrawPreview {
     private float free_memory_gb = -1.0f;
     private String free_memory_gb_string;
     private long last_free_memory_time;
+    private Future<?> free_memory_future;
+    // Important to call StorageUtils.freeMemory() on background thread: we've had ANRs reported
+    // from StorageUtils.freeMemory()->freeMemorySAF()->ContentResolver.openFileDescriptor(); also
+    // pauses can be seen if running on UI thread if there are a large number of files in the save
+    // folder.
+    private final ExecutorService free_memory_executor = Executors.newSingleThreadExecutor();
+    private final Runnable free_memory_runnable = new Runnable() {
+        final Handler handler = new Handler(Looper.getMainLooper());
+
+        @Override
+        public void run() {
+            if( MyDebug.LOG )
+                Log.d(TAG, "free_memory_runnable: run");
+            long free_mb = main_activity.getStorageUtils().freeMemory();
+            if( free_mb >= 0 ) {
+                final float new_free_memory_gb = free_mb/1024.0f;
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onPostExecute(true, new_free_memory_gb);
+                    }
+                });
+            }
+            else {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onPostExecute(false, -1.0f);
+                    }
+                });
+            }
+        }
+
+        /** Runs on UI thread, after background work is complete.
+         */
+        private void onPostExecute(boolean has_new_free_memory, float new_free_memory_gb) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "free_memory_runnable: onPostExecute");
+            if( free_memory_future != null && free_memory_future.isCancelled() ) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "was cancelled");
+                free_memory_future = null;
+                return;
+            }
+
+            if( MyDebug.LOG ) {
+                Log.d(TAG, "has_new_free_memory: " + has_new_free_memory);
+                Log.d(TAG, "free_memory_gb: " + free_memory_gb);
+                Log.d(TAG, "new_free_memory_gb: " + new_free_memory_gb);
+            }
+            if( has_new_free_memory && Math.abs(new_free_memory_gb - free_memory_gb) > 0.001f ) {
+                free_memory_gb = new_free_memory_gb;
+                free_memory_gb_string = decimalFormat.format(free_memory_gb) + getContext().getResources().getString(R.string.gb_abbreviation);
+            }
+
+            free_memory_future = null;
+        }
+    };
 
     private String current_time_string;
     private long last_current_time_time;
@@ -310,6 +373,11 @@ public class DrawPreview {
     public void onDestroy() {
         if( MyDebug.LOG )
             Log.d(TAG, "onDestroy");
+        if( free_memory_future != null ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "cancel free_memory_future");
+            free_memory_future.cancel(true);
+        }
         // clean up just in case
         if( location_bitmap != null ) {
             location_bitmap.recycle();
@@ -1198,20 +1266,11 @@ public class DrawPreview {
         }
 
         if( camera_controller != null && show_free_memory_pref ) {
-            if( last_free_memory_time == 0 || time_ms > last_free_memory_time + 10000 ) {
+            if( (last_free_memory_time == 0 || time_ms > last_free_memory_time + 10000) && free_memory_future == null ) {
                 // don't call this too often, for UI performance
-                long free_mb = main_activity.getStorageUtils().freeMemory();
-                if( free_mb >= 0 ) {
-                    float new_free_memory_gb = free_mb/1024.0f;
-                    if( MyDebug.LOG ) {
-                        Log.d(TAG, "free_memory_gb: " + free_memory_gb);
-                        Log.d(TAG, "new_free_memory_gb: " + new_free_memory_gb);
-                    }
-                    if( Math.abs(new_free_memory_gb - free_memory_gb) > 0.001f ) {
-                        free_memory_gb = new_free_memory_gb;
-                        free_memory_gb_string = decimalFormat.format(free_memory_gb) + getContext().getResources().getString(R.string.gb_abbreviation);
-                    }
-                }
+
+                free_memory_future = free_memory_executor.submit(free_memory_runnable);
+
                 last_free_memory_time = time_ms; // always set this, so that in case of free memory not being available, we aren't calling freeMemory() every frame
             }
             if( free_memory_gb >= 0.0f && free_memory_gb_string != null ) {
