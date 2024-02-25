@@ -60,7 +60,7 @@ public abstract class CameraController {
     public static class CameraFeatures {
         public boolean is_zoom_supported;
         public int max_zoom;
-        public List<Integer> zoom_ratios;
+        public List<Integer> zoom_ratios; // list of supported zoom ratios; each value is the zoom multiplied by 100
         public boolean supports_face_detection;
         public List<CameraController.Size> picture_sizes;
         public List<CameraController.Size> video_sizes;
@@ -541,8 +541,25 @@ public abstract class CameraController {
     public abstract TonemapProfile getTonemapProfile();
     public abstract int getJpegQuality();
     public abstract void setJpegQuality(int quality);
+    /** Returns the current zoom. The returned value is an index into the CameraFeatures.zoom_ratios
+     *  array.
+     */
     public abstract int getZoom();
+    /** Set the zoom.
+     * @param value The index into the CameraFeatures.zoom_ratios array.
+     */
     public abstract void setZoom(int value);
+    /** Set the zoom. Unlike setZoom(value), this allows specifying any zoom level within the
+     *  supported range.
+     * @param value The index into the CameraFeatures.zoom_ratios array.
+     * @param smooth_zoom The desired zoom. With CameraController1 (old Camera API), this is ignored.
+     *                    With CameraController2 (Camera2 API), this is used instead of the zoom_ratios
+     *                    value. Note that getZoom() will return the value passed to this method, so
+     *                    passing an appropriate value (e.g., whatever zoom_ratio is closest to the
+     *                    smooth_zoom) is still useful if you want to make use of getZoom().
+     *                    smooth_zoom must still be within the supported range of zoom values.
+     */
+    public abstract void setZoom(int value, float smooth_zoom);
     public abstract void resetZoom(); // resets to zoom 1x
     public abstract int getExposureCompensation();
     public abstract boolean setExposureCompensation(int new_exposure);

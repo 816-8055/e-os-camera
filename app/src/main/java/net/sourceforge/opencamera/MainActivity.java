@@ -2653,7 +2653,7 @@ public class MainActivity extends AppCompatActivity {
             zoom = getNextMultiZoomRatio(frontZoomRatios);
         }
 
-        preview.zoomTo(preview.findNxZoom(zoom));
+        preview.zoomTo(preview.findNxZoom(zoom), true);
         updateMultiPixelIcon(backZoomRatios.indexOf(zoom));
 
         if( MyDebug.LOG )
@@ -5865,7 +5865,9 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "zoom onProgressChanged: " + progress);
                         // note we zoom even if !fromUser, as various other UI controls (multitouch, volume key zoom, -/+ zoomcontrol)
                         // indirectly set zoom via this method, from setting the zoom slider
-                        preview.zoomTo(progress);
+                        // if hasSmoothZoom()==true, then the preview already handled zooming to the current value
+                        if( !preview.hasSmoothZoom() )
+                            preview.zoomTo(preview.getMaxZoom() - progress, false);
 
                         updateMultiCameraIcon();
                     }

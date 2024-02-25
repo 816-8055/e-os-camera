@@ -978,6 +978,11 @@ public class CameraController1 extends CameraController {
     }
 
     @Override
+    public void setZoom(int value, float smooth_zoom) {
+        setZoom(value);
+    }
+
+    @Override
     public void resetZoom() {
         setZoom(0);
     }

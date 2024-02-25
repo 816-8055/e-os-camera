@@ -782,6 +782,13 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     private boolean has_smooth_zoom = false;
     private float smooth_zoom = 1.0f;
 
+    /** Returns true if the user is currently pinch zooming, and the Preview has already handled setting
+     *  the zoom via Preview.zoomTo().
+     */
+    public boolean hasSmoothZoom() {
+        return this.has_smooth_zoom;
+    }
+
     /** Handle multitouch zoom.
      */
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -842,7 +849,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                         if( MyDebug.LOG )
                             Log.d(TAG, "snapped pinch zoom to 1x zoom");
                         int snapped_zoom = find1xZoom();
-                        zoomTo(snapped_zoom);
+                        zoomTo(snapped_zoom, false);
                     }
                 }
             }
@@ -2260,7 +2267,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if( zoom_pref == -1 ) {
                 zoom_pref = find1xZoom();
             }
-            zoomTo(zoom_pref);
+            zoomTo(zoom_pref, false);
             if( MyDebug.LOG ) {
                 Log.d(TAG, "setupCamera: total time after zoomTo: " + (System.currentTimeMillis() - debug_time));
             }
@@ -4325,7 +4332,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             Log.d(TAG, "scaleZoom() " + scale_factor);
         if (this.camera_controller != null && this.has_zoom) {
             int new_zoom_factor = getScaledZoomFactor(scale_factor);
-            // n.b., don't call zoomTo; this should be called indirectly by applicationInterface.multitouchZoom()
+            if( has_smooth_zoom )
+                zoomTo(new_zoom_factor, true);
+            // else don't call zoomTo; this should be called indirectly by applicationInterface.multitouchZoom()
             applicationInterface.multitouchZoom(new_zoom_factor);
         }
     }
@@ -4333,7 +4342,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     /** Zooms to the supplied index (within the zoom_ratios array).
      * @param new_zoom_factor The index to zoom to.
      */
-    public void zoomTo(int new_zoom_factor) {
+    public void zoomTo(int new_zoom_factor, boolean allow_smooth_zoom) {
         if (MyDebug.LOG)
             Log.d(TAG, "ZoomTo(): " + new_zoom_factor);
         if (new_zoom_factor < 0)
@@ -4344,7 +4353,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if (camera_controller != null) {
             if (this.has_zoom) {
                 // don't cancelAutoFocus() here, otherwise we get sluggish zoom behaviour on Camera2 API
-                camera_controller.setZoom(new_zoom_factor);
+                // if pinch zooming, pass through the "smooth" zoom factor so for Camera2 API we get perfectly smooth zoom, rather than it
+                // being snapped to the discrete zoom values
+                camera_controller.setZoom(new_zoom_factor, (allow_smooth_zoom && has_smooth_zoom) ? smooth_zoom : -1.0f);
                 applicationInterface.setZoomPref(new_zoom_factor);
                 clearFocusAreas();
             }

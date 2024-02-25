@@ -2528,12 +2528,12 @@ public class CameraController2 extends CameraController {
         int zoom_value_1x;
 
         // prepare zoom rations > 1x
-        // set 20 steps per 2x factor
-        final double scale_factor_c = 1.0352649238413775043477881942112;
+        // set 40 steps per 2x factor
+        final double scale_factor_c = 1.0174796921026863936352862847966;
         List<Integer> zoom_ratios_above_one = new ArrayList<>();
         double zoom = scale_factor_c;
         while( zoom < max_zoom - 1.0e-5f ) {
-            int zoom_ratio = (int)(zoom*100);
+            int zoom_ratio = (int)(zoom*100+1.0e-5);
             zoom_ratios_above_one.add(zoom_ratio);
             zoom *= scale_factor_c;
         }
@@ -4837,6 +4837,11 @@ public class CameraController2 extends CameraController {
 
     @Override
     public void setZoom(int value) {
+        setZoom(value, -1.0f);
+    }
+
+    @Override
+    public void setZoom(int value, float smooth_zoom) {
         if( zoom_ratios == null ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "zoom not supported");
@@ -4857,7 +4862,21 @@ public class CameraController2 extends CameraController {
                 Log.e(TAG, "invalid zoom value" + value);
             throw new RuntimeException(); // throw as RuntimeException, as this is a programming error
         }
-        float zoom = zoom_ratios.get(value)/100.0f;
+        if( smooth_zoom > 0.0f ) {
+            if( smooth_zoom < zoom_ratios.get(0)/100.0f ) {
+                if( MyDebug.LOG )
+                    Log.e(TAG, "invalid smooth_zoom: " + smooth_zoom);
+                throw new RuntimeException("smooth_zoom too small");
+            }
+            else if( smooth_zoom > zoom_ratios.get(zoom_ratios.size()-1)/100.0f ) {
+                if( MyDebug.LOG )
+                    Log.e(TAG, "invalid smooth_zoom: " + smooth_zoom);
+                throw new RuntimeException("smooth_zoom too large");
+            }
+        }
+        float zoom = smooth_zoom > 0.0f ? smooth_zoom : zoom_ratios.get(value)/100.0f;
+        if( MyDebug.LOG )
+            Log.d(TAG, "zoom to: " + zoom);
 
         if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ) {
             camera_settings.has_control_zoom_ratio = true;
