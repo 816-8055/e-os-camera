@@ -84,11 +84,11 @@ public class ManualSeekbars {
         int closest_indx = -1;
         long min_dist = 0;
         for(int i=0;i<seekbar_values.size();i++) {
-            if( MyDebug.LOG )
-                Log.d(TAG, "seekbar_values[" + i + "]: " + seekbar_values.get(i));
             long dist = Math.abs(seekbar_values.get(i) - current_value);
-            if( MyDebug.LOG )
+            /*if( MyDebug.LOG ) {
+                Log.d(TAG, "seekbar_values[" + i + "]: " + seekbar_values.get(i));
                 Log.d(TAG, "    dist: " + dist);
+            }*/
             if( closest_indx == -1 || dist < min_dist ) {
                 closest_indx = i;
                 min_dist = dist;
