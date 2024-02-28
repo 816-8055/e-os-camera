@@ -258,8 +258,10 @@ public class StorageUtils {
      *    call this function for DNGs, so that they show up on MTP.
      */
     public void broadcastFile(final File file, final boolean is_new_picture, final boolean is_new_video, final boolean set_last_scanned, final boolean hasnoexifdatetime, final Uri saf_uri) {
-        if( MyDebug.LOG )
+        if( MyDebug.LOG ) {
             Log.d(TAG, "broadcastFile: " + file.getAbsolutePath());
+            Log.d(TAG, "saf_uri: " + saf_uri);
+        }
         // note that the new method means that the new folder shows up as a file when connected to a PC via MTP (at least tested on Windows 8)
         if( file.isDirectory() ) {
             //this.sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.fromFile(file)));
@@ -280,6 +282,26 @@ public class StorageUtils {
                             if( MyDebug.LOG ) {
                                 Log.d(TAG, "Scanned " + path + ":");
                                 Log.d(TAG, "-> uri=" + uri);
+                            }
+                            if( saf_uri != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
+                                // Prefer using MediaStore.getMediaUri() to get the mediastore URI from a SAF URI.
+                                // Fixes bug on Pixel 6 Pro with SAF where the URI recieved by onScanCompleted() is
+                                // of the form =content://media/external_primary/images/media/123456, when this is not
+                                // recognised by gallery apps (causes strange bug where clicking on gallery icon opens
+                                // contacts!) The correct URI is returned by MediaStore.getMediaUri(), and (for
+                                // Pixel 6 Pro at least) is of the form content://media/external_primary/file/123456.
+                                try {
+                                    Uri media_uri_from_saf_uri = MediaStore.getMediaUri(context, saf_uri);
+                                    if( media_uri_from_saf_uri != null ) {
+                                        uri = media_uri_from_saf_uri;
+                                        if( MyDebug.LOG ) {
+                                            Log.d(TAG, "prefer getMediaUri from SAF: " + uri);
+                                        }
+                                    }
+                                }
+                                catch(Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                             if( set_last_scanned ) {
                                 boolean is_raw = filenameIsRaw(file.getName());
