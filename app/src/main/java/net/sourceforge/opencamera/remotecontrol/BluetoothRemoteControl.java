@@ -272,6 +272,8 @@ public class BluetoothRemoteControl {
                 main_activity.registerReceiver(remoteControlCommandReceiver, makeRemoteCommandIntentFilter(), RECEIVER_NOT_EXPORTED);
             }
             else {
+                // n.b., this gets an Android lint warning, even though this can only be fixed for TIRAMISU onwards (as
+                // RECEIVER_NOT_EXPORTED not available on older versions)!
                 main_activity.registerReceiver(remoteControlCommandReceiver, makeRemoteCommandIntentFilter());
             }
         }
