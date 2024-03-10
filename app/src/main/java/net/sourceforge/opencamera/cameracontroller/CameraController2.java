@@ -535,8 +535,14 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "nr_mode: " + (nr_mode==null ? "null" : nr_mode));
                     Integer edge_mode = builder.get(CaptureRequest.EDGE_MODE);
                     Log.d(TAG, "edge_mode: " + (edge_mode==null ? "null" : edge_mode));
-                    Integer cc_mode = builder.get(CaptureRequest.COLOR_CORRECTION_ABERRATION_MODE);
+                    Integer control_mode = builder.get(CaptureRequest.CONTROL_MODE);
+                    Log.d(TAG, "control_mode: " + (control_mode==null ? "null" : control_mode));
+                    Integer scene_mode = builder.get(CaptureRequest.CONTROL_SCENE_MODE);
+                    Log.d(TAG, "scene_mode: " + (scene_mode==null ? "null" : scene_mode));
+                    Integer cc_mode = builder.get(CaptureRequest.COLOR_CORRECTION_MODE);
                     Log.d(TAG, "cc_mode: " + (cc_mode==null ? "null" : cc_mode));
+                    Integer cca_mode = builder.get(CaptureRequest.COLOR_CORRECTION_ABERRATION_MODE);
+                    Log.d(TAG, "cca_mode: " + (cc_mode==null ? "null" : cca_mode));
                     /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ) {
                         Integer raw_sensitivity_boost = builder.get(CaptureRequest.CONTROL_POST_RAW_SENSITIVITY_BOOST);
                         Log.d(TAG, "raw_sensitivity_boost: " + (raw_sensitivity_boost==null ? "null" : raw_sensitivity_boost));
@@ -551,6 +557,7 @@ public class CameraController2 extends CameraController {
             if( MyDebug.LOG ) {
                 Log.d(TAG, "setSceneMode");
                 Log.d(TAG, "builder: " + builder);
+                Log.d(TAG, "has_face_detect_mode: " + has_face_detect_mode);
             }
 
             if( sessionType == SessionType.SESSIONTYPE_EXTENSION ) {
@@ -558,28 +565,35 @@ public class CameraController2 extends CameraController {
                 return false;
             }
 
+            Integer current_mode = builder.get(CaptureRequest.CONTROL_MODE);
             Integer current_scene_mode = builder.get(CaptureRequest.CONTROL_SCENE_MODE);
+            if( MyDebug.LOG )
+                Log.d(TAG, "current_scene_mode: " + current_scene_mode);
             if( has_face_detect_mode ) {
                 // face detection mode overrides scene mode
-                if( current_scene_mode == null || current_scene_mode != CameraMetadata.CONTROL_SCENE_MODE_FACE_PRIORITY ) {
-                    if (MyDebug.LOG)
-                        Log.d(TAG, "setting scene mode for face detection");
-                    builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_USE_SCENE_MODE);
-                    builder.set(CaptureRequest.CONTROL_SCENE_MODE, CameraMetadata.CONTROL_SCENE_MODE_FACE_PRIORITY);
+                if( MyDebug.LOG )
+                    Log.d(TAG, "setting scene mode for face detection");
+                builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_USE_SCENE_MODE);
+                builder.set(CaptureRequest.CONTROL_SCENE_MODE, CameraMetadata.CONTROL_SCENE_MODE_FACE_PRIORITY);
+                if( current_mode == null || current_mode != CameraMetadata.CONTROL_MODE_USE_SCENE_MODE || current_scene_mode == null || current_scene_mode != CameraMetadata.CONTROL_SCENE_MODE_FACE_PRIORITY )
                     return true;
-                }
             }
-            else if( current_scene_mode == null || current_scene_mode != scene_mode ) {
+            else {
                 if( MyDebug.LOG )
                     Log.d(TAG, "setting scene mode: " + scene_mode);
+                int new_mode;
                 if( scene_mode == CameraMetadata.CONTROL_SCENE_MODE_DISABLED ) {
-                    builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+                    // note we set CONTROL_MODE_AUTO even if using manual exposure, focus or awb, as we set that separately via
+                    // CONTROL_AE_MODE_OFF etc
+                    new_mode = CameraMetadata.CONTROL_MODE_AUTO;
                 }
                 else {
-                    builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_USE_SCENE_MODE);
+                    new_mode = CameraMetadata.CONTROL_MODE_USE_SCENE_MODE;
                 }
+                builder.set(CaptureRequest.CONTROL_MODE, new_mode);
                 builder.set(CaptureRequest.CONTROL_SCENE_MODE, scene_mode);
-                return true;
+                if( current_mode == null || current_mode != new_mode || current_scene_mode == null || current_scene_mode != scene_mode )
+                    return true;
             }
             return false;
         }
