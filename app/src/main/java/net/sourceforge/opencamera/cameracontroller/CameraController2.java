@@ -1473,6 +1473,57 @@ public class CameraController2 extends CameraController {
         return value;
     }
 
+    /** Issues the next slow burst capture, on a post delayed on the handler.
+     */
+    private void postNextSlowBurst() {
+        if( MyDebug.LOG )
+            Log.d(TAG, "postNextSlowBurst");
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "take picture after delay for next slow burst");
+                if( camera != null && hasCaptureSession() ) { // make sure camera wasn't released in the meantime
+                    // check for imageQueueWouldBlock needed for focus bracketing
+                    if( picture_cb.imageQueueWouldBlock(imageReaderRaw != null ? 1 : 0, 1) ) {
+                        if( MyDebug.LOG ) {
+                            Log.d(TAG, "...but wait for next bracket, as image queue would block");
+                        }
+                        handler.postDelayed(this, 100);
+                        //throw new RuntimeException(); // test
+                    }
+                    else {
+                        if( burst_type == BurstType.BURSTTYPE_FOCUS ) {
+                            // For focus bracketing mode, we play the shutter sound per shot (so the user can tell when the sequence is complete).
+                            // From a user mode, the gap between shots in focus bracketing mode makes this more analogous to the auto-repeat mode
+                            // (at the Preview level), which makes the shutter sound per shot.
+
+                            playSound(MediaActionSound.SHUTTER_CLICK);
+                        }
+                        try {
+                            captureSession.capture(slow_burst_capture_requests.get(n_burst_taken), previewCaptureCallback, handler);
+                        }
+                        catch(CameraAccessException e) {
+                            if( MyDebug.LOG ) {
+                                Log.e(TAG, "failed to take next focus bracket");
+                                Log.e(TAG, "reason: " + e.getReason());
+                                Log.e(TAG, "message: " + e.getMessage());
+                            }
+                            e.printStackTrace();
+                            jpeg_todo = false;
+                            raw_todo = false;
+                            picture_cb = null;
+                            if( take_picture_error_cb != null ) {
+                                take_picture_error_cb.onError();
+                                take_picture_error_cb = null;
+                            }
+                        }
+                    }
+                }
+            }
+        }, 500);
+    }
+
     private class OnImageAvailableListener implements ImageReader.OnImageAvailableListener {
         private boolean skip_next_image = false; // whether to ignore the next image (used for dummy_capture_hack)
 
@@ -1616,7 +1667,7 @@ public class CameraController2 extends CameraController {
                         Log.d(TAG, "time since start: " + (System.currentTimeMillis() - slow_burst_start_ms));
                     }
                     if( burst_type != BurstType.BURSTTYPE_FOCUS ) {
-                        try {
+                        /*try {
                             if( camera != null && hasCaptureSession() ) { // make sure camera wasn't released in the meantime
                                 captureSession.capture(slow_burst_capture_requests.get(n_burst_taken), previewCaptureCallback, handler);
                             }
@@ -1632,6 +1683,32 @@ public class CameraController2 extends CameraController {
                             raw_todo = false;
                             picture_cb = null;
                             push_take_picture_error_cb = take_picture_error_cb;
+                        }*/
+                        // see note in takePictureBurstBracketing() for why we also set preview for slow burst with expo bracketing -
+                        // helps Samsung Galaxy devices
+                        if( previewBuilder != null ) { // make sure camera wasn't released in the meantime
+                            try {
+                                long exposure_time = slow_burst_capture_requests.get(n_burst_taken).get(CaptureRequest.SENSOR_EXPOSURE_TIME);
+                                if( MyDebug.LOG ) {
+                                    Log.d(TAG, "prepare preview for next exposure: " + exposure_time);
+                                }
+                                previewBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposure_time);
+
+                                setRepeatingRequest(previewBuilder.build());
+                            }
+                            catch(CameraAccessException e) {
+                                if( MyDebug.LOG ) {
+                                    Log.e(TAG, "failed to take set exposure for next expo bracketing burst");
+                                    Log.e(TAG, "reason: " + e.getReason());
+                                    Log.e(TAG, "message: " + e.getMessage());
+                                }
+                                e.printStackTrace();
+                                jpeg_todo = false;
+                                raw_todo = false;
+                                picture_cb = null;
+                                push_take_picture_error_cb = take_picture_error_cb;
+                            }
+                            postNextSlowBurst();
                         }
                     }
                     else if( previewBuilder != null ) { // make sure camera wasn't released in the meantime
@@ -1695,47 +1772,7 @@ public class CameraController2 extends CameraController {
                             picture_cb = null;
                             push_take_picture_error_cb = take_picture_error_cb;
                         }
-                        handler.postDelayed(new Runnable(){
-                            @Override
-                            public void run(){
-                                if( MyDebug.LOG )
-                                    Log.d(TAG, "take picture after delay for next focus bracket");
-                                if( camera != null && hasCaptureSession() ) { // make sure camera wasn't released in the meantime
-                                    if( picture_cb.imageQueueWouldBlock(imageReaderRaw != null ? 1 : 0, 1) ) {
-                                        if( MyDebug.LOG ) {
-                                            Log.d(TAG, "...but wait for next focus bracket, as image queue would block");
-                                        }
-                                        handler.postDelayed(this, 100);
-                                        //throw new RuntimeException(); // test
-                                    }
-                                    else {
-                                        // For focus bracketing mode, we play the shutter sound per shot (so the user can tell when the sequence is complete).
-                                        // From a user mode, the gap between shots in focus bracketing mode makes this more analogous to the auto-repeat mode
-                                        // (at the Preview level), which makes the shutter sound per shot.
-
-                                        playSound(MediaActionSound.SHUTTER_CLICK);
-                                        try {
-                                            captureSession.capture(slow_burst_capture_requests.get(n_burst_taken), previewCaptureCallback, handler);
-                                        }
-                                        catch(CameraAccessException e) {
-                                            if( MyDebug.LOG ) {
-                                                Log.e(TAG, "failed to take next focus bracket");
-                                                Log.e(TAG, "reason: " + e.getReason());
-                                                Log.e(TAG, "message: " + e.getMessage());
-                                            }
-                                            e.printStackTrace();
-                                            jpeg_todo = false;
-                                            raw_todo = false;
-                                            picture_cb = null;
-                                            if( take_picture_error_cb != null ) {
-                                                take_picture_error_cb.onError();
-                                                take_picture_error_cb = null;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }, 500);
+                        postNextSlowBurst();
                     }
                 }
             }
@@ -7151,7 +7188,44 @@ public class CameraController2 extends CameraController {
                             Log.d(TAG, "using slow burst");
                         slow_burst_capture_requests = requests;
                         slow_burst_start_ms = System.currentTimeMillis();
-                        captureSession.capture(requests.get(0), previewCaptureCallback, handler);
+                        if( burst_type == BurstType.BURSTTYPE_EXPO ) {
+                            // Set preview to match - some devices (e.g. Samsung Galaxy) don't produce photos with correct exposure if
+                            // the exposure is set to a different value than the preview.
+                            // Although we don't/can't do this for fast burst, doing so here means such devices can use HDR/expo when
+                            // using use_expo_fast_burst==false.
+                            try {
+                                previewBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_OFF);
+                                previewBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, slow_burst_capture_requests.get(n_burst_taken).get(CaptureRequest.SENSOR_SENSITIVITY));
+                                previewBuilder.set(CaptureRequest.SENSOR_FRAME_DURATION, slow_burst_capture_requests.get(n_burst_taken).get(CaptureRequest.SENSOR_FRAME_DURATION));
+
+                                long exposure_time = slow_burst_capture_requests.get(n_burst_taken).get(CaptureRequest.SENSOR_EXPOSURE_TIME);
+                                if( MyDebug.LOG ) {
+                                    Log.d(TAG, "prepare preview for next exposure: " + exposure_time);
+                                }
+                                previewBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposure_time);
+
+                                setRepeatingRequest(previewBuilder.build());
+                            }
+                            catch(CameraAccessException e) {
+                                if( MyDebug.LOG ) {
+                                    Log.e(TAG, "failed to take set exposure for next expo bracketing burst");
+                                    Log.e(TAG, "reason: " + e.getReason());
+                                    Log.e(TAG, "message: " + e.getMessage());
+                                }
+                                e.printStackTrace();
+                                jpeg_todo = false;
+                                raw_todo = false;
+                                picture_cb = null;
+                                push_take_picture_error_cb = take_picture_error_cb;
+                            }
+
+                            postNextSlowBurst();
+                        }
+                        else {
+                            // no need to set preview for first focus bracketing shot, the first focus bracketing always
+                            // has same focus distance as preview
+                            captureSession.capture(requests.get(0), previewCaptureCallback, handler);
+                        }
                     }
 
                     playSound(MediaActionSound.SHUTTER_CLICK); // play shutter sound asap, otherwise user has the illusion of being slow to take photos
@@ -8896,6 +8970,9 @@ public class CameraController2 extends CameraController {
             // actual parsing of image data is done in the imageReader's OnImageAvailableListener()
             // need to cancel the autofocus, and restart the preview after taking the photo
             // Camera2Basic does a capture then sets a repeating request - do the same here just to be safe
+            // update: this is also important when we do an expo burst (BURSTTYPE_EXPO) with option
+            // use_expo_fast_burst==false, since that changes the exposure of the preview, so we need to
+            // reset it here
             if( previewBuilder != null ) {
                 previewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
                 if( MyDebug.LOG )
