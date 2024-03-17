@@ -10497,6 +10497,36 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
     }
 
+    /** Tests taking photo in HDR photo mode with fast expo/HDR burst disabled.
+     */
+    public void testTakePhotoHDRSlowBurst() throws InterruptedException {
+        Log.d(TAG, "testTakePhotoHDRSlowBurst");
+
+        setToDefault();
+
+        if( !mActivity.supportsHDR() ) {
+            return;
+        }
+        if( !mPreview.usingCamera2API() ) {
+            Log.d(TAG, "test requires camera2 api");
+            return;
+        }
+
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_hdr");
+        editor.putBoolean(PreferenceKeys.Camera2FastBurstPreferenceKey, false);
+        editor.apply();
+        updateForSettings();
+
+        assertSame(mActivity.getApplicationInterface().getPhotoMode(), MyApplicationInterface.PhotoMode.HDR);
+        subTestTakePhoto(false, false, true, true, false, false, false, false);
+        if( mPreview.usingCamera2API() ) {
+            Log.d(TAG, "test_capture_results: " + mPreview.getCameraController().test_capture_results);
+            assertEquals(1, mPreview.getCameraController().test_capture_results);
+        }
+    }
+
     /** Tests taking photo in HDR photo mode with saving base expo images.
      */
     public void testTakePhotoHDRSaveExpo() throws InterruptedException {
