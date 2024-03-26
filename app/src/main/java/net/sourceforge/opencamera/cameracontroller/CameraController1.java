@@ -3,6 +3,7 @@ package net.sourceforge.opencamera.cameracontroller;
 import net.sourceforge.opencamera.MyDebug;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -64,13 +65,27 @@ public class CameraController1 extends CameraController {
         if( MyDebug.LOG )
             Log.d(TAG, "create new CameraController1: " + cameraId);
         this.camera_error_cb = camera_error_cb;
+
         try {
-            camera = Camera.open(cameraId);
+            Method openMethod = Class.forName("android.hardware.Camera")
+                    .getMethod("openLegacy", int.class, int.class);
+            camera = (Camera) openMethod.invoke(null,
+                    cameraId, 0x100);
+        } catch (Exception e) {
+            /* Retry with open if openLegacy doesn't exist/fails */
+            camera = null;
         }
-        catch(RuntimeException e) {
-            MyDebug.logStackTrace(TAG, "failed to open camera", e);
-            throw new CameraControllerException();
+
+        if (camera == null) {
+            try {
+                camera = Camera.open(cameraId);
+            } catch (RuntimeException e) {
+                MyDebug.logStackTrace(TAG, "failed to open camera", e);
+                e.printStackTrace();
+                throw new CameraControllerException();
+            }
         }
+
         if( camera == null ) {
             // Although the documentation says Camera.open() should throw a RuntimeException, it seems that it some cases it can return null
             // I've seen this in some crashes reported in Google Play; also see:
