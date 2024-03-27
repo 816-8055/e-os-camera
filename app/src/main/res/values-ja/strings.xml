@@ -747,7 +747,7 @@
     <string name="preference_stamp_style_shadowed">文字を縁取りする</string>
     <string name="preference_stamp_style_plain">普通の文字</string>
     <string name="preferences_build_version">ビルドバージョン</string>
-    <string name="preferences_about_app">カメラはOpenCameraから分岐します</string>
+    <string name="preferences_about_app">カメラはOpenCameraのフォークです</string>
     <string name="preferences_authors">作者</string>
     <string name="preferences_source_code">ソースコード</string>
     <string name="preferences_licence">免許</string>
