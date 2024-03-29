@@ -86,6 +86,7 @@ public class CameraController2 extends CameraController {
     private final String cameraIdS; // ID string of logical camera
     private final String cameraIdSPhysical; // if non-null, ID string of underlying physical camera
 
+    private final boolean is_fairphone_4;
     private final boolean is_samsung;
     private final boolean is_samsung_s7; // Galaxy S7 or Galaxy S7 Edge
     private final boolean is_samsung_galaxy_s;
@@ -2121,11 +2122,13 @@ public class CameraController2 extends CameraController {
         this.camera_error_cb = camera_error_cb;
 
         //this.is_oneplus = Build.MANUFACTURER.toLowerCase(Locale.US).contains("oneplus");
+        this.is_fairphone_4 = Build.MODEL.toLowerCase(Locale.US).contains("fp4");
         this.is_samsung = Build.MANUFACTURER.toLowerCase(Locale.US).contains("samsung");
         this.is_samsung_s7 = Build.MODEL.toLowerCase(Locale.US).contains("sm-g93");
         this.is_samsung_galaxy_s = is_samsung && ( Build.MODEL.toLowerCase(Locale.US).contains("sm-g") || Build.MODEL.toLowerCase(Locale.US).contains("sm-s") );
         this.is_samsung_galaxy_f = is_samsung && Build.MODEL.toLowerCase(Locale.US).contains("sm-f");
         if( MyDebug.LOG ) {
+            Log.d(TAG, "is_fairphone_4: " + is_fairphone_4);
             Log.d(TAG, "is_samsung: " + is_samsung);
             Log.d(TAG, "is_samsung_s7: " + is_samsung_s7);
             Log.d(TAG, "is_samsung_galaxy_s: " + is_samsung_galaxy_s);
@@ -3086,24 +3089,26 @@ public class CameraController2 extends CameraController {
             }
         }
 
-        CameraCharacteristics.Key<int[]> fairphoneAvailableStreamConfigurations = null;
+        if (is_fairphone_4) {
+            CameraCharacteristics.Key<int[]> fairphoneAvailableStreamConfigurations = null;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            fairphoneAvailableStreamConfigurations = new CameraCharacteristics.Key<>("fp.scaler.availableStreamConfigurations", int[].class);
-        }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                fairphoneAvailableStreamConfigurations = new CameraCharacteristics.Key<>("fp.scaler.availableStreamConfigurations", int[].class);
+            }
 
-        int[] FP_StreamConfigs = characteristics.get(fairphoneAvailableStreamConfigurations);
+            int[] FP_StreamConfigs = characteristics.get(fairphoneAvailableStreamConfigurations);
 
-        for (int i = 0; i < FP_StreamConfigs.length / 4; i++) {
-            int format = FP_StreamConfigs[i * 4];
-            int width = FP_StreamConfigs[i * 4 + 1];
-            int height = FP_StreamConfigs[i * 4 + 2];
-            int output = FP_StreamConfigs[i * 4 + 3];
+            for (int i = 0; i < FP_StreamConfigs.length / 4; i++) {
+                int format = FP_StreamConfigs[i * 4];
+                int width = FP_StreamConfigs[i * 4 + 1];
+                int height = FP_StreamConfigs[i * 4 + 2];
+                int output = FP_StreamConfigs[i * 4 + 3];
 
-            if (output != 0) {
-                if( MyDebug.LOG )
-                    Log.d(TAG, "custom scaler size: " + height + " x " + width);
-                camera_features.picture_sizes.add(new Size(width, height));
+                if (output != 0) {
+                    if (MyDebug.LOG)
+                        Log.d(TAG, "custom scaler size: " + height + " x " + width);
+                    camera_features.picture_sizes.add(new Size(width, height));
+                }
             }
         }
 
