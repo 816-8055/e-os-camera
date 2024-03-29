@@ -2860,6 +2860,28 @@ public class CameraController2 extends CameraController {
                 camera_features.picture_sizes.add(new CameraController.Size(camera_size.getWidth(), camera_size.getHeight()));
             }
         }
+
+        CameraCharacteristics.Key<int[]> fairphoneAvailableStreamConfigurations = null;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            fairphoneAvailableStreamConfigurations = new CameraCharacteristics.Key<>("fp.scaler.availableStreamConfigurations", int[].class);
+        }
+
+        int[] FP_StreamConfigs = characteristics.get(fairphoneAvailableStreamConfigurations);
+
+        for (int i = 0; i < FP_StreamConfigs.length / 4; i++) {
+            int format = FP_StreamConfigs[i * 4];
+            int width = FP_StreamConfigs[i * 4 + 1];
+            int height = FP_StreamConfigs[i * 4 + 2];
+            int output = FP_StreamConfigs[i * 4 + 3];
+
+            if (output != 0) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "custom scaler size: " + height + " x " + width);
+                camera_features.picture_sizes.add(new Size(width, height));
+            }
+        }
+
         // sizes are usually already sorted from high to low, but sort just in case
         // note some devices do have sizes in a not fully sorted order (e.g., Nokia 8)
         Collections.sort(camera_features.picture_sizes, new CameraController.SizeSorter());
