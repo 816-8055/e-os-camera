@@ -413,7 +413,7 @@
     <string name="bottom_of_screen">が画面の下部にあります</string>
     <string name="centre_of_screen">が画面の中央にあります</string>
     <string name="preference_video_fps_default">デフォルト</string>
-    <string name="preference_category_exif_tags">カスタムEXIFタグ</string>
+    <string name="preference_category_exif_tags">ユーザー定義のEXIFタグ</string>
     <string name="preference_exif_artist">アーティスト</string>
     <string name="preference_exif_artist_summary">EXIFデータ内の\"Artist\"タグに記録されます。(JPEG形式のみ)(使用しない場合は空にします)</string>
     <string name="preference_exif_copyright">著作権表記</string>
@@ -655,9 +655,9 @@
     <!-- for "ContentDescription" (used for accessibility, e.g., Google Talkback) -->
     <string name="face_detection_disable">顔認識を無効にする</string>
     <!-- for "ContentDescription" (used for accessibility, e.g., Google Talkback) -->
-    <string name="face_detection_enabled">顔認識オン</string>
-    <string name="face_detection_disabled">顔認識オフ</string>
-    <string name="preference_show_auto_level">傾き補正アイコンを表示する</string>
+    <string name="face_detection_enabled">顔認識が有効です</string>
+    <string name="face_detection_disabled">顔認識が無効です</string>
+    <string name="preference_show_auto_level">傾き補正アイコンを表示</string>
     <string name="preference_show_auto_level_summary">傾き補正のオンオフを切り替えるアイコンを表示します。傾き補正を有効にすると写真は水平になるよう自動的に補正されます。</string>
     <string name="auto_level_enable">傾き補正オン</string>
     <!-- for "ContentDescription" (used for accessibility, e.g., Google Talkback) -->
@@ -672,8 +672,8 @@
     <!-- for "ContentDescription" (used for accessibility, e.g., Google Talkback) -->
     <string name="stamp_enabled">スタンプ オン</string>
     <string name="stamp_disabled">スタンプ オフ</string>
-    <string name="preference_show_textstamp">カスタムテキストスタンプアイコンを表示する</string>
-    <string name="preference_show_textstamp_summary">カスタムテキストスタンプを入力するためのアイコンを表示します</string>
+    <string name="preference_show_textstamp">ユーザー定義のテキストスタンプアイコンを表示</string>
+    <string name="preference_show_textstamp_summary">ユーザー定義のテキストスタンプを入力するアイコンを表示するか否かについての設定</string>
     <string name="preference_show_white_balance_lock">ホワイトバランス固定アイコンを表示する</string>
     <string name="preference_show_white_balance_lock_summary">ホワイトバランスを固定/固定解除するアイコンを表示します</string>
     <string name="white_balance_lock">ホワイトバランスを固定する</string>
@@ -747,7 +747,7 @@
     <string name="preference_stamp_style_shadowed">文字を縁取りする</string>
     <string name="preference_stamp_style_plain">普通の文字</string>
     <string name="preferences_build_version">ビルドバージョン</string>
-    <string name="preferences_about_app">カメラはOpenCameraのフォークです</string>
+    <string name="preferences_about_app">CameraはOpenCameraのフォークです</string>
     <string name="preferences_authors">作者</string>
     <string name="preferences_source_code">ソースコード</string>
     <string name="preferences_licence">免許</string>
