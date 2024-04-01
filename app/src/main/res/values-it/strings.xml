@@ -909,4 +909,11 @@
     <string name="permission_rationale_record_audio">E\' richiesto il consenso all\'utilizzo del Microfono per registrare video con audio, così come anche per usare le scelte di \"controllo Audio\"</string>
     <string name="permission_rationale_storage">E\' richiesto il permesso di leggere/scrivere file per salvare i risultati come foto o video</string>
     <string name="switch_multi_camera_lens">LENTI</string>
+    <string name="preference_failed_focus_mode_message">Per foto migliori, tieni ferma la fotocamera.</string>
+    <string name="preference_remove_device_exif_keep_datetime">Rimuovi eccetto data/ora</string>
+    <string name="preference_remove_device_exif_summary">Se rimuovere o no i metadati EXIF propri del dispositivo usato dalle foto JPEG. Non verranno rimossi i tag exif applicati da altre impostazioni che scrivono metadati EXIF (es. posizione/geotagging). Tutte le altre scelte sono indipendenti e sovrascriveranno questa impostazione. Non funziona su RAW/DNG e video.
+\n%s</string>
+    <string name="preference_remove_device_exif_off">Non rimuovere i dati EXIF del dispositivo</string>
+    <string name="preference_remove_device_exif_on">Rimuovi i dati EXIF del dispositivo</string>
+    <string name="preference_remove_device_exif">Rimuovi i dati EXIF del dispositivo</string>
 </resources>
