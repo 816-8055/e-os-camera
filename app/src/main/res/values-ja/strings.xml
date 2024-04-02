@@ -366,7 +366,7 @@
     <string name="duration_1h">1時間</string>
     <string name="preference_show_take_photo">シャッターボタンを表示する</string>
     <string name="preference_show_take_photo_summary">撮影と録画のボタンを表示します。他の方法で撮影したい場合はチェックを外します(シャッター専用ボタンが付いている、音量ボタンを使用するなど)</string>
-    <string name="capturing">撮影中…</string>
+    <string name="capturing">撮影しています…</string>
     <string name="audio_listener_failed">リスニングの初期化に失敗しました</string>
     <string name="failed_to_process_hdr">HDR画像の作成に失敗しました</string>
     <string name="white_balance_auto">オート</string>
