@@ -1232,7 +1232,7 @@ public class MainUI {
                 resource = R.drawable.empty;
                 content_description = 0;
                 switch_video_content_description = R.string.switch_to_photo;
-            } else { // Video case
+            } else { // Camera case
                 if (MyDebug.LOG)
                     Log.d(TAG, "set icon to photo");
                 resource = R.drawable.take_photo_selector;
