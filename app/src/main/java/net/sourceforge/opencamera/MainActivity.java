@@ -6258,7 +6258,7 @@ public class MainActivity extends AppCompatActivity {
                 simple = false;
             }
         }
-        else {
+        else { //Camera
             if( photo_mode == MyApplicationInterface.PhotoMode.Panorama ) {
                 // don't show resolution in panorama mode
                 toast_string = "";
@@ -6292,89 +6292,92 @@ public class MainActivity extends AppCompatActivity {
                 simple = false;
             }
         }
-        if( applicationInterface.getFaceDetectionPref() ) {
-            // important so that the user realises why touching for focus/metering areas won't work - easy to forget that face detection has been turned on!
-            toast_string += "\n" + getResources().getString(R.string.preference_face_detection);
-            simple = false;
-        }
-        if( !video_high_speed ) {
-            //manual ISO only supported for high speed video
-            String iso_value = applicationInterface.getISOPref();
-            if( !iso_value.equals(CameraController.ISO_DEFAULT) ) {
-                toast_string += "\nISO: " + iso_value;
-                if( preview.supportsExposureTime() ) {
-                    long exposure_time_value = applicationInterface.getExposureTimePref();
-                    toast_string += " " + preview.getExposureTimeString(exposure_time_value);
+        if (preview.isQRCode()) {
+            toast_string = "QRCode";
+        } else { //Camera || Video
+            if (applicationInterface.getFaceDetectionPref()) {
+                // important so that the user realises why touching for focus/metering areas won't work - easy to forget that face detection has been turned on!
+                toast_string += "\n" + getResources().getString(R.string.preference_face_detection);
+                simple = false;
+            }
+            if (!video_high_speed) {
+                //manual ISO only supported for high speed video
+                String iso_value = applicationInterface.getISOPref();
+                if (!iso_value.equals(CameraController.ISO_DEFAULT)) {
+                    toast_string += "\nISO: " + iso_value;
+                    if (preview.supportsExposureTime()) {
+                        long exposure_time_value = applicationInterface.getExposureTimePref();
+                        toast_string += " " + preview.getExposureTimeString(exposure_time_value);
+                    }
+                    simple = false;
                 }
-                simple = false;
-            }
-            int current_exposure = camera_controller.getExposureCompensation();
-            if( current_exposure != 0 ) {
-                toast_string += "\n" + preview.getExposureCompensationString(current_exposure);
-                simple = false;
-            }
-        }
-        try {
-            String scene_mode = camera_controller.getSceneMode();
-            String white_balance = camera_controller.getWhiteBalance();
-            String color_effect = camera_controller.getColorEffect();
-            if( scene_mode != null && !scene_mode.equals(CameraController.SCENE_MODE_DEFAULT) ) {
-                toast_string += "\n" + getResources().getString(R.string.scene_mode) + ": " + mainUI.getEntryForSceneMode(scene_mode);
-                simple = false;
-            }
-            if( white_balance != null && !white_balance.equals(CameraController.WHITE_BALANCE_DEFAULT) ) {
-                toast_string += "\n" + getResources().getString(R.string.white_balance) + ": " + mainUI.getEntryForWhiteBalance(white_balance);
-                if( white_balance.equals("manual") && preview.supportsWhiteBalanceTemperature() ) {
-                    toast_string += " " + camera_controller.getWhiteBalanceTemperature();
+                int current_exposure = camera_controller.getExposureCompensation();
+                if (current_exposure != 0) {
+                    toast_string += "\n" + preview.getExposureCompensationString(current_exposure);
+                    simple = false;
                 }
-                simple = false;
             }
-            if( color_effect != null && !color_effect.equals(CameraController.COLOR_EFFECT_DEFAULT) ) {
-                toast_string += "\n" + getResources().getString(R.string.color_effect) + ": " + mainUI.getEntryForColorEffect(color_effect);
-                simple = false;
+            try {
+                String scene_mode = camera_controller.getSceneMode();
+                String white_balance = camera_controller.getWhiteBalance();
+                String color_effect = camera_controller.getColorEffect();
+                if (scene_mode != null && !scene_mode.equals(CameraController.SCENE_MODE_DEFAULT)) {
+                    toast_string += "\n" + getResources().getString(R.string.scene_mode) + ": " + mainUI.getEntryForSceneMode(scene_mode);
+                    simple = false;
+                }
+                if (white_balance != null && !white_balance.equals(CameraController.WHITE_BALANCE_DEFAULT)) {
+                    toast_string += "\n" + getResources().getString(R.string.white_balance) + ": " + mainUI.getEntryForWhiteBalance(white_balance);
+                    if (white_balance.equals("manual") && preview.supportsWhiteBalanceTemperature()) {
+                        toast_string += " " + camera_controller.getWhiteBalanceTemperature();
+                    }
+                    simple = false;
+                }
+                if (color_effect != null && !color_effect.equals(CameraController.COLOR_EFFECT_DEFAULT)) {
+                    toast_string += "\n" + getResources().getString(R.string.color_effect) + ": " + mainUI.getEntryForColorEffect(color_effect);
+                    simple = false;
+                }
+            } catch (RuntimeException e) {
+                // catch runtime error from camera_controller old API from camera.getParameters()
+                e.printStackTrace();
             }
-        }
-        catch(RuntimeException e) {
-            // catch runtime error from camera_controller old API from camera.getParameters()
-            e.printStackTrace();
-        }
-        String lock_orientation = applicationInterface.getLockOrientationPref();
-        if( !lock_orientation.equals("none") && photo_mode != MyApplicationInterface.PhotoMode.Panorama ) {
-            // panorama locks to portrait, but don't want to display that in the toast
-            String [] entries_array = getResources().getStringArray(R.array.preference_lock_orientation_entries);
-            String [] values_array = getResources().getStringArray(R.array.preference_lock_orientation_values);
-            int index = Arrays.asList(values_array).indexOf(lock_orientation);
-            if( index != -1 ) { // just in case!
-                String entry = entries_array[index];
-                toast_string += "\n" + entry;
-                simple = false;
+            String lock_orientation = applicationInterface.getLockOrientationPref();
+            if (!lock_orientation.equals("none") && photo_mode != MyApplicationInterface.PhotoMode.Panorama) {
+                // panorama locks to portrait, but don't want to display that in the toast
+                String[] entries_array = getResources().getStringArray(R.array.preference_lock_orientation_entries);
+                String[] values_array = getResources().getStringArray(R.array.preference_lock_orientation_values);
+                int index = Arrays.asList(values_array).indexOf(lock_orientation);
+                if (index != -1) { // just in case!
+                    String entry = entries_array[index];
+                    toast_string += "\n" + entry;
+                    simple = false;
+                }
             }
-        }
-        String timer = sharedPreferences.getString(PreferenceKeys.TimerPreferenceKey, "0");
-        if( !timer.equals("0") && photo_mode != MyApplicationInterface.PhotoMode.Panorama ) {
-            String [] entries_array = getResources().getStringArray(R.array.preference_timer_entries);
-            String [] values_array = getResources().getStringArray(R.array.preference_timer_values);
-            int index = Arrays.asList(values_array).indexOf(timer);
-            if( index != -1 ) { // just in case!
-                String entry = entries_array[index];
-                toast_string += "\n" + getResources().getString(R.string.preference_timer) + ": " + entry;
-                simple = false;
+            String timer = sharedPreferences.getString(PreferenceKeys.TimerPreferenceKey, "0");
+            if (!timer.equals("0") && photo_mode != MyApplicationInterface.PhotoMode.Panorama) {
+                String[] entries_array = getResources().getStringArray(R.array.preference_timer_entries);
+                String[] values_array = getResources().getStringArray(R.array.preference_timer_values);
+                int index = Arrays.asList(values_array).indexOf(timer);
+                if (index != -1) { // just in case!
+                    String entry = entries_array[index];
+                    toast_string += "\n" + getResources().getString(R.string.preference_timer) + ": " + entry;
+                    simple = false;
+                }
             }
-        }
-        String repeat = applicationInterface.getRepeatPref();
-        if( !repeat.equals("1") ) {
-            String [] entries_array = getResources().getStringArray(R.array.preference_burst_mode_entries);
-            String [] values_array = getResources().getStringArray(R.array.preference_burst_mode_values);
-            int index = Arrays.asList(values_array).indexOf(repeat);
-            if( index != -1 ) { // just in case!
-                String entry = entries_array[index];
-                toast_string += "\n" + getResources().getString(R.string.preference_burst_mode) + ": " + entry;
-                simple = false;
+            String repeat = applicationInterface.getRepeatPref();
+            if (!repeat.equals("1")) {
+                String[] entries_array = getResources().getStringArray(R.array.preference_burst_mode_entries);
+                String[] values_array = getResources().getStringArray(R.array.preference_burst_mode_values);
+                int index = Arrays.asList(values_array).indexOf(repeat);
+                if (index != -1) { // just in case!
+                    String entry = entries_array[index];
+                    toast_string += "\n" + getResources().getString(R.string.preference_burst_mode) + ": " + entry;
+                    simple = false;
+                }
             }
+                /*if( audio_listener != null ) {
+                    toast_string += "\n" + getResources().getString(R.string.preference_audio_noise_control);
+                }*/
         }
-		/*if( audio_listener != null ) {
-			toast_string += "\n" + getResources().getString(R.string.preference_audio_noise_control);
-		}*/
 
         if( MyDebug.LOG ) {
             Log.d(TAG, "toast_string: " + toast_string);
