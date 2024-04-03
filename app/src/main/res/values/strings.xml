@@ -1101,4 +1101,5 @@
     <string name="skip_button_label">Skip</string>
 
     <string name="switch_multi_camera_lens">LENS</string>
+    <string name="switch_to_qrcode">QRCode</string>
 </resources>

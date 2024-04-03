@@ -932,4 +932,5 @@
     <string name="photo_mode_x_beauty">X-Bty</string>
     <string name="photo_mode_x_bokeh_full">Extension : Bokeh</string>
     <string name="photo_mode_x_bokeh">X-Bokeh</string>
+    <string name="switch_to_qrcode">QR Code</string>
 </resources>

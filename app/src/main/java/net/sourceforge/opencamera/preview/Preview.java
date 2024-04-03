@@ -203,8 +203,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             VIDEO,
             QRCODE
     };
-    private FunctionalMode functionalMode;
+    private FunctionalMode functionalMode = FunctionalMode.PHOTO;
     private boolean is_video() {return functionalMode == FunctionalMode.VIDEO;};
+    private boolean is_qrcode() {return functionalMode == FunctionalMode.QRCODE;};
+    private boolean is_photo() {return functionalMode == FunctionalMode.PHOTO;};
 
     private volatile MediaRecorder video_recorder; // must be volatile for test project reading the state
     private volatile boolean video_start_time_set; // must be volatile for test project reading the state
@@ -4728,12 +4730,16 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             return;
         }
         boolean old_is_video = is_video();
+        boolean old_is_qrcode = is_qrcode();
         if (this.is_video()) {
             if (video_recorder != null) {
                 stopVideo(false);
             }
+            this.functionalMode = FunctionalMode.QRCODE;
+        } else if (this.is_qrcode()) {
+            // K1ZFP TODO Stop the qrcode //
             this.functionalMode = FunctionalMode.PHOTO;
-        } else {
+        } else if (this.is_photo()) {
             if (this.isOnTimer()) {
                 cancelTimer();
                 ((MainActivity)getContext()).setDecorFitsSystemWindows(true);
@@ -4748,7 +4754,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             }
         }
 
-        if (is_video() != old_is_video) {
+        if (is_qrcode() != old_is_qrcode) {
+            //K1ZFP TODO //
+        }
+        else if (is_video() != old_is_video) {
             setFocusPref(false); // first restore the saved focus for the new photo/video mode; don't do autofocus, as it'll be cancelled when restarting preview
 			/*if( !is_video ) {
 				// changing from video to photo mode
@@ -4757,7 +4766,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
             if (change_user_pref) {
                 // now save
-                applicationInterface.setVideoPref(is_video());
+                applicationInterface.setVideoPref(is_video()); // K1ZFP TODO Warn//
             }
             if (!during_startup) {
                 // if during startup, updateFlashForVideo() needs to always be explicitly called anyway
@@ -8596,6 +8605,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     }
     public boolean isVideo() {
         return functionalMode == FunctionalMode.VIDEO;
+    }
+    public boolean isPhoto() {
+        return functionalMode == FunctionalMode.PHOTO;
     }
 
     public boolean isVideoRecording() {
