@@ -4755,7 +4755,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
 
         if (is_qrcode() != old_is_qrcode) {
-            //K1ZFP TODO //
+            applicationInterface.setVideoPref(false);
         }
         else if (is_video() != old_is_video) {
             setFocusPref(false); // first restore the saved focus for the new photo/video mode; don't do autofocus, as it'll be cancelled when restarting preview
@@ -4766,7 +4766,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
             if (change_user_pref) {
                 // now save
-                applicationInterface.setVideoPref(is_video()); // K1ZFP TODO Warn//
+                applicationInterface.setVideoPref(true);
             }
             if (!during_startup) {
                 // if during startup, updateFlashForVideo() needs to always be explicitly called anyway
