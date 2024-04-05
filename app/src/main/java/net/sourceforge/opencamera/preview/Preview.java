@@ -95,6 +95,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.Reader;
+import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.RGBLuminanceSource;
+
 import foundation.e.camera.R;
 
 /** This class was originally named due to encapsulating the camera preview,
@@ -1105,6 +1113,38 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     @Override
     public void onSurfaceTextureUpdated(@NonNull SurfaceTexture arg0) {
         refreshPreviewBitmap();
+
+        if (isQRCode()) {
+            enablePreviewBitmap();
+            TextureView textureView = (TextureView) this.cameraSurface;
+            Bitmap bitmap =  textureView.getBitmap(preview_bitmap);
+
+            if (bitmap!=null) {
+                int width = bitmap.getWidth();
+                int height = bitmap.getHeight();
+                int[] pixels = new int[width * height];
+                bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+
+                LuminanceSource source = new RGBLuminanceSource(width, height, pixels);
+                BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
+                Reader reader = new MultiFormatReader();
+
+                try {
+                    Result result = reader.decode(binaryBitmap);
+                    String qrcodeContent = result.getText();
+                    MainActivity mActivity = (MainActivity) this.getContext();
+                    if (MyDebug.LOG)
+                        Log.d(TAG, "Find QRCode qrcodeContent="+qrcodeContent );
+                    mActivity.qrImageAnalyzer.showQrDialog(result);
+                } catch (Exception e) {
+                    // K1ZFP TODO Error 2
+                }
+            } else {
+                // K1ZFP TODO Error 1
+            }
+        } else {
+            disablePreviewBitmap();
+        }
     }
 
     private void configureTransform() {

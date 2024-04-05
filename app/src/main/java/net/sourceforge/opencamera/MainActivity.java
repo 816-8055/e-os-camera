@@ -83,6 +83,7 @@ import net.sourceforge.opencamera.cameracontroller.CameraControllerManager;
 import net.sourceforge.opencamera.cameracontroller.CameraControllerManager2;
 import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
+import net.sourceforge.opencamera.qr.QrImageAnalyzer;
 import net.sourceforge.opencamera.remotecontrol.BluetoothRemoteControl;
 import net.sourceforge.opencamera.ui.CircleImageView;
 import net.sourceforge.opencamera.ui.DrawPreview;
@@ -109,6 +110,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import foundation.e.camera.R;
+import kotlin.coroutines.CoroutineContext;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
+import kotlinx.coroutines.Job;
+import kotlinx.coroutines.JobKt;
 
 /**
  * The main Activity for Open Camera.
@@ -241,6 +247,11 @@ public class MainActivity extends AppCompatActivity {
     //public static final boolean lock_to_landscape = true;
     public static final boolean lock_to_landscape = false;
 
+    // QRCode
+    public QrImageAnalyzer qrImageAnalyzer;
+    private Job job;
+    private CoroutineScope coroutineScope;
+
     // handling for lock_to_landscape==false:
 
     public enum SystemOrientation {
@@ -272,6 +283,16 @@ public class MainActivity extends AppCompatActivity {
         if( MyDebug.LOG )
             Log.d(TAG, "activity_count: " + activity_count);
         super.onCreate(savedInstanceState);
+
+        //QRCode
+        job = JobKt.Job(null);
+        coroutineScope = new CoroutineScope() {
+            @Override
+            public CoroutineContext getCoroutineContext() {
+                return Dispatchers.getMain().plus(job);
+            }
+        };
+        qrImageAnalyzer = new QrImageAnalyzer(this, coroutineScope);
 
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false); // initialise any unset preferences to their default values

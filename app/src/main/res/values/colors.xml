@@ -17,4 +17,12 @@
     <color name="color_toast_bg">@color/e_disabled_color_light</color>
     <color name="color_popup_title_bg">@color/e_disabled_color_dark</color>
     <color name="color_popup_bg">#E5000000</color>
+
+    <!-- QRCode -->
+    <color name="qrcodeColorOnSurface">#FFFFFF</color>
+    <color name="qrcodeSelectableItemBackground">#E5000000</color>
+    <color name="qrcodeColorSurfaceContainerHighest">#8BC34A</color>
+    <color name="qrcodeColorOnSurfaceVariant">#3F51B5</color>
+    <color name="qrcodeSelectableItemBackgroundBorderless">#CB000000</color>
+
 </resources>
