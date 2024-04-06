@@ -6565,6 +6565,12 @@ public class CameraController2 extends CameraController {
                 }
                 e.printStackTrace();
             }
+            catch(IllegalStateException e) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "failed to cancel autofocus [captureSession already closed!]");
+                e.printStackTrace();
+                // got this as a Google Play exception - this means the capture session is already closed
+            }
             previewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
             this.autofocus_cb = null;
             this.autofocus_time_ms = -1;
