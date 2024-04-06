@@ -590,7 +590,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
             // set a maximum resolution for modes that require decompressing multiple images for processing,
             // due to risk of running out of memory!
             constraints.has_max_mp = true;
-            constraints.max_mp = 22000000; // max of 22MP
+            constraints.max_mp = 18000000; // max of 18MP
             //constraints.max_mp = 7800000; // test!
             if( main_activity.is_test && test_max_mp != 0 ) {
                 constraints.max_mp = test_max_mp;
