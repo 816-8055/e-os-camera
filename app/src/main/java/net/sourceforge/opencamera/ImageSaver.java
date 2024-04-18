@@ -4425,9 +4425,10 @@ public class ImageSaver extends Thread {
             // Normally if geotagging is enabled, location should have already been added via the Camera API.
             // But we need this when using camera extensions (since Camera API doesn't support location for camera extensions).
             // And some devices (e.g., Pixel 6 Pro with Camera2 API) seem to not store location data, so we always check if we need to add it.
+            // Also for FP5, wherein longitude randomly is 0.0d, even when properly passed via JPEG_GPS_LOCATION
             // Similarly Fairphone 5 always has longitude stored as 0.0.
             // fine to ignore request.remove_device_exif, as this is a separate user option
-            if( !exif.hasAttribute(ExifInterface.TAG_GPS_LATITUDE) || !exif.hasAttribute(ExifInterface.TAG_GPS_LONGITUDE) ) {
+            if( !exif.hasAttribute(ExifInterface.TAG_GPS_LATITUDE) || !exif.hasAttribute(ExifInterface.TAG_GPS_LONGITUDE)  || exif.getLatLong()[1] == 0.0d ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "force location as not present in exif");
                 force_location = true;
