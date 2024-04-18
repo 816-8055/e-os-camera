@@ -4459,9 +4459,10 @@ public class ImageSaver extends Thread {
         }
         setCustomExif(exif, custom_tag_artist, custom_tag_copyright);
 
-        if( store_location && ( !exif.hasAttribute(ExifInterface.TAG_GPS_LATITUDE) || !exif.hasAttribute(ExifInterface.TAG_GPS_LATITUDE) ) ) {
+        if( store_location && ( !exif.hasAttribute(ExifInterface.TAG_GPS_LATITUDE) || !exif.hasAttribute(ExifInterface.TAG_GPS_LONGITUDE) || exif.getLatLong()[1] == 0.0d) ) {
             // We need this when using camera extensions (since Camera API doesn't support location for camera extensions).
             // But some devices (e.g., Pixel 6 Pro with Camera2 API) seem to not store location data, so we always check if we need to add it.
+            // Also for FP5, wherein longitude randomly is 0.0d, even when properly passed via JPEG_GPS_LOCATION
             // fine to ignore request.remove_device_exif, as this is a separate user option
             if( MyDebug.LOG )
                 Log.d(TAG, "store location"); // don't log location for privacy reasons!
