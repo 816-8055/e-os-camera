@@ -83,6 +83,7 @@ import net.sourceforge.opencamera.cameracontroller.CameraControllerManager;
 import net.sourceforge.opencamera.cameracontroller.CameraControllerManager2;
 import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
+import net.sourceforge.opencamera.qr.QrImageAnalyzer;
 import net.sourceforge.opencamera.remotecontrol.BluetoothRemoteControl;
 import net.sourceforge.opencamera.ui.CircleImageView;
 import net.sourceforge.opencamera.ui.DrawPreview;
@@ -109,6 +110,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import foundation.e.camera.R;
+import kotlin.coroutines.CoroutineContext;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
+import kotlinx.coroutines.Job;
+import kotlinx.coroutines.JobKt;
 
 /**
  * The main Activity for Open Camera.
@@ -241,6 +247,11 @@ public class MainActivity extends AppCompatActivity {
     //public static final boolean lock_to_landscape = true;
     public static final boolean lock_to_landscape = false;
 
+    // QRCode
+    public QrImageAnalyzer qrImageAnalyzer;
+    private Job job;
+    private CoroutineScope coroutineScope;
+
     // handling for lock_to_landscape==false:
 
     public enum SystemOrientation {
@@ -272,6 +283,16 @@ public class MainActivity extends AppCompatActivity {
         if( MyDebug.LOG )
             Log.d(TAG, "activity_count: " + activity_count);
         super.onCreate(savedInstanceState);
+
+        //QRCode
+        job = JobKt.Job(null);
+        coroutineScope = new CoroutineScope() {
+            @Override
+            public CoroutineContext getCoroutineContext() {
+                return Dispatchers.getMain().plus(job);
+            }
+        };
+        qrImageAnalyzer = new QrImageAnalyzer(this, coroutineScope);
 
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false); // initialise any unset preferences to their default values
@@ -2660,6 +2681,45 @@ public class MainActivity extends AppCompatActivity {
             userSwitchToCamera(cameraId, true);
         }
     }
+
+    /*  getBetterQRCodeCameraID()
+        Returns the best camera ID, based on the fact that it's probably the first rear camera available.
+        The user always has the option of selecting with the lens switcher in case the choice is wrong.
+        Returns -1 if no camera available. In that case we do *NOT* trig any switch.
+     */
+    public int getBetterQRCodeCameraID() {
+        int best_qrcode_camera = -1;
+        if( MyDebug.LOG )
+            Log.d(TAG, "getBetterQRCodeCameraID");
+        if( !isMultiCamEnabled() ) {
+            Log.e(TAG, "getBetterQRCodeCameraID switch multi camera icon shouldn't have been visible");
+            return best_qrcode_camera;
+        }
+        if( preview.isOpeningCamera() ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "getBetterQRCodeCameraID already opening camera in background thread");
+            return best_qrcode_camera;
+        }
+        if( this.preview.canSwitchCamera() ) {
+            try {
+                CameraManager _cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+                for (String _cameraId : _cameraManager.getCameraIdList()) {
+                    CameraCharacteristics characteristics = _cameraManager.getCameraCharacteristics(_cameraId);
+                    Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+                    if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
+                        best_qrcode_camera = Integer.parseInt(_cameraId);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "best_qrcode_camera ="+best_qrcode_camera);
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return best_qrcode_camera;
+    }
+
 
     private void updateMultiCameraIcon() {
         Button multiCameraButton = findViewById(R.id.switch_multi_camera);
@@ -6258,7 +6318,7 @@ public class MainActivity extends AppCompatActivity {
                 simple = false;
             }
         }
-        else {
+        else { //Camera
             if( photo_mode == MyApplicationInterface.PhotoMode.Panorama ) {
                 // don't show resolution in panorama mode
                 toast_string = "";
@@ -6292,89 +6352,92 @@ public class MainActivity extends AppCompatActivity {
                 simple = false;
             }
         }
-        if( applicationInterface.getFaceDetectionPref() ) {
-            // important so that the user realises why touching for focus/metering areas won't work - easy to forget that face detection has been turned on!
-            toast_string += "\n" + getResources().getString(R.string.preference_face_detection);
-            simple = false;
-        }
-        if( !video_high_speed ) {
-            //manual ISO only supported for high speed video
-            String iso_value = applicationInterface.getISOPref();
-            if( !iso_value.equals(CameraController.ISO_DEFAULT) ) {
-                toast_string += "\nISO: " + iso_value;
-                if( preview.supportsExposureTime() ) {
-                    long exposure_time_value = applicationInterface.getExposureTimePref();
-                    toast_string += " " + preview.getExposureTimeString(exposure_time_value);
+        if (preview.isQRCode()) {
+            toast_string = "QRCode";
+        } else { //Camera || Video
+            if (applicationInterface.getFaceDetectionPref()) {
+                // important so that the user realises why touching for focus/metering areas won't work - easy to forget that face detection has been turned on!
+                toast_string += "\n" + getResources().getString(R.string.preference_face_detection);
+                simple = false;
+            }
+            if (!video_high_speed) {
+                //manual ISO only supported for high speed video
+                String iso_value = applicationInterface.getISOPref();
+                if (!iso_value.equals(CameraController.ISO_DEFAULT)) {
+                    toast_string += "\nISO: " + iso_value;
+                    if (preview.supportsExposureTime()) {
+                        long exposure_time_value = applicationInterface.getExposureTimePref();
+                        toast_string += " " + preview.getExposureTimeString(exposure_time_value);
+                    }
+                    simple = false;
                 }
-                simple = false;
-            }
-            int current_exposure = camera_controller.getExposureCompensation();
-            if( current_exposure != 0 ) {
-                toast_string += "\n" + preview.getExposureCompensationString(current_exposure);
-                simple = false;
-            }
-        }
-        try {
-            String scene_mode = camera_controller.getSceneMode();
-            String white_balance = camera_controller.getWhiteBalance();
-            String color_effect = camera_controller.getColorEffect();
-            if( scene_mode != null && !scene_mode.equals(CameraController.SCENE_MODE_DEFAULT) ) {
-                toast_string += "\n" + getResources().getString(R.string.scene_mode) + ": " + mainUI.getEntryForSceneMode(scene_mode);
-                simple = false;
-            }
-            if( white_balance != null && !white_balance.equals(CameraController.WHITE_BALANCE_DEFAULT) ) {
-                toast_string += "\n" + getResources().getString(R.string.white_balance) + ": " + mainUI.getEntryForWhiteBalance(white_balance);
-                if( white_balance.equals("manual") && preview.supportsWhiteBalanceTemperature() ) {
-                    toast_string += " " + camera_controller.getWhiteBalanceTemperature();
+                int current_exposure = camera_controller.getExposureCompensation();
+                if (current_exposure != 0) {
+                    toast_string += "\n" + preview.getExposureCompensationString(current_exposure);
+                    simple = false;
                 }
-                simple = false;
             }
-            if( color_effect != null && !color_effect.equals(CameraController.COLOR_EFFECT_DEFAULT) ) {
-                toast_string += "\n" + getResources().getString(R.string.color_effect) + ": " + mainUI.getEntryForColorEffect(color_effect);
-                simple = false;
+            try {
+                String scene_mode = camera_controller.getSceneMode();
+                String white_balance = camera_controller.getWhiteBalance();
+                String color_effect = camera_controller.getColorEffect();
+                if (scene_mode != null && !scene_mode.equals(CameraController.SCENE_MODE_DEFAULT)) {
+                    toast_string += "\n" + getResources().getString(R.string.scene_mode) + ": " + mainUI.getEntryForSceneMode(scene_mode);
+                    simple = false;
+                }
+                if (white_balance != null && !white_balance.equals(CameraController.WHITE_BALANCE_DEFAULT)) {
+                    toast_string += "\n" + getResources().getString(R.string.white_balance) + ": " + mainUI.getEntryForWhiteBalance(white_balance);
+                    if (white_balance.equals("manual") && preview.supportsWhiteBalanceTemperature()) {
+                        toast_string += " " + camera_controller.getWhiteBalanceTemperature();
+                    }
+                    simple = false;
+                }
+                if (color_effect != null && !color_effect.equals(CameraController.COLOR_EFFECT_DEFAULT)) {
+                    toast_string += "\n" + getResources().getString(R.string.color_effect) + ": " + mainUI.getEntryForColorEffect(color_effect);
+                    simple = false;
+                }
+            } catch (RuntimeException e) {
+                // catch runtime error from camera_controller old API from camera.getParameters()
+                e.printStackTrace();
             }
-        }
-        catch(RuntimeException e) {
-            // catch runtime error from camera_controller old API from camera.getParameters()
-            e.printStackTrace();
-        }
-        String lock_orientation = applicationInterface.getLockOrientationPref();
-        if( !lock_orientation.equals("none") && photo_mode != MyApplicationInterface.PhotoMode.Panorama ) {
-            // panorama locks to portrait, but don't want to display that in the toast
-            String [] entries_array = getResources().getStringArray(R.array.preference_lock_orientation_entries);
-            String [] values_array = getResources().getStringArray(R.array.preference_lock_orientation_values);
-            int index = Arrays.asList(values_array).indexOf(lock_orientation);
-            if( index != -1 ) { // just in case!
-                String entry = entries_array[index];
-                toast_string += "\n" + entry;
-                simple = false;
+            String lock_orientation = applicationInterface.getLockOrientationPref();
+            if (!lock_orientation.equals("none") && photo_mode != MyApplicationInterface.PhotoMode.Panorama) {
+                // panorama locks to portrait, but don't want to display that in the toast
+                String[] entries_array = getResources().getStringArray(R.array.preference_lock_orientation_entries);
+                String[] values_array = getResources().getStringArray(R.array.preference_lock_orientation_values);
+                int index = Arrays.asList(values_array).indexOf(lock_orientation);
+                if (index != -1) { // just in case!
+                    String entry = entries_array[index];
+                    toast_string += "\n" + entry;
+                    simple = false;
+                }
             }
-        }
-        String timer = sharedPreferences.getString(PreferenceKeys.TimerPreferenceKey, "0");
-        if( !timer.equals("0") && photo_mode != MyApplicationInterface.PhotoMode.Panorama ) {
-            String [] entries_array = getResources().getStringArray(R.array.preference_timer_entries);
-            String [] values_array = getResources().getStringArray(R.array.preference_timer_values);
-            int index = Arrays.asList(values_array).indexOf(timer);
-            if( index != -1 ) { // just in case!
-                String entry = entries_array[index];
-                toast_string += "\n" + getResources().getString(R.string.preference_timer) + ": " + entry;
-                simple = false;
+            String timer = sharedPreferences.getString(PreferenceKeys.TimerPreferenceKey, "0");
+            if (!timer.equals("0") && photo_mode != MyApplicationInterface.PhotoMode.Panorama) {
+                String[] entries_array = getResources().getStringArray(R.array.preference_timer_entries);
+                String[] values_array = getResources().getStringArray(R.array.preference_timer_values);
+                int index = Arrays.asList(values_array).indexOf(timer);
+                if (index != -1) { // just in case!
+                    String entry = entries_array[index];
+                    toast_string += "\n" + getResources().getString(R.string.preference_timer) + ": " + entry;
+                    simple = false;
+                }
             }
-        }
-        String repeat = applicationInterface.getRepeatPref();
-        if( !repeat.equals("1") ) {
-            String [] entries_array = getResources().getStringArray(R.array.preference_burst_mode_entries);
-            String [] values_array = getResources().getStringArray(R.array.preference_burst_mode_values);
-            int index = Arrays.asList(values_array).indexOf(repeat);
-            if( index != -1 ) { // just in case!
-                String entry = entries_array[index];
-                toast_string += "\n" + getResources().getString(R.string.preference_burst_mode) + ": " + entry;
-                simple = false;
+            String repeat = applicationInterface.getRepeatPref();
+            if (!repeat.equals("1")) {
+                String[] entries_array = getResources().getStringArray(R.array.preference_burst_mode_entries);
+                String[] values_array = getResources().getStringArray(R.array.preference_burst_mode_values);
+                int index = Arrays.asList(values_array).indexOf(repeat);
+                if (index != -1) { // just in case!
+                    String entry = entries_array[index];
+                    toast_string += "\n" + getResources().getString(R.string.preference_burst_mode) + ": " + entry;
+                    simple = false;
+                }
             }
+                /*if( audio_listener != null ) {
+                    toast_string += "\n" + getResources().getString(R.string.preference_audio_noise_control);
+                }*/
         }
-		/*if( audio_listener != null ) {
-			toast_string += "\n" + getResources().getString(R.string.preference_audio_noise_control);
-		}*/
 
         if( MyDebug.LOG ) {
             Log.d(TAG, "toast_string: " + toast_string);
