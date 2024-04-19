@@ -1071,14 +1071,20 @@ public class MainUI {
             int resource;
             int content_description;
             int switch_video_content_description;
+            // The switch order is camera -> video -> qrcode -> camera...
             if( main_activity.getPreview().isVideo() ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "set icon to video");
                 resource = main_activity.getPreview().isVideoRecording() ? R.drawable.take_video_recording : R.drawable.take_video_selector;
                 content_description = main_activity.getPreview().isVideoRecording() ? R.string.stop_video : R.string.start_video;
+                switch_video_content_description = R.string.switch_to_qrcode;
+            } else if (main_activity.getPreview().isQRCode()) {
+                if (MyDebug.LOG)
+                    Log.d(TAG, "set icon to qrcode");
+                resource = R.drawable.empty;
+                content_description = 0;
                 switch_video_content_description = R.string.switch_to_photo;
-            }
-            else if( main_activity.getApplicationInterface().getPhotoMode() == MyApplicationInterface.PhotoMode.Panorama &&
+            } else if( main_activity.getApplicationInterface().getPhotoMode() == MyApplicationInterface.PhotoMode.Panorama &&
                     main_activity.getApplicationInterface().getGyroSensor().isRecording() ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "set icon to recording panorama");
@@ -1086,7 +1092,7 @@ public class MainUI {
                 content_description = R.string.finish_panorama;
                 switch_video_content_description = R.string.switch_to_video;
             }
-            else {
+            else { // Camera case
                 if( MyDebug.LOG )
                     Log.d(TAG, "set icon to photo");
                 resource = R.drawable.take_photo_selector;
@@ -1094,14 +1100,33 @@ public class MainUI {
                 switch_video_content_description = R.string.switch_to_video;
             }
             view.setImageResource(resource);
-            view.setContentDescription( main_activity.getResources().getString(content_description) );
+            if (content_description==0) {
+                view.setContentDescription("");
+            } else {
+                view.setContentDescription(main_activity.getResources().getString(content_description));
+            }
             view.setTag(resource); // for testing
 
             view = main_activity.findViewById(R.id.switch_video);
             view.setContentDescription( main_activity.getResources().getString(switch_video_content_description) );
-            resource = main_activity.getPreview().isVideo() ? R.drawable.take_photo : R.drawable.take_video;
+            if (main_activity.getPreview().isVideo()) {
+                resource = R.drawable.ic_switch_qrcode;
+            } else if (main_activity.getPreview().isQRCode()) {
+                resource = R.drawable.ic_photo_camera_white_48dp;
+            } else { // camera
+                resource = R.drawable.ic_videocam_white_48dp;
+            }
             view.setImageResource(resource);
             view.setTag(resource); // for testing
+
+            // Hide/Show gallery & switch camera icons.
+            if (main_activity.getPreview().isQRCode()) {
+                main_activity.findViewById(R.id.gallery).setVisibility(View.INVISIBLE);
+                main_activity.findViewById(R.id.switch_camera).setVisibility(View.INVISIBLE);
+            } else {
+                main_activity.findViewById(R.id.gallery).setVisibility(View.VISIBLE);
+                main_activity.findViewById(R.id.switch_camera).setVisibility(View.VISIBLE);
+            }
         }
     }
 

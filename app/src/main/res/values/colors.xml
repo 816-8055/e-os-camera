@@ -6,4 +6,11 @@
     <color name="shutter_icon">#2F9CF2</color>
     <color name="shutter_icon_pressed">#40C4FF</color>
     <color name="shutter_icon_video_recording">#F44336</color>
+
+    <!-- QRCode -->
+    <color name="qrcodeColorOnSurface">#FFFFFF</color>
+    <color name="qrcodeSelectableItemBackground">#E5000000</color>
+    <color name="qrcodeColorSurfaceContainerHighest">#8BC34A</color>
+    <color name="qrcodeColorOnSurfaceVariant">#3F51B5</color>
+    <color name="qrcodeSelectableItemBackgroundBorderless">#CB000000</color>
 </resources>
