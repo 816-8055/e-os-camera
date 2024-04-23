@@ -4788,7 +4788,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             this.functionalMode = FunctionalMode.PHOTO;
             final Activity activity = (Activity) Preview.this.getContext();
             final FrameLayout rootLayout = activity.findViewById(android.R.id.content);
-            if(overlayQRCodeView.getParent() != null) {
+            if (overlayQRCodeView.getParent() != null) {
                 rootLayout.removeView(overlayQRCodeView);
             }
         } else if (this.is_photo()) {
