@@ -602,7 +602,7 @@
     <string name="preference_focus_bracketing_n_images">Número de fotos</string>
     <string name="preference_category_exif_tags">Etiquetas EXIF personalizadas</string>
     <string name="preference_video_fps_default">Por defecto</string>
-    <string name="preference_camera2_photo_video_recording_summary">Permite hacer fotos mientras se graban vídeos. Desactiva esta opción si hay problemas con la grabación de vídeo con API Camera2 activado en tu dispositivo.</string>
+    <string name="preference_camera2_photo_video_recording_summary">Permite hacer fotos mientras se graban vídeos. Desactiva esta opción si hay problemas con la grabación de vídeo con la API Camera2 activada en tu dispositivo.</string>
     <string name="open_files_saf_exception_ghost">No se encontró ningún diálogo de archivo en este dispositivo, la opción de imagen Ghost no es compatible</string>
     <string name="preference_ghost_image_last">Última foto tomada</string>
     <string name="preference_ghost_image_off">Desactivado</string>
