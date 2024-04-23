@@ -24,7 +24,7 @@ import android.view.View;
 
 import androidx.core.content.ContextCompat;
 
-import foundation.e.camera.R;
+import net.sourceforge.opencamera.R;
 
 public class OverlayQRCodeView extends View {
     private Drawable qrcode;
