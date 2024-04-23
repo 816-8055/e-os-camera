@@ -51,8 +51,7 @@
     <string name="photo_deleted">Foto eliminada</string>
     <string name="no_gallery_app">No hay aplicación de galería disponible</string>
     <string name="screen_is_locked">La pantalla esta bloqueada
-\ndesliza sobre la
-\npantalla para desbloquear</string>
+\ndesliza para desbloquear</string>
     <string name="unlocked">Desbloqueado</string>
     <string name="auto_stabilise_not_supported">Perdón, el nivelador automático no es compatible 
 \ncon este dispositivo</string>
@@ -202,7 +201,7 @@
     <string name="preference_background_photo_saving_summary">Guarde fotos con un subproceso en segundo plano (para una operación más rápida)</string>
     <string name="video_quality">Resolución de video</string>
     <string name="preference_force_video_4k">Forzar 4K UHD vídeo (experimental)</string>
-    <string name="preference_force_video_4k_summary">Activa la resolución 3840x2160 para la grabación de vídeos en la cámara trasera - esto solo funcionara si tu dispositivo lo soporta</string>
+    <string name="preference_force_video_4k_summary">Activa la resolución 3840x2160 para la grabación de vídeo en la cámara trasera - esta opción es un hack que puede permitir que los dispositivos 4K en cámaras 4K que no exponen la opción de aplicaciones de la cámara de terceros. Esto no está garantizado que funcione, por favor prueba antes.</string>
     <string name="preference_video_stabilization">Activar estabilización de Vídeo digital</string>
     <string name="preference_video_stabilization_summary">La estabilización de vídeo reduce las sacudidas debidas al movimiento de la cámara tanto en la vista previa como en los vídeos grabados. Esto puede ser innecesario si tu dispositivo es compatible con estabilización óptica de imagen (OIS).</string>
     <string name="preference_video_bitrate">Tasa de bits del video (aprox)</string>
@@ -279,7 +278,11 @@
     <string name="speech_recognizer_started">Decir \"cheese\"</string>
     <string name="audio_listener_started">Introducir un ruido fuerte</string>
     <string name="auto_stabilise_info">El nivel automático rotará ligeramente las fotos para que aparezcan niveladas.\n\nTenga en cuenta que las imágenes saldrán con una resolución ligeramente menor (debido a la rotación y al recorte que se requiere).</string>
-    <string name="raw_info">Los archivos DNG contienen la información completa sin comprimir y sin procesar de su cámara.\n\nLa mayoría de las aplicaciones de la galería no reconocerán DNG, sino que se deben usar con aplicaciones especializadas.\n\nTenga en cuenta que varias opciones de procesamiento, como el estampado de las fotos y el nivel automático, solo se aplicarán a las imágenes JPEG, y no a las imágenes DNG\n\nLos archivos DNG ocupan mucho espacio; una aplicación de explorador de archivos puede ser útil para transferirlos o eliminarlos.\n\nLos archivos DNG solo se guardan en los modos de fotografía estándar o DRO (D-Range Optimise).</string>
+    <string name="raw_info">Los archivos DNG contienen toda la información de tu cámara sin comprimir ni procesar.
+\n
+\nTen en cuenta que algunas aplicaciones de galería no reconocen los archivos DNG. Las imágenes DNG pueden utilizarse con editores de imágenes especializados.
+\n
+\nTenga en cuenta que varias opciones de procesamiento, como Estampar fotos y Nivel automático, sólo se aplicarán a las imágenes no DNG (JPEG/etc.), y no a las imágenes DNG.</string>
     <string name="hdr_info">El modo HDR es útil para tomas con una gran variación de brillo. Funciona tomando múltiples tomas con diferentes exposiciones y combinándolas para crear la imagen final.\n\nTenga en cuenta que el HDR no es adecuado para escenas con movimiento rápido y puede dar como resultado una reproducción de color menos precisa.\n\nTomar fotos en modo HDR será más lento.</string>
     <string name="dont_show_again">No mostrar de nuevo</string>
     <string name="photo_mode">Modo de foto</string>
@@ -294,7 +297,7 @@
     <string name="photo_mode_noise_reduction_full">Reducción de ruido</string>
     <string name="preference_category_stamp">Estampado en fotos</string>
     <string name="preference_hdr_save_expo">Guardar todas las imágenes en el modo HDR</string>
-    <string name="preference_hdr_save_expo_summary">Si se activa, cuando se utilice el modo de foto HDR, se guardarán las tres imágenes de exposición base, así como la foto HDR final. Tenga en cuenta que esto hará que guardar sea más lento, especialmente si también se usan opciones como \"Estampar fotos\" o Nivel automático</string>
+    <string name="preference_hdr_save_expo_summary">Si se activa, cuando se utilice el modo de foto HDR, se guardarán las tres imágenes de exposición base, así como la foto HDR final. Ten en cuenta que guardar será más lento, especialmente si también se usan opciones como \"Estampar fotos\" o Nivel automático.</string>
     <string name="no_permission">PERMISOS NO DISPONIBLES</string>
     <string name="permission_rationale_title">Permiso requerido</string>
     <string name="permission_rationale_camera">Se requiere el permiso de la cámara para habilitarla</string>
@@ -331,7 +334,7 @@
     <string name="preference_front_camera_mirror">Reflejo en cámara frontal</string>
     <string name="preference_front_camera_mirror_summary">Refleja imágenes cuando se utiliza la cámara frontal\n%s</string>
     <string name="preference_calibrate_level">Calibrar nivel angular</string>
-    <string name="preference_calibrate_level_summary">Esta opción calibra el acelerómetro de su dispositivo, para que el nivel automático y las opciones de nivel/ángulo en pantalla funcionen correctamente.</string>
+    <string name="preference_calibrate_level_summary">Esta opción calibra el acelerómetro de tu dispositivo, para que el nivel automático y las opciones de nivel/ángulo en pantalla funcionen correctamente</string>
     <string name="preference_calibrate_level_dialog">Coloque su dispositivo sobre una superficie horizontal plana para que este sea nivelado (en orientación vertical u horizontal), a continuación seleccione Calibrar.\n\nPresione Reiniciar para eliminar la calibración del dispositivo.\n\nPresione el botón Atrás para cancelar.</string>
     <string name="preference_calibrate_level_calibrate">Calibrar</string>
     <string name="preference_calibrate_level_reset">Reiniciar</string>
@@ -451,7 +454,7 @@
     <string name="preference_video_capture_rate_normal">Normal</string>
     <string name="slow_motion_enabled">Cámara lenta habilitada</string>
     <string name="slow_motion_disabled">Cámara lenta deshabilitada</string>
-    <string name="flash_off">Flash Off</string>
+    <string name="flash_off">Sin flash</string>
     <string name="flash_auto">Flash Auto</string>
     <string name="flash_on">Flash On</string>
     <string name="flash_torch">Linterna</string>
@@ -554,7 +557,7 @@
     <string name="preference_stamp_style_plain">Texto plano</string>
     <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Versión de compilación</string>
-    <string name="preferences_about_app">La cámara está bifurcada de OpenCamera</string>
+    <string name="preferences_about_app">Camera es una bifurcación de OpenCamera</string>
     <string name="preferences_authors">Autores</string>
     <string name="preferences_source_code">Código fuente</string>
     <string name="preferences_licence">Licencia</string>
@@ -568,7 +571,8 @@
     <string name="preference_audio_control_noise">Ruido fuerte</string>
     <string name="preference_audio_control_voice">Comando de voz: \"cheese\"</string>
     <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
-    <string name="preference_units_distance_summary">Se utiliza para la altitud GPS para el sello de fotos y subtítulos de vídeo.</string>
+    <string name="preference_units_distance_summary">Se utiliza para la altitud GPS para sello de fotos y subtítulos de vídeo 
+\n%s</string>
     <string name="focus_bracketing_target_distance">Distancia objetivo del horquillado de enfoque</string>
     <string name="focus_bracketing_source_distance">Horquillado de enfoque distancia de la fuenta</string>
     <string name="permission_rationale_location">El permiso de ubicación es necesario para el geoetiquetado (almacenamiento de datos de ubicación en fotos y vídeos, incluidas las opciones de sello y subtítulos). El permiso de ubicación también es necesario (al menos para Android 11 y anteriores) para conectarse a dispositivos de control remoto Bluetooth LE.</string>
@@ -603,9 +607,10 @@
     <string name="preference_ghost_image_last">Última foto tomada</string>
     <string name="preference_ghost_image_off">Desactivado</string>
     <string name="preference_ghost_image">Imagen Ghost</string>
-    <string name="permission_rationale_record_audio">Acceso al micrófono es requerido para grabar vídeo con audio, así como para utilizar las opciones de \"Control de audio\"</string>
+    <string name="permission_rationale_record_audio">Se requiere acceso al micrófono para grabar vídeo con audio y para utilizar las opciones de \"Control de audio\"</string>
     <string name="permission_rationale_storage">Permiso de lectura/escritura requerido para guardar los archivos resultantes, como fotos o vídeos</string>
-    <string name="preference_video_log_summary">Definir perfil de imagen estándar o plana para el modo de vídeo %s</string>
+    <string name="preference_video_log_summary">Definir perfil de imagen estándar o plana para el modo de vídeo
+\n %s</string>
     <string name="preference_video_log_off">Estándar</string>
     <string name="preference_video_log_fine">Registro (Fino)</string>
     <string name="preference_video_log_low">Registro (Bajo)</string>
@@ -649,14 +654,14 @@
     <string name="preference_focus_peaking_summary">Si esta opción está activa, los realces se mostrarán en los bordes enfocados (contornos). Esto es principalmente útil para el enfoque manual, y puede ser utilizado para ayudar a determinar qué regiones de la imagen están enfocadas.
 \n%s</string>
     <string name="preference_focus_peaking_color">Color del pico de enfoque</string>
-    <string name="preference_show_whats_new_summary">Mostrar información sobre nuevas funciones y mejoras cuando la aplicación se ha actualizado.</string>
+    <string name="preference_show_whats_new_summary">Si se mostrará información sobre nuevas funciones y mejoras cuando la aplicación se ha actualizado</string>
     <string name="cancelled_focus_bracketing">Horquilla de enfoque cancelada</string>
     <string name="preference_video_output_format_webm">WebM (audio no soportado)</string>
     <string name="preference_save_settings">Guardar ajustes</string>
     <string name="preference_save_settings_summary">Guarda todos los ajustes de la cámara en un archivo</string>
     <string name="preference_save_settings_filename">Nombre de la configuración guardada</string>
     <string name="preference_restore_settings">Restaurar configuración</string>
-    <string name="preference_restore_settings_summary">Restablece los ajustes guardados anteriormente. Esta acción reemplazará todos los ajustes actuales con los ajustes guardados.</string>
+    <string name="preference_restore_settings_summary">Restablece los ajustes guardados anteriormente. ¡Esta acción reemplazará todos los ajustes actuales con los ajustes guardados!</string>
     <string name="preference_restore_settings_question">Esta opción te permite seleccionar uno de los archivos de configuración que guardaste previamente. Ten en cuenta que la selección de un archivo reemplazará todos los ajustes actuales!</string>
     <string name="saved_settings">Configuración guardada</string>
     <string name="restore_settings_failed">Error al restaurar la configuración</string>
@@ -720,7 +725,8 @@
     <string name="feet_abbreviation">ft</string>
     <string name="preference_show_whats_new">Muestra el diálogo de Novedades</string>
     <string name="preference_edge_mode">Algoritmo de modo borde</string>
-    <string name="preference_edge_mode_summary">Algoritmo que el controlador de la cámara debe utilizar para aplicar la mejora de bordes. Esta función mejora la nitidez y los detalles de la imagen capturada. (Este ajuste se ignora en el modo de fotografía NR.) %s</string>
+    <string name="preference_edge_mode_summary">Algoritmo que el controlador de la cámara debe utilizar para aplicar la mejora de bordes. Esta función mejora la nitidez y los detalles de la imagen capturada. (Este ajuste se ignora en el modo de fotografía NR.)
+\n %s</string>
     <string name="preference_screen_processing_settings">Procesando ajustes…</string>
     <string name="preference_noise_reduction_mode">Algoritmo de reducción de ruido</string>
     <string name="preference_noise_reduction_mode_summary">Algoritmo que el controlador de la cámara debe utilizar para aplicar la reducción de ruido. Esta función intenta mejorar la calidad de la imagen eliminando el ruido excesivo añadido por el proceso de captura, especialmente en condiciones de oscuridad. (Tenga en cuenta que esto no está relacionado con el modo de foto con reducción de ruido, y de hecho este ajuste se ignora en el modo de foto NR).
@@ -838,8 +844,8 @@
     <string name="preference_allow_long_press">Permitir acciones de pulsación larga</string>
     <string name="preference_allow_long_press_summary">Permitir acciones de pulsación larga (por ejemplo, pulsación larga en galería para cambiar donde guardar).</string>
     <string name="error_features_frame_rate">Velocidad de cuadro</string>
-    <string name="preference_comment_ypr_summary">Guardar viraje, cabeceo y balanceo del dispositivo en el comentario Exif de usuario de la foto (sólo en formato JPEG)</string>
-    <string name="preference_comment_ypr">Guardar viraje cabeceo y balanceo</string>
+    <string name="preference_comment_ypr_summary">Guardar guiñada, cabeceo y balanceo del dispositivo en el comentario Exif de usuario de la foto (sólo en formato JPEG)</string>
+    <string name="preference_comment_ypr">Guardar guiñada, cabeceo y balanceo</string>
     <string name="error_features_bitrate">Tasa de bits</string>
     <string name="error_features_slow_motion">Cámara lenta</string>
     <string name="aperture">Apertura</string>
@@ -866,12 +872,13 @@
     <string name="preference_video_profile_gamma_2_3">2.3</string>
     <string name="preference_video_profile_gamma_2_4">2.4</string>
     <string name="preference_video_profile_gamma_2_6">2.6</string>
-    <string name="preference_stamp_geo_address_summary">Si es posible, obtener la dirección a partir del GPS. Ten en cuenta que si está activada, esta opción requiere que tu dispositivo transmita los datos de ubicación a través de Internet a terceros para convertir las coordenadas GPS en una dirección. Consulta https://developer.android.com/reference/android/location/Geocoder . 
-\n%s Esta función no ofrece garantías de disponibilidad o precisión. Los resultados son aproximados y no se garantiza que sean significativos o correctos.</string>
+    <string name="preference_stamp_geo_address_summary">Si es posible, obtener la dirección a partir del GPS. Ten en cuenta que si está activada, esta opción requiere que tu dispositivo transmita los datos de ubicación a través de Internet a terceros para convertir las coordenadas GPS en una dirección. Consulta https://developer.android.com/reference/android/location/Geocoder . Esta función no ofrece garantías de disponibilidad o precisión. Los resultados son aproximados y no se garantiza que sean significativos o correctos
+\n%s</string>
     <string name="preference_video_srgb">sRGB</string>
     <string name="preference_video_gamma">Gamma</string>
     <string name="preference_video_profile_gamma">Valor gamma de vídeo</string>
-    <string name="preference_video_profile_gamma_summary">Valor gamma a utilizar para vídeo si el perfil de imagen de vídeo está configurado como Gamma</string>
+    <string name="preference_video_profile_gamma_summary">Valor gamma a utilizar para vídeo si el perfil de imagen de vídeo está configurado como Gamma 
+\n%s</string>
     <string name="preference_video_profile_gamma_1_9">1.9</string>
     <string name="preference_immersive_mode_low_profile">Atenúar solamente los botones virtuales de navegación en pantalla</string>
     <string name="preference_ghost_image_alpha">Opacidad de imagen Ghost</string>
@@ -902,15 +909,16 @@
     <string name="skip_button_label">Omitir</string>
     <string name="switch_multi_camera_lens">LENS</string>
     <string name="photo_mode_x_auto">Modo X-Auto</string>
-    <string name="preference_remove_device_exif_off">No eliminar datos EXIF del dispositivo</string>
-    <string name="preference_remove_device_exif_on">Eliminar datos EXIF del dispositivo</string>
-    <string name="preference_remove_device_exif_keep_datetime">Eliminar excepto fecha/hora</string>
+    <string name="preference_remove_device_exif_off">No remover datos EXIF del dispositivo</string>
+    <string name="preference_remove_device_exif_on">Remover datos EXIF del dispositivo</string>
+    <string name="preference_remove_device_exif_keep_datetime">Remover excepto fecha/hora</string>
     <string name="preference_hdr_tonemapping">Mapeado tonal HDR</string>
-    <string name="preference_hdr_tonemapping_summary">Algoritmo para el mapeado tonal en el modo de foto HDR%s</string>
+    <string name="preference_hdr_tonemapping_summary">Algoritmo para el mapeado tonal en el modo de foto HDR
+\n%s</string>
     <string name="preference_hdr_tonemapping_clamp">Abrazadera simple</string>
     <string name="preference_hdr_tonemapping_exponential">Exponencial</string>
     <string name="preference_hdr_tonemapping_default">Estándar</string>
-    <string name="preference_remove_device_exif">Eliminar los datos EXIF del dispositivo</string>
-    <string name="preference_remove_device_exif_summary">Si deseas eliminar los metadatos EXIF del dispositivo de las fotos JPEG. Esto no eliminará las etiquetas EXIF aplicadas por otros ajustes que aplican metadatos EXIF (por ejemplo, ubicación/etiquetado). Esas otras opciones son independientes y anularán este ajuste. RAW/DNG y los vídeos no son afectados.
+    <string name="preference_remove_device_exif">Remover datos EXIF del dispositivo</string>
+    <string name="preference_remove_device_exif_summary">Si deseas remover metadatos EXIF del dispositivo de las fotos JPEG. Esto no eliminará las etiquetas EXIF aplicadas por otros ajustes que aplican metadatos EXIF (por ejemplo, ubicación/etiquetado). Esas otras opciones son independientes y anularán este ajuste. RAW/DNG y los vídeos no son afectados.
 \n %s</string>
 </resources>
