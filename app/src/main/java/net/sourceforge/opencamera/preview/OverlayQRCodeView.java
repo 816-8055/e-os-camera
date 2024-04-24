@@ -47,16 +47,18 @@ public class OverlayQRCodeView extends View {
         final int right = left + qrcode.getIntrinsicWidth();
         final int bottom = top + qrcode.getIntrinsicHeight();
 
-        if (left<=0 || top<=0 || right<=0 || bottom<=0)
+        if (left <= 0 || top <= 0 || right <= 0 || bottom <= 0) {
             isValid = false;
-        else
+        } else {
             qrcode.setBounds(left, top, right, bottom);
+        }
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (isValid)
+        if (isValid) {
             qrcode.draw(canvas);
+        }
     }
 }
