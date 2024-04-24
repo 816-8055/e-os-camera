@@ -27,7 +27,7 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="88dp"
         android:layout_marginTop="12dp"
         android:clickable="true"
         app:cardBackgroundColor="@color/qrcodeColorOnSurface"
@@ -57,9 +57,9 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="8dp"
                 android:layout_marginBottom="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/share"
@@ -69,7 +69,7 @@
                 <TextView
                     android:id="@+id/title"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
+                    android:layout_height="wrap_content"
                     android:singleLine="true"
                     android:textColor="@color/qrcodeColorOnSurfaceVariant"
                     android:textStyle="bold"
@@ -84,8 +84,9 @@
                 <TextView
                     android:id="@+id/data"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:singleLine="true"
+                    android:layout_height="wrap_content"
+                    android:maxLines="2"
+                    android:ellipsize="end"
                     android:textColor="@color/qrcodeColorOnSurfaceVariant"
                     android:textStyle="normal"
                     android:typeface="normal"
@@ -94,7 +95,8 @@
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintStart_toStartOf="@+id/title"
                     app:layout_constraintTop_toBottomOf="@+id/title"
-                    tools:text="URL" />
+                    tools:text="URL"
+                    android:breakStrategy="high_quality" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <ImageButton
