@@ -14,6 +14,7 @@
         <item name="android:colorControlNormal">@color/color_default_icon</item>
         <item name="android:alertDialogTheme">@style/customAlertDialog</item>
         <item name="android:windowBackground">@color/color_default_background</item>
+        <item name="bottomSheetDialogTheme">@style/BottomSheetTheme</item>
     </style>
 
     <style name="image_button" parent="@android:style/Widget.Material.ImageButton">
@@ -28,4 +29,11 @@
         <item name="android:windowBackground">@color/color_default_foreground</item>
         <item name="android:textColorPrimaryInverse">@android:color/black</item>
     </style>
+    <style name="BottomSheetTheme" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
+    </style>
+    <style name="BottomSheetStyle" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="backgroundTint">@color/e_floating_background</item>
+    </style>
+
 </resources>

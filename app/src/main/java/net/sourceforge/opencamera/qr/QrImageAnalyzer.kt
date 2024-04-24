@@ -153,8 +153,8 @@ class QrImageAnalyzer(private val activity: Activity, private val scope: Corouti
                 )?.let {
                     DrawableCompat.wrap(it.mutate()).apply {
                         DrawableCompat.setTint(
-                            this, activity.getThemeColor(
-                                com.google.android.material.R.attr.colorOnBackground
+                            this, activity.getColor(
+                                R.color.e_icon_color
                             )
                         )
                     }
