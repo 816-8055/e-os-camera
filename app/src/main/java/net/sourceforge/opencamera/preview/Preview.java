@@ -55,6 +55,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -233,6 +234,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
      *  Important to call close() when the video recording is finished, to free up any resources
      *  (e.g., supplied ParcelFileDescriptor).
      */
+
+    private OverlayQRCodeView overlayQRCodeView;
     private static class VideoFileInfo {
         private final ApplicationInterface.VideoMethod video_method;
         private final Uri video_uri; // for VideoMethod.SAF, VideoMethod.URI or VideoMethod.MEDIASTORE
@@ -514,6 +517,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if( canvasView != null ) {
             parent.addView(canvasView);
         }
+
+        overlayQRCodeView = new OverlayQRCodeView(getContext());
     }
 
 	/*private void previewToCamera(float [] coords) {
@@ -4942,6 +4947,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 stopVideo(false);
             }
             this.functionalMode = FunctionalMode.QRCODE;
+            final Activity activity = (Activity) Preview.this.getContext();
+            final FrameLayout rootLayout = activity.findViewById(android.R.id.content);
+            rootLayout.addView(overlayQRCodeView);
             int qrcodeCamId = ((MainActivity)getContext()).getBetterQRCodeCameraID();
             if (qrcodeCamId >= 0) {
                 applicationInterface.setCameraIdPref(qrcodeCamId);
@@ -4949,6 +4957,11 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             }
         } else if (this.is_qrcode()) {
             this.functionalMode = FunctionalMode.PHOTO;
+            final Activity activity = (Activity) Preview.this.getContext();
+            final FrameLayout rootLayout = activity.findViewById(android.R.id.content);
+            if (overlayQRCodeView.getParent() != null) {
+                rootLayout.removeView(overlayQRCodeView);
+            }
         } else if (this.is_photo()) {
             if( this.isOnTimer() ) {
                 cancelTimer();
@@ -4962,6 +4975,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             else {
                 this.functionalMode = FunctionalMode.VIDEO;
             }
+            // nothing to do for overlayQRCodeView in this mode
         }
 
         if (is_qrcode() != old_is_qrcode) {
