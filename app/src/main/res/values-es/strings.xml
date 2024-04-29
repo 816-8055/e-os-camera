@@ -607,8 +607,8 @@
     <string name="preference_ghost_image_last">Última foto tomada</string>
     <string name="preference_ghost_image_off">Desactivado</string>
     <string name="preference_ghost_image">Imagen Ghost</string>
-    <string name="permission_rationale_record_audio">Se requiere acceso al micrófono para grabar vídeo con audio y para utilizar las opciones de \"Control de audio\"</string>
-    <string name="permission_rationale_storage">Permiso de lectura/escritura requerido para guardar los archivos resultantes, como fotos o vídeos</string>
+    <string name="permission_rationale_record_audio">Acceso al micrófono requerido para grabar vídeo con audio y para utilizar las opciones de \"Control de audio\"</string>
+    <string name="permission_rationale_storage">Permiso de lectura/escritura requerido para guardar archivos resultantes, como fotos o vídeos</string>
     <string name="preference_video_log_summary">Definir perfil de imagen estándar o plana para el modo de vídeo
 \n %s</string>
     <string name="preference_video_log_off">Estándar</string>
