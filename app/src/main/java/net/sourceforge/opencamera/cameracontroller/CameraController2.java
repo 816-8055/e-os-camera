@@ -3075,25 +3075,23 @@ public class CameraController2 extends CameraController {
             }
         }
 
-        if (is_fairphone_4) {
-            CameraCharacteristics.Key<int[]> fairphoneAvailableStreamConfigurations = null;
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                fairphoneAvailableStreamConfigurations = new CameraCharacteristics.Key<>("fp.scaler.availableStreamConfigurations", int[].class);
-            }
-
+        if (is_fairphone_4 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            CameraCharacteristics.Key<int[]> fairphoneAvailableStreamConfigurations =
+                    new CameraCharacteristics.Key<>("fp.scaler.availableStreamConfigurations", int[].class);
             int[] FP_StreamConfigs = characteristics.get(fairphoneAvailableStreamConfigurations);
 
             for (int i = 0; i < FP_StreamConfigs.length / 4; i++) {
-                int format = FP_StreamConfigs[i * 4];
                 int width = FP_StreamConfigs[i * 4 + 1];
                 int height = FP_StreamConfigs[i * 4 + 2];
                 int output = FP_StreamConfigs[i * 4 + 3];
 
                 if (output != 0) {
-                    if (MyDebug.LOG)
-                        Log.d(TAG, "custom scaler size: " + height + " x " + width);
-                    camera_features.picture_sizes.add(new Size(width, height));
+                    Size size = new Size(width, height);
+                    if (!camera_features.picture_sizes.contains(size)) {
+                        if (MyDebug.LOG)
+                            Log.d(TAG, "custom scaler size: " + height + " x " + width);
+                        camera_features.picture_sizes.add(size);
+                    }
                 }
             }
         }
