@@ -14,7 +14,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -61,6 +60,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Reader;
+import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
+
 import net.sourceforge.opencamera.MainActivity;
 import net.sourceforge.opencamera.MyDebug;
 import net.sourceforge.opencamera.ScriptC_histogram_compute;
@@ -93,14 +100,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.LuminanceSource;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.Reader;
-import com.google.zxing.Result;
-import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.RGBLuminanceSource;
 
 import foundation.e.camera.R;
 
@@ -4775,22 +4774,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if (video_recorder != null) {
                 stopVideo(false);
             }
-            this.functionalMode = FunctionalMode.QRCODE;
-            final Activity activity = (Activity) Preview.this.getContext();
-            final FrameLayout rootLayout = activity.findViewById(android.R.id.content);
-            rootLayout.addView(overlayQRCodeView);
-            int qrcodeCamId = ((MainActivity)getContext()).getBetterQRCodeCameraID();
-            if (qrcodeCamId >= 0) {
-                applicationInterface.setCameraIdPref(qrcodeCamId);
-                //userSwitchToCamera(qrcodeCamId, true);
-            }
+            setQRCode(true);
         } else if (this.is_qrcode()) {
             this.functionalMode = FunctionalMode.PHOTO;
-            final Activity activity = (Activity) Preview.this.getContext();
-            final FrameLayout rootLayout = activity.findViewById(android.R.id.content);
-            if (overlayQRCodeView.getParent() != null) {
-                rootLayout.removeView(overlayQRCodeView);
-            }
+            setQRCode(false);
         } else if (this.is_photo()) {
             if (this.isOnTimer()) {
                 cancelTimer();
@@ -8651,6 +8638,21 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             refreshPreviewBitmapTask.cancel(true);
             // we don't set refreshPreviewBitmapTask to null - this will be done by the task itself when it completes;
             // and we want to know when the task is no longer running (e.g., for freePreviewBitmap()).
+        }
+    }
+
+    public void setQRCode(boolean enabled) {
+        final Activity activity = (Activity) Preview.this.getContext();
+        final FrameLayout rootLayout = activity.findViewById(android.R.id.content);
+        if (enabled) {
+            this.functionalMode = FunctionalMode.QRCODE;
+            rootLayout.addView(overlayQRCodeView);
+            int qrcodeCamId = ((MainActivity)getContext()).getBetterQRCodeCameraID();
+            if (qrcodeCamId >= 0) {
+                applicationInterface.setCameraIdPref(qrcodeCamId);
+            }
+        } else if (overlayQRCodeView.getParent() != null) {
+            rootLayout.removeView(overlayQRCodeView);
         }
     }
 
