@@ -1070,15 +1070,13 @@
     <string name="whats_new_text" translatable="false">
         <small>[This dialog is shown when Camera is updated. You can disable it under
             Settings/On screen GUI/Show What\'s New dialog.]</small>
-        \n\n<b>v1.52:</b>\n
+        \n\n<b>v1.53:</b>\n
         <ul>
-            <li>Improvements for pinch zooming.\n</li>
-            <li>Fixes for split-screen and multi-window mode.\n</li>
-            <li>Support for zoom and on-screen ISO/exposure display when using camera vendor extensions (for supported Android 13+ devices).\n</li>
-            <li>\"Touch to capture\" option now supports starting and stopping video.\n</li>
-            <li>Applied a 2s timeout for focusing with original camera API.\n</li>
-            <li>Improved performance for NR photo mode.\n</li>
-            <li>No longer cancel panorama when rotating device too far in wrong direction.\n</li>
+            <li>Improved user interface icons.\n</li>
+            <li>Smoother zoom for Camera2 API.\n</li>
+            <li>Camera vendor extensions show percentage progress on supported Android 14 devices.\n</li>
+            <li>New option for on-screen icon to enable/disable focus peaking.\n</li>
+            <li>Support for themed/monochrome application icon.\n</li>
             <li>Various other improvements and bug fixes.\n</li>
         </ul>
     </string>
