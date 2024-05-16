@@ -102,6 +102,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
@@ -1185,7 +1186,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     MainActivity mActivity = (MainActivity) this.getContext();
                     if (MyDebug.LOG)
                         Log.d(TAG, "Find QRCode qrcodeContent="+qrcodeContent );
-                    mActivity.qrImageAnalyzer.showQrDialog(result);
+                    if (result.getBarcodeFormat() == BarcodeFormat.QR_CODE) {
+                        mActivity.qrImageAnalyzer.showQrDialog(result);
+                    }
                 } catch (Exception e) {
                     // K1ZFP TODO Error 2
                 }
