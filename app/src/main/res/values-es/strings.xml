@@ -574,7 +574,7 @@
     <string name="preference_units_distance_summary">Se utiliza para la altitud GPS para sello de fotos y subtítulos de vídeo 
 \n%s</string>
     <string name="focus_bracketing_target_distance">Distancia objetivo del horquillado de enfoque</string>
-    <string name="focus_bracketing_source_distance">Horquillado de enfoque distancia de la fuenta</string>
+    <string name="focus_bracketing_source_distance">Distancia de la fuente del horquillado de enfoque</string>
     <string name="permission_rationale_location">El permiso de ubicación es necesario para el geoetiquetado (almacenamiento de datos de ubicación en fotos y vídeos, incluidas las opciones de sello y subtítulos). El permiso de ubicación también es necesario (al menos para Android 11 y anteriores) para conectarse a dispositivos de control remoto Bluetooth LE.</string>
     <string name="preference_video_log">Perfiles de imagen de vídeo</string>
     <string name="preference_camera2_photo_video_recording">Permitir fotos mientras se graba vídeo</string>
@@ -603,8 +603,8 @@
     <string name="preference_category_exif_tags">Etiquetas EXIF personalizadas</string>
     <string name="preference_video_fps_default">Por defecto</string>
     <string name="preference_camera2_photo_video_recording_summary">Permite hacer fotos mientras se graban vídeos. Desactiva esta opción si hay problemas con la grabación de vídeo con la API Camera2 activada en tu dispositivo.</string>
-    <string name="open_files_saf_exception_ghost">No se encontró ningún diálogo de archivo en este dispositivo, la opción de imagen Ghost no es compatible</string>
-    <string name="preference_ghost_image_last">Última foto tomada</string>
+    <string name="open_files_saf_exception_ghost">No se encontró diálogo de archivo en este dispositivo, la opción de imagen Ghost no es compatible</string>
+    <string name="preference_ghost_image_last">Última foto</string>
     <string name="preference_ghost_image_off">Desactivado</string>
     <string name="preference_ghost_image">Imagen Ghost</string>
     <string name="permission_rationale_record_audio">Acceso al micrófono requerido para grabar vídeo con audio y para utilizar las opciones de \"Control de audio\"</string>
