@@ -80,6 +80,7 @@ public class CameraController2 extends CameraController {
     private CameraDevice camera;
     private final String cameraIdS;
 
+    private final boolean is_fairphone_4;
     private final boolean is_samsung;
     private final boolean is_samsung_s7; // Galaxy S7 or Galaxy S7 Edge
     private final boolean is_samsung_galaxy_s;
@@ -2009,10 +2010,12 @@ public class CameraController2 extends CameraController {
         this.camera_error_cb = camera_error_cb;
 
         //this.is_oneplus = Build.MANUFACTURER.toLowerCase(Locale.US).contains("oneplus");
+        this.is_fairphone_4 = Build.MODEL.toLowerCase(Locale.US).contains("fp4");
         this.is_samsung = Build.MANUFACTURER.toLowerCase(Locale.US).contains("samsung");
         this.is_samsung_s7 = Build.MODEL.toLowerCase(Locale.US).contains("sm-g93");
         this.is_samsung_galaxy_s = is_samsung && Build.MODEL.toLowerCase(Locale.US).contains("sm-g");
         if( MyDebug.LOG ) {
+            Log.d(TAG, "is_fairphone_4: " + is_fairphone_4);
             Log.d(TAG, "is_samsung: " + is_samsung);
             Log.d(TAG, "is_samsung_s7: " + is_samsung_s7);
             Log.d(TAG, "is_samsung_galaxy_s: " + is_samsung_galaxy_s);
@@ -2860,6 +2863,28 @@ public class CameraController2 extends CameraController {
                 camera_features.picture_sizes.add(new CameraController.Size(camera_size.getWidth(), camera_size.getHeight()));
             }
         }
+
+        if (is_fairphone_4 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            CameraCharacteristics.Key<int[]> fairphoneAvailableStreamConfigurations =
+                    new CameraCharacteristics.Key<>("fp.scaler.availableStreamConfigurations", int[].class);
+            int[] fpStreamConfigs = characteristics.get(fairphoneAvailableStreamConfigurations);
+
+            for (int i = 0; i < fpStreamConfigs.length / 4; i++) {
+                int width = fpStreamConfigs[i * 4 + 1];
+                int height = fpStreamConfigs[i * 4 + 2];
+                int output = fpStreamConfigs[i * 4 + 3];
+
+                if (output != 0) {
+                    Size size = new Size(width, height);
+                    if (!camera_features.picture_sizes.contains(size)) {
+                        if (MyDebug.LOG)
+                            Log.d(TAG, "custom scaler size: " + height + " x " + width);
+                        camera_features.picture_sizes.add(size);
+                    }
+                }
+            }
+        }
+
         // sizes are usually already sorted from high to low, but sort just in case
         // note some devices do have sizes in a not fully sorted order (e.g., Nokia 8)
         Collections.sort(camera_features.picture_sizes, new CameraController.SizeSorter());
