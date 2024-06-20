@@ -761,7 +761,7 @@
     <string name="unknown_device">Dispositivo desconocido</string>
     <string name="preference_remote_type">Tipo de dispositivo remoto</string>
     <string name="noise_reduction_mode_minimal">Mínimo</string>
-    <string name="next">Próximo</string>
+    <string name="next">Siguiente</string>
     <string name="face_detection_disable">Desactivar detección de rostro</string>
     <string name="face_detection_enabled">Detección de rostro activada</string>
     <string name="photo_mode_panorama_full">Panorama</string>
