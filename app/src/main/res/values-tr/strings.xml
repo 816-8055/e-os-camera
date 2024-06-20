@@ -417,4 +417,5 @@
     <string name="stop_video">Video kaydını durdur</string>
     <string name="saf_permission_failed">Bu klasöre kayıt edilemiyor</string>
     <string name="failed_to_save_photo_raw">RAW fotoğraf kaydı başarısız</string>
+    <string name="next">Sıradaki</string>
 </resources>
