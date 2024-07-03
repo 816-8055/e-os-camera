@@ -916,4 +916,6 @@
     <string name="preference_remove_device_exif_off">Non rimuovere i dati EXIF del dispositivo</string>
     <string name="preference_remove_device_exif_on">Rimuovi i dati EXIF del dispositivo</string>
     <string name="preference_remove_device_exif">Rimuovi i dati EXIF del dispositivo</string>
+    <string name="preference_hdr_tonemapping_exponential">Esponenziale</string>
+    <string name="preference_hdr_tonemapping_default">Predefinito</string>
 </resources>
