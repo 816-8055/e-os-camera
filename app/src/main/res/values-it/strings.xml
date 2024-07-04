@@ -918,4 +918,7 @@
     <string name="preference_remove_device_exif">Rimuovi i dati EXIF del dispositivo</string>
     <string name="preference_hdr_tonemapping_exponential">Esponenziale</string>
     <string name="preference_hdr_tonemapping_default">Predefinito</string>
+    <string name="preference_hdr_tonemapping_summary">Algoritmo da utilizzare per la mappatura dei toni nelle foto con modalità HDR
+\n%s</string>
+    <string name="preference_hdr_tonemapping">Mappatura dei toni HDR</string>
 </resources>
