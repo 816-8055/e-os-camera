@@ -99,7 +99,7 @@
     <string name="preference_burst_interval">Intervallo foto a raffica</string>
     <string name="preference_screen_camera_controls_more">Più controlli fotocamera…</string>
     <string name="preference_touch_capture">Tocca per acquisire</string>
-    <string name="preference_touch_capture_summary">Scatta le foto semplicemente toccando l\'anteprima oppure toccando due volte</string>
+    <string name="preference_touch_capture_summary">Scatta una foto o registra un video toccando l\'anteprima oppure toccando due volte</string>
     <string name="preference_pause_preview">Pausa dopo aver scattato la foto</string>
     <string name="preference_pause_preview_summary">Mette in pausa lo schermo dopo aver scattato la foto, permettendo inoltre di condividere o cancellare la foto</string>
     <string name="preference_shutter_sound">Suono otturatore</string>
