@@ -150,9 +150,11 @@
     <string name="preference_video_stabilization">Schakel video stabilisatie in</string>
     <string name="preference_force_video_4k">4K UHD afdwingen (werkt enkel op sommige apparaten)</string>
     <string name="video_quality">Video resolutie</string>
-    <string name="preference_stamp_font_color_summary">Tekst kleur om te gebruiken voor stempels op foto\'s te plaatsen</string>
+    <string name="preference_stamp_font_color_summary">Tekst kleur voor stempels op foto\'s
+\n%s</string>
     <string name="preference_stamp_font_color">Tekst kleur</string>
-    <string name="preference_stamp_fontsize_summary">Tekst grootte om te gebruiken voor stempels op foto\'s te plaatsen</string>
+    <string name="preference_stamp_fontsize_summary">Tekst grootte voor stempels op foto\'s
+\n%s</string>
     <string name="preference_stamp_fontsize">Tekstgrootte</string>
     <string name="preference_textstamp_summary">Voeg stempel toe aan foto\'s met een aangepaste tekst</string>
     <string name="preference_textstamp">Aangepaste tekst</string>
@@ -205,7 +207,7 @@
     <string name="preference_using_saf">Gebruik Storage Access Framework</string>
     <string name="preference_save_location_summary">Map om foto/video bestanden in op te slaan</string>
     <string name="preference_save_location">Opslag locatie</string>
-    <string name="preference_touch_capture_summary">Neem een foto door het voorbeeld aan te raken of te dubbelklikken</string>
+    <string name="preference_touch_capture_summary">Neem een foto of video door het voorbeeld aan te raken of te dubbelklikken</string>
     <string name="preference_touch_capture">Vastleggen bij aanraking</string>
     <string name="preference_timer_speak">Timer met spraakgeluid</string>
     <string name="preference_timer_beep_summary">Geef signaal wanneer de timer aan het aftellen is of tijdens de vertraging bij serie opnames</string>
