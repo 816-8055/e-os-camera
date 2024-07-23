@@ -607,7 +607,7 @@
     <string name="back_button_label">Bakåt</string>
     <string name="next_button_label">Nästa</string>
     <string name="skip_button_label">Hoppa över</string>
-    <string name="switch_multi_camera_lens">OBJEKTIV</string>
+    <string name="switch_multi_camera_lens">OBJ.</string>
     <string name="preference_licence_open_camera">Kamera</string>
     <string name="preference_zebra_stripes_color_black">Svart</string>
     <string name="preference_histogram_luminance">Luminans</string>
