@@ -93,7 +93,7 @@
     <string name="preference_burst_interval">Интервал в пакетном режиме</string>
     <string name="preference_screen_camera_controls_more">Дополнительные настройки…</string>
     <string name="preference_touch_capture">Касание для съемки</string>
-    <string name="preference_touch_capture_summary">Делать снимок по одинарному или двойному касанию области просмотра</string>
+    <string name="preference_touch_capture_summary">Сделать снимок или записать видео по одинарному или двойному касанию области просмотра</string>
     <string name="preference_pause_preview">Пауза после съёмки</string>
     <string name="preference_pause_preview_summary">Пауза после снятия фото, с возможностью поделиться или удалить фотографию</string>
     <string name="preference_shutter_sound">Звук затвора</string>
@@ -574,7 +574,7 @@
     <string name="exposure_compensation_zoom">Увеличивать или уменьшать экспокоррекцию</string>
     <string name="previous">Предыдущий</string>
     <!-- for "ContentDescription" (used for accessibility, e.g., Google Talkback) for "<" button on popup menu -->
-    <string name="next">Далее</string>
+    <string name="next">Вперёд</string>
     <!-- for "ContentDescription" (used for accessibility, e.g., Google Talkback) for ">" button on popup menu -->
     <string name="preference_burst_mode_off">Выкл</string>
     <string name="preference_burst_mode_2x">2x</string>
@@ -872,7 +872,7 @@
     <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
     <string name="preference_licence_google_icons_text">Камера использует набор иконок из Material Design от Google (https://developer.android.com/design/downloads/index.html , https://design.google.com/icons/ , https://github.com/google/material-design-icons/ , https://google.github.io/material-design-icons/) под лицензией Apache версии 2.0. Некоторые значки включают модификации. Нажмите здесь для получения полного текста лицензии.</string>
     <string name="preference_licence_google_icons">Значки Google Material Design</string>
-    <string name="preference_licence_open_camera_text">Камера © 2013-2019 Марк Харман, выпущена под лицензией GPL v3 или более поздней. Нажмите здесь для получения полного текста лицензии.</string>
+    <string name="preference_licence_open_camera_text">Камера © 2013-2023 Марк Харман, выпущена под лицензией GPL v3 или более поздней. Нажмите здесь для получения полного текста лицензии.</string>
     <string name="preference_licence_open_camera">Камера</string>
     <string name="preference_screen_licences">Open Source лицензии</string>
     <string name="photo_mode_x_beauty_full">Расширение: Украшательства / Ретушь лица</string>
@@ -903,4 +903,17 @@
     <string name="preferences_authors">Авторы</string>
     <string name="preferences_about_app">Камера является форком OpenCamera</string>
     <string name="preferences_build_version">Версия сборки</string>
+    <string name="preference_failed_focus_mode_message">Для получения более качественных снимков держите камеру ровно.</string>
+    <string name="preference_hdr_tonemapping">Наложение тонов в HDR</string>
+    <string name="preference_hdr_tonemapping_summary">Алгоритм, используемый для тонового отображения в режиме HDR-фотографии
+\n%s</string>
+    <string name="preference_hdr_tonemapping_clamp">Простое крепление</string>
+    <string name="preference_hdr_tonemapping_exponential">Экспоненциальный</string>
+    <string name="preference_hdr_tonemapping_default">По умолчанию</string>
+    <string name="preference_remove_device_exif_summary">Удалять ли метаданные EXIF устройства с фотографий JPEG. Этот параметр не удаляет теги exif, применяемые другими настройками, которые применяют метаданные EXIF (например, местоположение/геотегирование). Эти другие параметры являются независимыми и отменяют данную настройку. RAW/DNG и видео не затрагиваются.
+\n%s</string>
+    <string name="preference_remove_device_exif_off">Не удалять EXIF-данные устройства</string>
+    <string name="preference_remove_device_exif">Удалить EXIF-данные устройства</string>
+    <string name="preference_remove_device_exif_on">Удалить EXIF-данные устройства</string>
+    <string name="preference_remove_device_exif_keep_datetime">Удалить все, кроме даты/времени</string>
 </resources>
