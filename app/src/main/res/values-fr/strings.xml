@@ -437,7 +437,7 @@
     <string name="cycle_raw">Faire défiler les modes RAW</string>
     <string name="cycle_flash">Modes du flash</string>
     <string name="preference_preview">Aperçu de l\'image…</string>
-    <string name="preference_focus_peaking_color_summary">Défini la couleur à utiliser pour souligner les contours qui sont à la distance de mise au point
+    <string name="preference_focus_peaking_color_summary">Couleur à utiliser pour souligner les contours qui sont à la distance de mise au point
 \n%s</string>
     <string name="exposure_compensation_zoom">Augmenter ou diminuer la compensation de l\'exposition</string>
     <string name="preference_histogram_luminance">Luminance</string>
