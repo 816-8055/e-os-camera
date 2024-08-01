@@ -920,7 +920,7 @@
     <string name="preference_video_profile_gamma_1_9">1,9</string>
     <string name="preference_video_profile_gamma_1_8">1,8</string>
     <string name="preference_video_profile_gamma_1_6">1,6</string>
-    <string name="preference_video_profile_gamma_summary">Valeur gamma à utiliser pour la vidéo si le profil de l\'image vidéo est défini sur Gamma
+    <string name="preference_video_profile_gamma_summary">Valeur gamma à utiliser pour la vidéo si le profil d\'image vidéo est défini à Gamma
 \n%s</string>
     <string name="preference_video_profile_gamma">Valeur du gamma vidéo</string>
     <string name="preference_video_gamma">Gamma</string>
