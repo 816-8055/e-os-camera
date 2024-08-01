@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Appareil photo</string>
     <string name="action_settings">Paramètres</string>
-    <string name="action_popup">Paramètres des popups</string>
+    <string name="action_popup">Paramètres des pop-ups</string>
     <string name="intro_ok">OK (Ce message ne s\'affichera plus)</string>
     <string name="on">Activé</string>
     <!-- whether a setting is turned on, e.g., "Auto-stabilise: On" -->
@@ -224,7 +224,7 @@
     <string name="preference_video_flash_summary">Si activé, le flash se mettra à clignoter lors de l\'enregistrement vidéo (peut être utile pour indiquer que l\'appareil est en train d\'enregistrer à distance)</string>
     <string name="preference_category_online">Divers</string>
     <string name="preference_online_help">Aide en ligne</string>
-    <string name="preference_online_help_summary">Ouvre le site web d\'Camera dans votre navigateur</string>
+    <string name="preference_online_help_summary">Ouvre le site web de l\'application Appareil photo dans votre navigateur</string>
     <string name="preference_donate">Donner pour soutenir le développement</string>
     <string name="preference_donate_summary">Si vous aimez cette application, n\'hésitez pas à faire un don. Vous pouvez le faire via l\'achat de mon « application de don » - Cliquer sur cette option va ouvrir la page de l\'application de don. Merci !</string>
     <string name="preference_use_camera2">Utiliser l\'API Camera2</string>
@@ -232,8 +232,8 @@
     <string name="preference_about">À propos</string>
     <string name="preference_about_summary">Infos sur l\'appli et de debogage</string>
     <string name="preference_reset">Réinitialiser les paramètres</string>
-    <string name="preference_reset_summary">Réinitialise tous les paramètres d\'Camera aux valeurs par défaut</string>
-    <string name="preference_reset_question">Êtes-vous sûr de vouloir réinitialiser tous les réglages d\'Camera vers ceux par défaut \?</string>
+    <string name="preference_reset_summary">Réinitialise tous les paramètres de l\'Appareil photo aux valeurs par défaut</string>
+    <string name="preference_reset_question">Êtes-vous sûr de vouloir réinitialiser tous les réglages de l\'Appareil photo vers ceux par défaut ?</string>
     <string name="about_available">Disponible</string>
     <string name="about_not_available">Non disponible</string>
     <string name="about_copy_to_clipboard">Copier dans le presse-papier</string>
@@ -641,7 +641,7 @@
     <string name="preference_restore_settings_summary">Restaure les paramètres précédemment enregistrés. Cela écrasera tous les paramètres actuels avec les paramètres sauvegardés !</string>
     <string name="preference_restore_settings">Restaurer les paramètres</string>
     <string name="preference_save_settings_filename">Nom de la sauvegarde des paramètres</string>
-    <string name="preference_save_settings_summary">Enregistre tous les réglages d\'Camera dans un fichier</string>
+    <string name="preference_save_settings_summary">Enregistre tous les réglages de l\'Appareil photo dans un fichier</string>
     <string name="preference_save_settings">Enregistrer les paramètres</string>
     <string name="preference_screen_settings_manager">Gestionnaire des paramètres</string>
     <string name="preference_video_output_format_default">Par défaut</string>
