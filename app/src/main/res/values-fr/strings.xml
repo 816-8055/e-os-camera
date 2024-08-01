@@ -493,7 +493,7 @@
     <string name="preference_camera2_fast_burst">Activer la rafale rapide de HDR/expo</string>
     <string name="preference_camera_api_camera2">API Camera2</string>
     <string name="preference_panorama_save">Images d\'origine du panorama</string>
-    <string name="preference_panorama_crop_summary">Pour le mode panorama, supprimer ou non les bords ondulés
+    <string name="preference_panorama_crop_summary">En mode panoramique, suppression des bordures floues
 \n%s</string>
     <string name="bluetooth_scan">Recherche</string>
     <string name="bluetooth_current_remote">Télécommande actuelle :</string>
@@ -541,7 +541,7 @@
     <string name="preference_show_pitch_lines_summary">Afficher les lignes de niveau horizontales</string>
     <string name="preference_show_pitch_lines">Afficher les lignes de niveau</string>
     <string name="preference_calibrate_level">Étalonner le niveau d\'angle</string>
-    <string name="preference_front_camera_mirror_summary">Inverser ou non (en miroir) l\'image quand la caméra frontale est utilisée
+    <string name="preference_front_camera_mirror_summary">Inverser en mirroir l\'image de la caméra avant
 \n%s</string>
     <string name="preference_front_camera_mirror">Effet miroir caméra frontale</string>
     <string name="camera_error">Grave erreur de caméra</string>
@@ -565,14 +565,14 @@
     <string name="preference_camera_api_old">API caméra d\'origine</string>
     <string name="preference_camera_api">API de la caméra</string>
     <string name="camera_id">ID</string>
-    <string name="preference_panorama_save_all">Sauvegarder les images originales</string>
+    <string name="preference_panorama_save_all">Enregistrer les images d\'origine</string>
     <string name="preference_panorama_save_no">Ne pas sauvegarder les images originales</string>
     <string name="preference_panorama_crop">Recadrage automatique du panorama</string>
     <string name="failed_to_process_panorama">Échec de la création de l\'image panoramique</string>
     <string name="panorama_cancelled">Panorama annulé</string>
     <string name="cancel_panorama">Annuler le panorama</string>
     <string name="finish_panorama">Terminer le panorama</string>
-    <string name="image_saving_notification">Enregistrement des images…</string>
+    <string name="image_saving_notification">Enregistrement des images en cours…</string>
     <string name="preference_show_cycle_raw_summary">Afficher à l\'écran une icône permettant de faire défiler les modes RAW</string>
     <string name="preference_show_cycle_raw">Afficher l\'icône RAW</string>
     <string name="preference_show_cycle_flash">Afficher l\'icône du flash</string>
@@ -609,7 +609,7 @@
     <string name="preference_show_white_balance_lock_summary">Afficher ou non à l\'écran une icône permettant de verrouiller ou déverrouiller la balance des blancs automatique</string>
     <string name="preference_stamp_geo_address_summary">Si possible, obtenir l\'adresse grâce à la localisation GPS (pour l\'incrustation sur les photos ou les sous-titres vidéo). N.B. : si cette option est activée, votre appareil transmettra les données de localisation à un tiers par Internet afin de convertir les coordonnées GPS en une adresse. Cf. https://developer.android.com/reference/android/location/Geocoder. Cette fonctionnalité ne garantit ni la disponibilité ni l\'exactitude. Les résultats obtenus sont des estimations, rien de garantit qu\'elles soient utiles ou correctes.
 \n%s</string>
-    <string name="preference_stamp_style_background">Texte avec fond grisé</string>
+    <string name="preference_stamp_style_background">Texte avec ombrage</string>
     <string name="preference_stamp_geo_address_no">Ne pas afficher l\'adresse</string>
     <string name="preference_stamp_geo_address_prefer">Préférer l\'adresse aux coordonnées GPS</string>
     <string name="preference_stamp_geo_address_both">Si possible, affiche l\'adresse en plus des coordonnées GPS</string>
