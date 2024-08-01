@@ -466,7 +466,7 @@
 \nNotez que le traitement et l\'enregistrement des photos panoramiques peuvent prendre du temps.</string>
     <string name="preference_raw_focus_bracketing_summary">Choisir si l\'option RAW doit ou non également s\'appliquer au mode bracketing de mise au point. Si cette option est désactivée, seuls les JPEG seront enregistrés en mode bracketing de mise au point.</string>
     <string name="preference_raw_expo_bracketing">Autorise RAW pour bracketing d\'expo</string>
-    <string name="preference_raw_focus_bracketing">Autoriser RAW pour bracketing mise au point</string>
+    <string name="preference_raw_focus_bracketing">Autoriser RAW pour le bracketing de la mise au point</string>
     <string name="preference_raw_expo_bracketing_summary">Choisir si l\'option RAW doit ou non également s\'appliquer au mode bracketing d\'exposition (ou au mode HDR lorsque \"Enregistrer toutes les images pour le mode HDR\" est activé). Si cette option est désactivée, seuls les JPEG seront enregistrés dans ces modes photo.</string>
     <string name="preference_show_cycle_flash_summary">Afficher ou non une icône à l\'écran pour faire défiler les options flash, au lieu d\'afficher les options flash dans le menu contextuel. N.B. : la lampe torche ne fonctionne pas si cette icône est utilisée.</string>
     <string name="preference_focus_peaking_color">Couleur de soulignage de la mise au point</string>
@@ -495,7 +495,7 @@
     <string name="preference_panorama_save">Images d\'origine du panorama</string>
     <string name="preference_panorama_crop_summary">Pour le mode panorama, supprimer ou non les bords ondulés
 \n%s</string>
-    <string name="bluetooth_scan">Scanner</string>
+    <string name="bluetooth_scan">Recherche</string>
     <string name="bluetooth_current_remote">Télécommande actuelle :</string>
     <string name="remaining">Restant</string>
     <string name="remote_connected">Télécommande connectée</string>
@@ -573,7 +573,7 @@
     <string name="cancel_panorama">Annuler le panorama</string>
     <string name="finish_panorama">Terminer le panorama</string>
     <string name="image_saving_notification">Enregistrement des images…</string>
-    <string name="preference_show_cycle_raw_summary">Afficher ou non à l\'écran une icône permettant de faire défiler les modes RAW</string>
+    <string name="preference_show_cycle_raw_summary">Afficher à l\'écran une icône permettant de faire défiler les modes RAW</string>
     <string name="preference_show_cycle_raw">Afficher l\'icône RAW</string>
     <string name="preference_show_cycle_flash">Afficher l\'icône du flash</string>
     <string name="preference_focus_peaking_on">Activé</string>
