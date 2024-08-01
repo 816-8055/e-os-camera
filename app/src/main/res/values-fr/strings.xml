@@ -437,7 +437,7 @@
     <string name="cycle_raw">Faire défiler les modes RAW</string>
     <string name="cycle_flash">Modes du flash</string>
     <string name="preference_preview">Aperçu de l\'image…</string>
-    <string name="preference_focus_peaking_color_summary">La couleur à utiliser pour mettre en évidence les bords au point
+    <string name="preference_focus_peaking_color_summary">Défini la couleur à utiliser pour souligner les contours qui sont à la distance de mise au point
 \n%s</string>
     <string name="exposure_compensation_zoom">Augmenter ou diminuer la compensation de l\'exposition</string>
     <string name="preference_histogram_luminance">Luminance</string>
@@ -469,7 +469,7 @@
     <string name="preference_raw_focus_bracketing">Autoriser RAW pour bracketing mise au point</string>
     <string name="preference_raw_expo_bracketing_summary">Choisir si l\'option RAW doit ou non également s\'appliquer au mode bracketing d\'exposition (ou au mode HDR lorsque \"Enregistrer toutes les images pour le mode HDR\" est activé). Si cette option est désactivée, seuls les JPEG seront enregistrés dans ces modes photo.</string>
     <string name="preference_show_cycle_flash_summary">Afficher ou non une icône à l\'écran pour faire défiler les options flash, au lieu d\'afficher les options flash dans le menu contextuel. N.B. : la lampe torche ne fonctionne pas si cette icône est utilisée.</string>
-    <string name="preference_focus_peaking_color">Couleur soulignage mise au point</string>
+    <string name="preference_focus_peaking_color">Couleur de soulignage de la mise au point</string>
     <string name="preference_focus_peaking_summary">Si cette option est activée, des surbrillances seront affichées sur les bords (contours) au point. Cette option est principalement utile pour la mise au point manuelle, et peut être utilisée pour aider à déterminer quelles régions de l\'image sont au point.
 \n%s</string>
     <string name="preference_focus_peaking">Soulignage de la mise au point</string>
