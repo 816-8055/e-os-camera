@@ -495,7 +495,7 @@
     <string name="preference_panorama_save">Images d\'origine du panorama</string>
     <string name="preference_panorama_crop_summary">En mode panoramique, suppression des bordures floues
 \n%s</string>
-    <string name="bluetooth_scan">Recherche</string>
+    <string name="bluetooth_scan">Rechercher</string>
     <string name="bluetooth_current_remote">Télécommande actuelle :</string>
     <string name="remaining">Restant</string>
     <string name="remote_connected">Télécommande connectée</string>
@@ -843,7 +843,7 @@
     <string name="preference_category_photo_debugging">Options de débogage</string>
     <string name="permission_rationale_record_audio">La permission d\'utiliser le microphone est requise pour enregistrer des vidéos avec audio ainsi que pour utiliser les options de « Contrôle audio »</string>
     <string name="permission_rationale_storage">La permission de lire/écrire dans le stockage est requise pour sauvegarder les fichiers créés comme les photos et vidéos.</string>
-    <string name="permission_rationale_camera">La permission d\'accès à l\'appareil photo est requise pour activer la camera</string>
+    <string name="permission_rationale_camera">La permission d\'accès à l\'appareil photo est requise pour activer l\'appareil photo</string>
     <string name="permission_rationale_title">Permission requise</string>
     <string name="no_permission">PAS DE PERMISSIONS</string>
     <string name="photo_mode_noise_reduction_full">Réduction de bruit (NR)</string>
