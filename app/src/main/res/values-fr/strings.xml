@@ -541,9 +541,9 @@
     <string name="preference_show_pitch_lines_summary">Afficher les lignes de niveau horizontales</string>
     <string name="preference_show_pitch_lines">Afficher les lignes de niveau</string>
     <string name="preference_calibrate_level">Étalonner le niveau d\'angle</string>
-    <string name="preference_front_camera_mirror_summary">Inverser en mirroir l\'image de la caméra avant
+    <string name="preference_front_camera_mirror_summary">Inverser en mirroir l\'image de l\'appareil photo frontal
 \n%s</string>
-    <string name="preference_front_camera_mirror">Effet miroir caméra frontale</string>
+    <string name="preference_front_camera_mirror">Effet miroir de l\'appareil photo frontal</string>
     <string name="camera_error">Grave erreur de caméra</string>
     <string name="preference_video_low_power_check">Vérification batterie critique</string>
     <string name="preference_expo_bracketing_stops_summary">Nombre de pas à déduire/ajouter pour l\'image la plus sombre/brillante
