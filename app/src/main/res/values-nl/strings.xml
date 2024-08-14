@@ -834,4 +834,5 @@
     <string name="preference_expo_bracketing_stops">Belichtingsreeks stops</string>
     <string name="preference_expo_bracketing_n_images_summary">Aantal beelden voor belichtingsreeks
 \n%s</string>
+    <string name="no_burst">geen burst</string>
 </resources>
