@@ -910,7 +910,7 @@
     <string name="preference_remove_device_exif_summary">Hiermit können die EXIF-Metadaten von JPEG-Fotos entfernt werden. Dies entfernt nicht die EXIF-Kennzeichen aus anderen Einstellungen, wie z.B. Standort oder Geotagging. Diese anderen Einstellungen sind unabhängig und setzen sich über diese Einstellung hier hinweg. RAW/DNG und Video werden durch diese Einstellung nicht betroffen.
 \n%s</string>
     <string name="preference_remove_device_exif_off">EXIF-Daten nicht entfernen</string>
-    <string name="preference_hdr_tonemapping_clamp">Simple clamp</string>
+    <string name="preference_hdr_tonemapping_clamp">Einfache Klammer</string>
     <string name="preference_remove_device_exif">EXIF-Daten des Gerätes entfernen</string>
     <string name="preference_hdr_tonemapping_summary">Der benutzte Algorithmus für Dynamikkompression im HDR Fotomodus: 
 \n%s</string>
