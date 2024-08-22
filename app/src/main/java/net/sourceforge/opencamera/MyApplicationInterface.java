@@ -1132,7 +1132,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
 
     @Override
     public String getPreviewSizePref() {
-        return sharedPreferences.getString(PreferenceKeys.PreviewSizePreferenceKey, "preference_preview_size_display");
+        return sharedPreferences.getString(PreferenceKeys.PreviewSizePreferenceKey, "preference_preview_size_wysiwyg");
     }
 
     @Override

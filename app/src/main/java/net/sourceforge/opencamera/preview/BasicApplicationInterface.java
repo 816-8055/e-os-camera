@@ -194,7 +194,7 @@ public abstract class BasicApplicationInterface implements ApplicationInterface 
 
     @Override
     public String getPreviewSizePref() {
-        return "preference_preview_size_display";
+        return "preference_preview_size_wysiwyg";
     }
 
     @Override
