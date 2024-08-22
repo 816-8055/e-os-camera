@@ -965,4 +965,11 @@
     <string name="preference_audio_control_noise">Lautes Geräusch</string>
     <string name="preference_audio_control_voice">Sprachkommando: \"cheese\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
+    <string name="preferences_build_version">Build version</string>
+    <string name="preferences_about_app">Die Kamera ist von OpenCamera gespalten</string>
+    <string name="preferences_authors">Autor</string>
+    <string name="preferences_source_code">Quellcode</string>
+    <string name="preferences_licence">Lizenz</string>
+    <string name="preferences_app_info_title">Kamerainformationen</string>
+    <string name="preferences_service_terms">Nutzungsbedingungen</string>
 </resources>

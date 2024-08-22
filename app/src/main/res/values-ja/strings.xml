@@ -855,4 +855,11 @@
     <string name="preference_audio_control_noise">音に反応</string>
     <string name="preference_audio_control_voice">音声コマンド: \"チーズ\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
+    <string name="preferences_build_version">ビルドバージョン</string>
+    <string name="preferences_about_app">カメラはOpenCameraから分岐します</string>
+    <string name="preferences_authors">作者</string>
+    <string name="preferences_source_code">ソースコード</string>
+    <string name="preferences_licence">免許</string>
+    <string name="preferences_app_info_title">カメラ情報</string>
+    <string name="preferences_service_terms">利用規約</string>
 </resources>

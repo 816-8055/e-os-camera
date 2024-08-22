@@ -968,4 +968,11 @@
     <string name="preference_audio_control_noise">Громкий шум</string>
     <string name="preference_audio_control_voice">Голосовая команда: \"cheese\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
+    <string name="preferences_build_version">Версия сборки</string>
+    <string name="preferences_about_app">Камера разветвлена от OpenCamera</string>
+    <string name="preferences_authors">автор</string>
+    <string name="preferences_source_code">Исходный код</string>
+    <string name="preferences_licence">лицензия</string>
+    <string name="preferences_app_info_title">Информация о камере</string>
+    <string name="preferences_service_terms">Условия обслуживания</string>
 </resources>

@@ -603,4 +603,11 @@
     <string name="preference_audio_control_noise">Ruido fuerte</string>
     <string name="preference_audio_control_voice">Comando de voz: \"cheese\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
+    <string name="preferences_build_version">Versión de compilación</string>
+    <string name="preferences_about_app">La cámara está bifurcada de OpenCamera</string>
+    <string name="preferences_authors">Autor</string>
+    <string name="preferences_source_code">Código fuente</string>
+    <string name="preferences_licence">Licencia</string>
+    <string name="preferences_app_info_title">Información de la cámara</string>
+    <string name="preferences_service_terms">Términos de servicio</string>
 </resources>

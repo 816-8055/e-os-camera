@@ -72,6 +72,7 @@ import java.util.List;
  */
 public class MyPreferenceFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
     private static final String TAG = "MyPreferenceFragment";
+    public static final String BUILD_VERION = "build_version";
 
     private boolean edge_to_edge_mode = false;
 
@@ -94,6 +95,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
             Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
+        findPreference(BUILD_VERION).setSummary(BuildConfig.VERSION_NAME);
 
         final Bundle bundle = getArguments();
         this.edge_to_edge_mode = bundle.getBoolean("edge_to_edge_mode");

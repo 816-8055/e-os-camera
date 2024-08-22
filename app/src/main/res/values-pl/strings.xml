@@ -1026,4 +1026,12 @@
 
     <string name="preference_allow_haptic_feedback">Zezwalaj na wibracje</string>
     <string name="preference_allow_haptic_feedback_summary">Czy zezwalać na wibracje dotykowe, na przykład podczas dostosowywania niektórych elementów sterujących. Należy pamiętać, że wymaga to również włączenia interakcji dotykowych w ustawieniach urządzenia.</string>
+
+    <string name="preferences_build_version">Wersja kompilacji</string>
+    <string name="preferences_about_app">Kamera jest rozwidlona z OpenCamera</string>
+    <string name="preferences_authors">Autor</string>
+    <string name="preferences_source_code">Kod źródłowy</string>
+    <string name="preferences_licence">Licencja</string>
+    <string name="preferences_app_info_title">Informacje o kamerze</string>
+    <string name="preferences_service_terms">Warunki usługi</string>
 </resources>

@@ -446,4 +446,11 @@
 
     <string name="preference_video_fps_default">Προεπιλογή</string>
 
+    <string name="preferences_build_version">Δημιουργία έκδοσης</string>
+    <string name="preferences_about_app">Η κάμερα είναι διχαλωτή από το OpenCamera</string>
+    <string name="preferences_authors">Συγγραφέας</string>
+    <string name="preferences_source_code">Κωδικός πηγής</string>
+    <string name="preferences_licence">Άδεια</string>
+    <string name="preferences_app_info_title">Πληροφορίες κάμερας</string>
+    <string name="preferences_service_terms">Όροι υπηρεσίας</string>
 </resources>

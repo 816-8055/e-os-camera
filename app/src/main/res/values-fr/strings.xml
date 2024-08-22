@@ -454,4 +454,11 @@
     <string name="preference_audio_control_noise">Bruit fort</string>
     <string name="preference_audio_control_voice">Commande vocale : « cheese »</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
+    <string name="preferences_build_version">Créer une version</string>
+    <string name="preferences_about_app">La caméra est dérivée d\'OpenCamera</string>
+    <string name="preferences_authors">Auteur</string>
+    <string name="preferences_source_code">Code source</string>
+    <string name="preferences_licence">Licence</string>
+    <string name="preferences_app_info_title">Informations sur la caméra</string>
+    <string name="preferences_service_terms">Conditions d\'utilisation</string>
 </resources>

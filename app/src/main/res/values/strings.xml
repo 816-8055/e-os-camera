@@ -1112,4 +1112,20 @@
             <li>Various other improvements and bug fixes.\n</li>
         </ul>
     </string>
+
+    <!-- Build version of the application -->
+    <string name="preferences_build_version">Build version</string>
+    <string name="preferences_about_app">Camera is forked from OpenCamera</string>
+    <string name="preferences_authors">Authors</string>
+    <string name="preferences_source_code">Source code</string>
+    <string name="preferences_licence">Licence</string>
+    <string name="preferences_app_info_title">Camera information</string>
+    <string name="preferences_app_info" translatable="false">
+        - Option to auto-stabilise\n
+        - Support for scene modes, color effects, white balance, ISO etc.\n
+        - Timer (with optional voice countdown), auto-repeat mode\n
+        - Configurable volume keys and user interface\n
+        - Support for Camera2 API\n
+        - Panorama, including for front camera.</string>
+    <string name="preferences_service_terms">Terms of service</string>
 </resources>
