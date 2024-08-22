@@ -370,4 +370,12 @@
     <string name="preference_immersive_mode_navigation">Sadece sanal ekran navigasyon butonlarını gizle</string>
     <string name="preference_immersive_mode_gui">GUI(Grafik arayüz) gizle</string>
     <string name="preference_immersive_mode_everything">Herşeyi gizle</string>
+
+    <string name="preferences_build_version">Derleme sürümü</string>
+    <string name="preferences_about_app">Kamera OpenCamera\'dan çatallandı</string>
+    <string name="preferences_authors">yazar</string>
+    <string name="preferences_source_code">Kaynak kodu</string>
+    <string name="preferences_licence">lisans</string>
+    <string name="preferences_app_info_title">Kamera bilgileri</string>
+    <string name="preferences_service_terms">Hizmet şartları</string>
 </resources>

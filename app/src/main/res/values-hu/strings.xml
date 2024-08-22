@@ -509,4 +509,11 @@
     <string name="preference_audio_control_noise">Hangos zaj</string>
     <string name="preference_audio_control_voice">Hangutasítás: \"csíííz\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
+    <string name="preferences_build_version">Összeállított verzió</string>
+    <string name="preferences_about_app">A fényképezőgép villás az OpenCamera-tól</string>
+    <string name="preferences_authors">szerző</string>
+    <string name="preferences_source_code">Forráskód</string>
+    <string name="preferences_licence">engedély</string>
+    <string name="preferences_app_info_title">Kamera információk</string>
+    <string name="preferences_service_terms">Szolgáltatási feltételek</string>
 </resources>

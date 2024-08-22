@@ -371,4 +371,13 @@
     <string name="preference_immersive_mode_navigation">Skrýt pouze virtuální navigační tlačítka</string>
     <string name="preference_immersive_mode_gui">Skrýt grafické rozhraní</string>
     <string name="preference_immersive_mode_everything">Skrýt vše</string>
+
+    <string name="preferences_about_title">About</string>
+    <string name="preferences_build_version">Sestavte verzi</string>
+    <string name="preferences_about_app">Kamera je vidlice z OpenCamera</string>
+    <string name="preferences_authors">Autor</string>
+    <string name="preferences_source_code">Zdrojový kód</string>
+    <string name="preferences_licence">Licence</string>
+    <string name="preferences_app_info_title">Informace o kameře</string>
+    <string name="preferences_service_terms">Podmínky služby</string>
 </resources>

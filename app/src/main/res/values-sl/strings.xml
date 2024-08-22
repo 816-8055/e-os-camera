@@ -980,4 +980,11 @@
     <string name="preference_audio_control_noise">Glasen zvok</string>
     <string name="preference_audio_control_voice">Glasovni ukaz: \"cheese\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
+    <string name="preferences_build_version">Različica za izdelavo</string>
+    <string name="preferences_about_app">Kamera je vilica OpenCamera</string>
+    <string name="preferences_authors">Avtor</string>
+    <string name="preferences_source_code">Izvorna koda</string>
+    <string name="preferences_licence">Licenca</string>
+    <string name="preferences_app_info_title">Podatki o fotoaparatu</string>
+    <string name="preferences_service_terms">Pogoji storitve</string>
 </resources>

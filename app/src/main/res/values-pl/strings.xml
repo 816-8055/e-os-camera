@@ -972,4 +972,13 @@
     <string name="preference_remove_device_exif_off">Nie usuwaj danych EXIF urządzenia</string>
     <string name="preference_remove_device_exif_on">Usuń dane EXIF urządzenia</string>
     <string name="preference_remove_device_exif_keep_datetime">Usuń z wyjątkiem daty/godziny</string>
+
+    <string name="preferences_build_version">Wersja kompilacji</string>
+    <string name="preferences_about_app">Kamera jest rozwidlona z OpenCamera</string>
+    <string name="preferences_authors">Autor</string>
+    <string name="preferences_source_code">Kod źródłowy</string>
+    <string name="preferences_licence">Licencja</string>
+    <string name="preferences_app_info_title">Informacje o kamerze</string>
+    <string name="preferences_service_terms">Warunki usługi</string>
+
 </resources>

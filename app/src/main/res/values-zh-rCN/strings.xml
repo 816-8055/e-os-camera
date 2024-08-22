@@ -963,4 +963,11 @@
     <string name="preference_remove_device_exif_on">删除设备 EXIF 信息</string>
     <string name="preference_remove_device_exif_keep_datetime">删除日期/时间以外的信息</string>
 
+    <string name="preferences_build_version">内部版本</string>
+    <string name="preferences_about_app">相机是从OpenCamera分叉的</string>
+    <string name="preferences_authors">作者</string>
+    <string name="preferences_source_code">源代码</string>
+    <string name="preferences_licence">牌照</string>
+    <string name="preferences_app_info_title">相机信息</string>
+    <string name="preferences_service_terms">服务条款</string>
 </resources>

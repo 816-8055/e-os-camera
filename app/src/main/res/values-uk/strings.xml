@@ -513,4 +513,11 @@
     <string name="preference_audio_control_noise">Низький шум</string>
     <string name="preference_audio_control_voice">Голосова команда: \"сир\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
+    <string name="preferences_build_version">Збірка версії</string>
+    <string name="preferences_about_app">Камера роздвоєна від OpenCamera</string>
+    <string name="preferences_authors">Автор</string>
+    <string name="preferences_source_code">Вихідний код</string>
+    <string name="preferences_licence">Ліцензія</string>
+    <string name="preferences_app_info_title">Інформація про камеру</string>
+    <string name="preferences_service_terms">Умови обслуговування</string>
 </resources>

@@ -978,4 +978,11 @@
     <string name="preference_audio_control_noise">Rumore forte</string>
     <string name="preference_audio_control_voice">Comando vocale: \"cheese\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
+    <string name="preferences_build_version">Versione build</string>
+    <string name="preferences_about_app">La telecamera è biforcuta da OpenCamera</string>
+    <string name="preferences_authors">autore</string>
+    <string name="preferences_source_code">Codice sorgente</string>
+    <string name="preferences_licence">licenza</string>
+    <string name="preferences_app_info_title">Informazioni sulla fotocamera</string>
+    <string name="preferences_service_terms">Termini del servizio</string>
 </resources>

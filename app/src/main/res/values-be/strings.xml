@@ -367,4 +367,12 @@
     <string name="preference_immersive_mode_navigation">Хаваць віртуальныя кнопкі навігацыі на экране</string>
     <string name="preference_immersive_mode_gui">Хаваць GUI</string>
     <string name="preference_immersive_mode_everything">Хаваць усе</string>
+
+    <string name="preferences_build_version">Зборка версіі</string>
+    <string name="preferences_about_app">Камера раздвоеная ад OpenCamera</string>
+    <string name="preferences_authors">Аўтары</string>
+    <string name="preferences_source_code">Зыходны код</string>
+    <string name="preferences_licence">Ліцэнзія</string>
+    <string name="preferences_app_info_title">Інфармацыя пра камеру</string>
+    <string name="preferences_service_terms">Умовы прадастаўлення паслуг</string>
 </resources>

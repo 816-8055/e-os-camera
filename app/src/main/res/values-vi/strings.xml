@@ -789,4 +789,11 @@
     <string name="preference_audio_control_noise">Tiếng động lớn</string>
     <string name="preference_audio_control_voice">Tiếng cheese</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
+    <string name="preferences_build_version">Phiên bản xây dựng</string>
+    <string name="preferences_about_app">Máy ảnh được rẽ nhánh từ OpenCamera</string>
+    <string name="preferences_authors">Tác giả</string>
+    <string name="preferences_source_code">Mã nguồn</string>
+    <string name="preferences_licence">Giấy phép</string>
+    <string name="preferences_app_info_title">Thông tin camera</string>
+    <string name="preferences_service_terms">Điều khoản dịch vụ</string>
 </resources>
