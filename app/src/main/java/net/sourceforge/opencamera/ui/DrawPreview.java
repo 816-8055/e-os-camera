@@ -681,7 +681,7 @@ public class DrawPreview {
         show_pitch_lines_pref = sharedPreferences.getBoolean(PreferenceKeys.ShowPitchLinesPreferenceKey, false);
         show_geo_direction_lines_pref = sharedPreferences.getBoolean(PreferenceKeys.ShowGeoDirectionLinesPreferenceKey, false);
 
-        String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_low_profile");
+        String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_off");
         immersive_mode_everything_pref = immersive_mode.equals("immersive_mode_everything");
 
         has_stamp_pref = applicationInterface.getStampPref().equals("preference_stamp_yes");

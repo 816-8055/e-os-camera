@@ -1310,7 +1310,7 @@ public class MainUI {
                     focusSeekBar.setVisibility(visibility);
                 if( main_activity.showManualFocusSeekbar(true) )
                     focusBracketingTargetSeekBar.setVisibility(visibility);
-                String pref_immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_low_profile");
+                String pref_immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_off");
                 if( pref_immersive_mode.equals("immersive_mode_everything") ) {
                     final boolean showTakePhotoPreferenceKey = sharedPreferences.getBoolean(PreferenceKeys.ShowTakePhotoPreferenceKey, true);
 
