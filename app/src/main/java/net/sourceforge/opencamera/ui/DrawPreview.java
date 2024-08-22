@@ -677,7 +677,7 @@ public class DrawPreview {
         show_geo_direction_pref = sharedPreferences.getBoolean(PreferenceKeys.ShowGeoDirectionPreferenceKey, false);
 
         take_photo_border_pref = sharedPreferences.getBoolean(PreferenceKeys.TakePhotoBorderPreferenceKey, true);
-        preview_size_wysiwyg_pref = sharedPreferences.getString(PreferenceKeys.PreviewSizePreferenceKey, "preference_preview_size_display").equals("preference_preview_size_wysiwyg");
+        preview_size_wysiwyg_pref = sharedPreferences.getString(PreferenceKeys.PreviewSizePreferenceKey, "preference_preview_size_wysiwyg").equals("preference_preview_size_wysiwyg");
         store_location_pref = sharedPreferences.getBoolean(PreferenceKeys.LocationPreferenceKey, false);
 
         show_angle_line_pref = sharedPreferences.getBoolean(PreferenceKeys.ShowAngleLinePreferenceKey, false);

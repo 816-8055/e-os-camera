@@ -8,7 +8,7 @@
         android:summary="%s"
         android:entries="@array/preference_preview_size_entries"
         android:entryValues="@array/preference_preview_size_values"
-        android:defaultValue="preference_preview_size_display"
+        android:defaultValue="preference_preview_size_wysiwyg"
         />
 
     <ListPreference
