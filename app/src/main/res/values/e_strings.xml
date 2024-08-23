@@ -49,4 +49,10 @@
     <string name="qr_fido_content_description">Handle this FIDO QR code</string>
     <string name="qr_fido_title">Use passkey</string>
     <string name="abc_shareactionprovider_share_with">Share with</string>
+
+    <string name="failed_to_open_camera_two_1_disabled">"YOUR PRIVACY SWITCH MUST BE ACTIVATED"</string>
+    <string name="failed_to_open_camera_two_2_disabled">"AS THE CAMERA IS NOT AVAILABLE ;-)"</string>
+
+    <string name="failed_to_open_camera_two_1_enabled">"PLEASE WAIT 5 SECONDS FOR YOUR CAMERA"</string>
+    <string name="failed_to_open_camera_two_2_enabled">"TO LOAD AS IT'S JUST BEEN ENABLED"</string>
 </resources>
