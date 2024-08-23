@@ -30,6 +30,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -187,6 +188,11 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     private int navigation_gap;
     public static volatile boolean test_preview_want_no_limits; // test flag, if set to true then instead use test_preview_want_no_limits_value; needs to be static, as it needs to be set before activity is created to take effect
     public static volatile boolean test_preview_want_no_limits_value;
+
+    private boolean murenaTwoHwKill = false;
+
+    private Handler handler;
+    private Runnable retryRunnable = null;
 
     // whether this is a multi-camera device (note, this isn't simply having more than 1 camera, but also having more than one with the same facing)
     // note that in most cases, code should check the MultiCamButtonPreferenceKey preference as well as the is_multi_cam flag,
@@ -358,6 +364,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         soundPoolManager = new SoundPoolManager(this);
         magneticSensor = new MagneticSensor(this);
         //speechControl = new SpeechControl(this);
+
+        handler = new Handler();
 
         // determine whether we support Camera2 API
         // must be done before setDeviceDefaults()
@@ -1625,6 +1633,26 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         else {
             mainUI.onKeyUp(keyCode, event);
         }
+
+        if (!camera_in_background && keyCode == 131 && DeviceSettings.isMurenaTwo()) {
+            String cameraState = Utils.getProperty("persist.sys.hwswitch.state", null);
+            if (cameraState == null) return super.onKeyUp(keyCode, event);
+
+            if (retryRunnable != null) {
+                handler.removeCallbacks(retryRunnable);
+            }
+
+            murenaTwoHwKill = Objects.equals(cameraState, "1");
+            retryRunnable = () -> {
+                if (!murenaTwoHwKill) {
+                    preview.retryOpenCamera();
+                } else {
+                    restartOpenCamera();
+                }
+            };
+            handler.postDelayed(retryRunnable, murenaTwoHwKill ? 200 : 5000);
+        }
+
         return super.onKeyUp(keyCode, event);
     }
 
