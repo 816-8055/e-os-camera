@@ -38,4 +38,8 @@ public class DeviceSettings {
         final boolean isOne = Build.DEVICE.equals("one") || Build.DEVICE.equals("X2");
         return isMurena && isOne;
     }
+
+    public static boolean isMurenaTwo() {
+        return Build.DEVICE.toLowerCase(Locale.US).contains("two");
+    }
 }

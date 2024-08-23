@@ -47,6 +47,7 @@
             android:name="net.sourceforge.opencamera.MainActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/AppTheme"
+            android:launchMode="singleInstance"
             android:clearTaskOnLaunch="true"
             android:exported="true"
             >

@@ -31,6 +31,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
+import net.sourceforge.opencamera.DeviceSettings;
 import net.sourceforge.opencamera.GyroSensor;
 import net.sourceforge.opencamera.ImageSaver;
 import net.sourceforge.opencamera.LocationSupplier;
@@ -38,6 +39,7 @@ import net.sourceforge.opencamera.MainActivity;
 import net.sourceforge.opencamera.MyApplicationInterface;
 import net.sourceforge.opencamera.MyDebug;
 import net.sourceforge.opencamera.PreferenceKeys;
+import net.sourceforge.opencamera.Utils;
 import net.sourceforge.opencamera.cameracontroller.CameraController;
 import net.sourceforge.opencamera.preview.ApplicationInterface;
 import net.sourceforge.opencamera.preview.Preview;
@@ -50,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import foundation.e.camera.R;
 
@@ -2052,7 +2055,16 @@ public class DrawPreview {
             p.setTextAlign(Paint.Align.CENTER);
             int pixels_offset = (int) (20 * scale + 0.5f); // convert dps to pixels
             if( preview.hasPermissions() ) {
-                if( preview.openCameraFailed() ) {
+                String cameraState = Utils.getProperty("persist.sys.hwswitch.state", null);
+                if (cameraState != null && DeviceSettings.isMurenaTwo() && preview.openCameraFailed()) {
+                    boolean enabled = Objects.equals(cameraState, "1");
+                    int text1 = enabled ? R.string.failed_to_open_camera_two_1_disabled : R.string.failed_to_open_camera_two_1_enabled;
+                    int text2 = enabled ? R.string.failed_to_open_camera_two_2_disabled : R.string.failed_to_open_camera_two_2_enabled;
+                    canvas.drawText(getContext().getResources().getString(text1), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f, p);
+                    canvas.drawText(getContext().getResources().getString(text2), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f + pixels_offset, p);
+                }
+
+                if ( !DeviceSettings.isMurenaTwo() && preview.openCameraFailed() ) {
                     canvas.drawText(getContext().getResources().getString(R.string.failed_to_open_camera_1), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f, p);
                     canvas.drawText(getContext().getResources().getString(R.string.failed_to_open_camera_2), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f + pixels_offset, p);
                     canvas.drawText(getContext().getResources().getString(R.string.failed_to_open_camera_3), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f + 2 * pixels_offset, p);
