@@ -2633,6 +2633,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
 
     @Override
     public void onCameraError() {
+        if (DeviceSettings.isMurenaTwo()) return;
         main_activity.getPreview().showToast(null, R.string.camera_error);
     }
 

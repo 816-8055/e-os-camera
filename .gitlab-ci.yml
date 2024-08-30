@@ -74,3 +74,4 @@ update-default-branch:
     UPSTREAM_DEFAULT_BRANCH: master
     UPSTREAM_URL: https://git.code.sf.net/p/opencamera/code
     TEMP_LATEST_TAG_BRANCH: latest_upstream_tag_branch
+  allow_failure: true
