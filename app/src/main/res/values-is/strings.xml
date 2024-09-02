@@ -929,4 +929,6 @@
     <string name="preference_remove_device_exif_summary">Hvort eigi að fjarlægja EXIF-lýsigögn tækis úr JPEG-myndum. Þetta mun ekki fjarlægja EXIF-merki sem koma frá öðrum þeim stillingum sem nota EXIF-lýsigögn (t.d. staðsetning/hnit). Þær stillingar virka sjálfstætt og mynu taka yfir þessa stillingu. Hefur ekki áhrif á RAW/DNG og myndskeið.
 \n%s</string>
     <string name="preference_failed_focus_mode_message">Haltu myndavélinni stöðugri til að taka betri myndir.</string>
+    <string name="qr_address_title">Bæta við tengilið</string>
+    <string name="switch_to_qrcode">QR-kóði</string>
 </resources>
