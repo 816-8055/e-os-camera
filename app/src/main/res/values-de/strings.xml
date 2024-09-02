@@ -916,4 +916,23 @@
 \n%s</string>
     <string name="preference_hdr_tonemapping_exponential">Exponentiell</string>
     <string name="preference_remove_device_exif_on">EXIF-Daten entfernen</string>
+    <string name="switch_to_qrcode">QR Code</string>
+    <string name="qr_address_title">Einen Kontakt hinzufügen</string>
+    <string name="qr_address_content_description">Einen Kontakt hinzufügen</string>
+    <string name="qr_calendar_title">Ein Kalenderereignis hinzufügen</string>
+    <string name="qr_calendar_content_description">Dieses Ereignis dem Kalender hinzufügen</string>
+    <string name="qr_geo_title">Diesen Ort öffnen</string>
+    <string name="qr_geo_content_description">Diesen Ort öffnen</string>
+    <string name="qr_email_title">Ein neues E-Mail versenden</string>
+    <string name="qr_email_content_description">Öffnet ein neues E-mail an die enthaltenen Adressen</string>
+    <string name="qr_isbn_title">Diese ISBN anschauen</string>
+    <string name="qr_isbn_content_description">Diese ISBN auf isbnsearch.org suchen</string>
+    <string name="qr_product_title">Produkt suchen</string>
+    <string name="qr_product_content_description">Den ID Barcode dieses Produktes suchen</string>
+    <string name="qr_sms_title">Ein neues SMS senden</string>
+    <string name="qr_sms_content_description">Sendet ein neues SMS an die enthaltenen Empfänger</string>
+    <string name="qr_tel_content_description">Diese Telefonnummer anrufen</string>
+    <string name="qr_vin_title">VIN suchen</string>
+    <string name="qr_vin_content_description">Diese VIN (Fahrzeug-Identifikationsnummer) suchen</string>
+    <string name="qr_tel_title">Diese Telefonnummer anrufen</string>
 </resources>
