@@ -929,4 +929,18 @@
     <string name="preference_remove_device_exif_summary">Huruvida enhetens EXIF-metadata ska tas bort från JPEG-bilder. Detta kommer inte ta bort exif-taggar för andra inställningar som applicerar EXIF-metadata (t.ex. plats/geotaggning). Dessa andra alternativ är fristående och kommer åsidosätta denna inställning. RAW/DNG och videor påverkas inte.
 \n%s</string>
     <string name="preference_failed_focus_mode_message">Håll kamera stadigt för bättre foton.</string>
+    <string name="qr_address_title">Lägg till kontakt</string>
+    <string name="qr_calendar_title">Lägg till händelse i kalendern</string>
+    <string name="qr_calendar_content_description">Lägg till denna händelse i kalendern</string>
+    <string name="qr_geo_title">Öppna denna plats</string>
+    <string name="qr_geo_content_description">Öppna denna plats</string>
+    <string name="qr_email_title">Skicka nytt mejl</string>
+    <string name="qr_isbn_title">Kolla upp detta ISBN</string>
+    <string name="qr_isbn_content_description">Sök efter detta ISBN på isbnsearch.org</string>
+    <string name="qr_product_title">Kolla upp produkt</string>
+    <string name="qr_product_content_description">Kolla upp denna produkts streckkods-ID</string>
+    <string name="qr_sms_title">Skicka ett nytt SMS</string>
+    <string name="qr_address_content_description">Lägg till kontakt</string>
+    <string name="qr_email_content_description">Komponera ett nytt mejl till den angivna adressen</string>
+    <string name="switch_to_qrcode">QR-kod</string>
 </resources>
