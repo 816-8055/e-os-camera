@@ -935,4 +935,10 @@
     <string name="qr_vin_title">VIN suchen</string>
     <string name="qr_vin_content_description">Diese VIN (Fahrzeug-Identifikationsnummer) suchen</string>
     <string name="qr_tel_title">Diese Telefonnummer anrufen</string>
+
+    <string name="failed_to_open_camera_two_1_disabled">IHRE PRIVACY-SCHALTER MUSS AKTIVIERT SEIN</string>
+    <string name="failed_to_open_camera_two_2_disabled">DA DIE KAMERA NICHT VERFÜGBAR IST ;-)</string>
+
+    <string name="failed_to_open_camera_two_1_enabled">BITTE WARTEN SIE 5 SEKUNDEN AUF IHRE KAMERA</string>
+    <string name="failed_to_open_camera_two_2_enabled">UM SIE ZU LADEN, DA SIE SOEBEN AKTIVIERT WURDE</string>
 </resources>

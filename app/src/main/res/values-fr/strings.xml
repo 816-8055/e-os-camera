@@ -963,4 +963,10 @@
     <string name="qr_fido_content_description">Manipuler ce code QR FIDO</string>
     <string name="qr_fido_title">Utiliser le mot de passe</string>
     <string name="abc_shareactionprovider_share_with">Partager avec</string>
+
+    <string name="failed_to_open_camera_two_1_disabled">VOTRE INTERRUPTEUR DE CONFIDENTIALITÉ DOIT ÊTRE ACTIVÉ</string>
+    <string name="failed_to_open_camera_two_2_disabled">CAR LA CAMÉRA N\'EST PAS DISPONIBLE ;-)</string>
+
+    <string name="failed_to_open_camera_two_1_enabled">VEUILLEZ ATTENDRE 5 SECONDES POUR VOTRE CAMÉRA</string>
+    <string name="failed_to_open_camera_two_2_enabled">POUR QU\'ELLE SE CHARGE, CAR ELLE VIEN DE ÊTRE ACTIVÉE</string>
 </resources>
