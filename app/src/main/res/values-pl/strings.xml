@@ -216,7 +216,7 @@
     <string name="preference_record_audio_src">Źródło dźwięku</string>
     <string name="preference_record_audio_src_summary">Wybór mikrofonu, z którego będzie nagrywany dźwięk\n%s</string>
     <string name="preference_record_audio_channels">Źródło dźwięku</string>
-    <string name="preference_record_audio_channels_summary">Wybór między dźwiękiem mono a stereo (dostępne tylko na niektórych urządzeniach)\n%s</string>
+    <string name="preference_record_audio_channels_summary">Wybór między dźwiękiem mono a stereo (dostępne tylko na niektórych urządzeniach)</string>
     <string name="preference_video_flash">Błysk podczas nagrywania</string>
     <string name="preference_video_flash_summary">Jeśli włączono, lampa błyskowa będzie się włączać i wyłączać (przydatne w przypadku gdy chcemy z większej odległości stwierdzić czy kamera wciąż nagrywa)</string>
     <string name="preference_category_online">Różne</string>
@@ -746,7 +746,7 @@
     <string name="preference_zebra_stripes_99pc">99%</string> <!-- shouldn't escape %, not needed when shown in ListPreference -->
     <string name="preference_zebra_stripes_100pc">100%</string> <!-- shouldn't escape %, not needed when shown in ListPreference -->
 
-    
+
     <string name="preference_focus_peaking">Uwydatnienie ostrości</string>
     <string name="preference_focus_peaking_summary">Jeśli ta opcja jest włączona, na ostrych krawędziach (konturach) zostaną pokazane podświetlenia. Jest to przydatne przede wszystkim przy ręcznym ustawianiu ostrości i może pomóc w określeniu, które obszary obrazu są ostre.\n%s</string>
     <string name="preference_focus_peaking_off">Wyłączono</string>
@@ -972,13 +972,4 @@
     <string name="preference_remove_device_exif_off">Nie usuwaj danych EXIF urządzenia</string>
     <string name="preference_remove_device_exif_on">Usuń dane EXIF urządzenia</string>
     <string name="preference_remove_device_exif_keep_datetime">Usuń z wyjątkiem daty/godziny</string>
-
-    <string name="preferences_build_version">Wersja kompilacji</string>
-    <string name="preferences_about_app">Kamera jest rozwidlona z OpenCamera</string>
-    <string name="preferences_authors">Autor</string>
-    <string name="preferences_source_code">Kod źródłowy</string>
-    <string name="preferences_licence">Licencja</string>
-    <string name="preferences_app_info_title">Informacje o kamerze</string>
-    <string name="preferences_service_terms">Warunki usługi</string>
-
 </resources>
