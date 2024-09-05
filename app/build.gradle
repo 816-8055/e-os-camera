@@ -5,6 +5,16 @@ android {
     compileSdk 34
     compileOptions.encoding = 'UTF-8'
 
+    signingConfigs {
+        // These are public keys provided by AOSP, Use different passcode protected keys for production
+        debug {
+            storeFile file('keys/platform.jks')
+            storePassword 'platform'
+            keyAlias 'platform'
+            keyPassword 'platform'
+        }
+    }
+
     defaultConfig {
         applicationId "foundation.e.camera"
         minSdkVersion 25
@@ -26,8 +36,11 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
-    }
 
+        debug {
+            signingConfig signingConfigs.debug
+        }
+    }
 
     // needed to use android.test package (ActivityInstrumentationTestCase2 etc) when targetting sdk 28 (Android 9) -
     // see https://developer.android.com/training/testing/set-up-project
