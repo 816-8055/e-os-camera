@@ -219,7 +219,7 @@
     <string name="preference_record_audio_src">Źródło dźwięku</string>
     <string name="preference_record_audio_src_summary">Wybór mikrofonu, z którego będzie nagrywany dźwięk\n%s</string>
     <string name="preference_record_audio_channels">Źródło dźwięku</string>
-    <string name="preference_record_audio_channels_summary">Wybór między dźwiękiem mono a stereo (dostępne tylko na niektórych urządzeniach)\n%s</string>
+    <string name="preference_record_audio_channels_summary">Wybór między dźwiękiem mono a stereo (dostępne tylko na niektórych urządzeniach)</string>
     <string name="preference_video_flash">Błysk podczas nagrywania</string>
     <string name="preference_video_flash_summary">Jeśli włączono, lampa błyskowa będzie się włączać i wyłączać (przydatne w przypadku gdy chcemy z większej odległości stwierdzić czy kamera wciąż nagrywa)</string>
     

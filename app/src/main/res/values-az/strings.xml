@@ -317,17 +317,18 @@
 
     <string name="preference_ui_placement_left">Sol əllə işləyənlər üçün</string>
     <string name="preference_ui_placement_right">Sağ əllə işləyənlər üçün</string>
+    <string name="preferences_about_title">About</string>
+    <string name="preferences_build_version">Quraşdırma versiyası</string>
+    <string name="preferences_about_app">Kamera Camera-dan çəngəldir</string>
+    <string name="preferences_authors">Müəlliflər</string>
+    <string name="preferences_source_code">Mənbə kodu</string>
+    <string name="preferences_licence">Lisenziyası</string>
+    <string name="preferences_app_info_title">Kamera məlumatları</string>
+    <string name="preferences_service_terms">Xidmət şərtləri</string>
 
     <string name="preference_immersive_mode_off">Bağla</string>
     <string name="preference_immersive_mode_navigation">Hərəkət düyməsini gizlə</string>
     <string name="preference_immersive_mode_gui">GUI gizlə</string>
     <string name="preference_immersive_mode_everything">Hamısını gizlə</string>
 
-    <string name="preferences_build_version">Quraşdırma versiyası</string>
-    <string name="preferences_about_app">Kamera OpenCamera-dan çəngəldir</string>
-    <string name="preferences_authors">Müəlliflər</string>
-    <string name="preferences_source_code">Mənbə kodu</string>
-    <string name="preferences_licence">Lisenziyası</string>
-    <string name="preferences_app_info_title">Kamera məlumatları</string>
-    <string name="preferences_service_terms">Xidmət şərtləri</string>
 </resources>

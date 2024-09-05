@@ -217,7 +217,7 @@
     <string name="preference_record_audio_src">Fonte de áudio</string>
     <string name="preference_record_audio_src_summary">O microfone usado na gravação de áudio\n%s</string>
     <string name="preference_record_audio_channels">Canais de áudio</string>
-    <string name="preference_record_audio_channels_summary">Especificar mono ou estéreo para a gravação de áudio (estéreo apenas é suportado em alguns dispositivos)\n%s</string>
+    <string name="preference_record_audio_channels_summary">Especificar mono ou estéreo para a gravação de áudio (estéreo apenas é suportado em alguns dispositivos)</string>
     <string name="preference_video_flash">Flash durante a gravação de vídeo</string>
     <string name="preference_video_flash_summary">Se ativado, o flash será ligado/desligado durante a gravação de vídeo (pode ser usado para verificar à distância se câmara ainda está a gravar)</string>
     
@@ -418,6 +418,14 @@
 
     <string name="preference_stamp_style_shadowed">Texto sombreado</string>
     <string name="preference_stamp_style_plain">Texto simples</string>
+    <string name="preferences_about_title">About</string>
+    <string name="preferences_build_version">Versão de compilação</string>
+    <string name="preferences_about_app">A câmera é bifurcada no Camera</string>
+    <string name="preferences_authors">Autor</string>
+    <string name="preferences_source_code">Código fonte</string>
+    <string name="preferences_licence">Licença</string>
+    <string name="preferences_app_info_title">Informações da câmera</string>
+    <string name="preferences_service_terms">Termos de serviço</string>
 
     <string name="preference_immersive_mode_off">Desligado</string>
     <string name="preference_immersive_mode_navigation">Apenas ocultar os botões de navegação virtuais</string>
@@ -428,11 +436,4 @@
     <string name="preference_audio_control_noise">Ruído alto</string>
     <string name="preference_audio_control_voice">Comando de voz: \"cheese\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
 
-    <string name="preferences_build_version">Versão de compilação</string>
-    <string name="preferences_about_app">A câmera é bifurcada no OpenCamera</string>
-    <string name="preferences_authors">Autor</string>
-    <string name="preferences_source_code">Código fonte</string>
-    <string name="preferences_licence">Licença</string>
-    <string name="preferences_app_info_title">Informações da câmera</string>
-    <string name="preferences_service_terms">Termos de serviço</string>
 </resources>

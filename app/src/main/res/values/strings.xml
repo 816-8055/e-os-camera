@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Camera</string> <!-- shouldn't be translated, unless deemed appropriate e.g. alternative alphabets -->
+    <string name="app_name">Camera</string> <!-- shouldn't be translated -->
     <string name="action_settings">Settings</string>
     <string name="action_popup">Popup settings</string>
     <string name="intro_ok">OK (This message won\'t show again)</string>
@@ -221,7 +221,7 @@
     <string name="preference_record_audio_src">Audio source</string>
     <string name="preference_record_audio_src_summary">Microphone to use for recording audio. Note that the exact behaviour of the options depends on how the option is implemented on your device.\n%s</string>
     <string name="preference_record_audio_channels">Audio channels</string>
-    <string name="preference_record_audio_channels_summary">Specify mono or stereo for recording audio (stereo only supported on some devices)\n%s</string>
+    <string name="preference_record_audio_channels_summary">Specify mono or stereo for recording audio (stereo only supported on some devices)</string>
     <string name="preference_video_flash">Flash while recording video</string>
     <string name="preference_video_flash_summary">If enabled, flash will switch on/off when recording video (can be used to tell camera is still recording at a distance)</string>
     
@@ -530,7 +530,7 @@
     <string name="anti_banding_off">Off</string>
 
     <string name="preference_ghost_image">Ghost image</string>
-    <string name="preference_ghost_image_summary">Display an image over the preview, to help with alignment.\n%s</string>
+    <string name="preference_ghost_image_summary">Overlay an image, to help with alignment.\n%s</string>
     <string name="preference_ghost_image_off">Off</string>
     <string name="preference_ghost_image_last">Last photo taken</string>
     <string name="preference_ghost_image_selected">Selected image</string>
@@ -907,7 +907,7 @@
         When enabled, use the on-screen microphone button to start/stop listening.
         \n%s</string>
 
-    <string name="intro_text">Touch to focus, and press the circular white shutter button to take photos.
+    <string name="intro_text">Touch to focus, and press the white camera button button to take photos.
         \n\nTo save to SD cards, see Settings/More camera controls/\"Storage Access Framework\".
         For more help, click \"Online help\" from Settings.
     </string>
@@ -1047,46 +1047,45 @@
         <!-- now interpreted as HTML so that we can have the mailto link, for the contact that's needed for Google Play policies! -->
         <!-- be careful of rewording/removing bits, as some things here may be required for Google Play policies -->
         Camera is developed by Mark Harman.
-        &lt;br/&gt;Camera accesses camera sensor and microphone data to fulfil its purpose as a camera.
+        \nCamera accesses camera sensor and microphone data to fulfil its purpose as a camera.
         Microphone is also used for the optional \"Audio control\".
-        &lt;br/&gt;Access to files is needed (at least for Android 9 and earlier) to save resultant files such as photos and videos to your device.
-        &lt;br/&gt;Location permission is requested in order to deliver the optional geotagging features (for photos and videos,
+        \nAccess to files is needed (at least for Android 9 and earlier) to save resultant files such as photos and videos to your device.
+        \nLocation permission is requested in order to deliver the optional geotagging features (for photos and videos,
         including stamp and subtitles options).
         When relevant option(s) are enabled, your device location will be stored in photo/video/subtitle files.
-        &lt;br/&gt;Bluetooth permissions are used to allow the optional feature to discover and connect to Bluetooth LE remote control devices;
+        \nBluetooth permissions are used to allow the optional feature to discover and connect to Bluetooth LE remote control devices;
         the Bluetooth remote control feature also requires location permission (on Android 11 or earlier) or
         Nearby Devices permission (on Android 12 or later).
-        &lt;br/&gt;Resultant data such as photos or videos can be shared with
+        \nResultant data such as photos or videos can be shared with
         other apps if you use the share option in Camera, or when Camera is called by
         another app on your device, or when you use the Storage Access Framework option to save
         to another app or service.
-        &lt;br/&gt;Data handling procedures, data retention and deletion policies: Camera
+        \nData handling procedures, data retention and deletion policies: Camera
         does not transmit personal or sensitive information to me.
-        &lt;br/&gt;Since Camera also uses operating system APIs, you should review relevant privacy policies
+        \nSince Camera also uses operating system APIs, you should review relevant privacy policies
         such as for your device, manufacturer, operating system and/or Google accounts. For example:
-        &lt;br/&gt;*Apps/services such as cloud services on your device may auto-upload photos and videos that are saved on your device.
-        &lt;br/&gt;If you have inquiries about my privacy policy, please contact me by email at
+        \n*Apps/services such as cloud services on your device may auto-upload photos and videos that are saved on your device.
+        \nIf you have inquiries about my privacy policy, please contact me by email at
         &lt;a href=\"mailto:mark.harman.apps@gmail.com?subject=Open%20Camera%20privacy%20policy\"&gt;mark.harman.apps@gmail.com&lt;/a&gt;.
     </string>
 
-    <string name="preference_screen_licences" translatable="false">Open Source licences</string>
-    <string name="preference_licence_open_camera" translatable="false">Camera</string>
-    <string name="preference_licence_open_camera_text" translatable="false">Camera is © 2013–2025 Mark Harman, released under the GPL v3 or later. Tap here for full licence text and terms of service.</string>
+    <string name="preference_screen_licences">Open Source licences</string>
+    <string name="preference_licence_open_camera">Camera</string>
+    <string name="preference_licence_open_camera_text">Camera is © 2013–2025 Mark Harman, released under the GPL v3 or later. Tap here for full licence text and terms of service.</string>
     <string name="preference_licence_androidx" translatable="false">AndroidX libraries</string>
     <string name="preference_licence_androidx_text" translatable="false">Camera uses the AndroidX/Jetpack libraries
         under the Apache license version 2.0. Tap here for full licence text.</string>
-    <string name="preference_licence_google_icons" translatable="false">Google\'s Material Design icons</string>
-    <string name="preference_licence_google_icons_text" translatable="false">Camera uses icons from Google\'s Material Design icons
+    <string name="preference_licence_google_icons">Google\'s Material Design icons</string>
+    <string name="preference_licence_google_icons_text">Camera uses icons from Google\'s Material Design icons
         (https://developer.android.com/design/downloads/index.html ,
         https://design.google.com/icons/ ,
         https://github.com/google/material-design-icons/ ,
-        https://google.github.io/material-design-icons/ ,
-        https://fonts.google.com/icons)
+        https://google.github.io/material-design-icons/)
         under the Apache license version 2.0. Some icons include modifications. Tap here for full licence text.</string>
     <string name="preference_licence_online" translatable="false">Online licences</string>
     <string name="preference_licence_online_text" translatable="false">Please tap here for full online licensing information (opens in your browser).</string>
 
-    <!-- There's no point translating the What's New text (and shouldn't be included in language-specific strings.xml) - it'll be updated constantly, and change each version -->
+    <!-- There's no point translating the What's New text - it'll be updated constantly, and change each version -->
     <string name="whats_new_text" translatable="false">
         <small>[This dialog is shown when Camera is updated. You can disable it under
             Settings/On screen GUI/Show What\'s New dialog.]</small>
@@ -1116,7 +1115,7 @@
 
     <!-- Build version of the application -->
     <string name="preferences_build_version">Build version</string>
-    <string name="preferences_about_app">Camera is forked from OpenCamera</string>
+    <string name="preferences_about_app">Camera is forked from Camera</string>
     <string name="preferences_authors">Authors</string>
     <string name="preferences_source_code">Source code</string>
     <string name="preferences_licence">Licence</string>
@@ -1129,6 +1128,10 @@
         - Support for Camera2 API\n
         - Panorama, including for front camera.</string>
     <string name="preferences_service_terms">Terms of service</string>
+
+    <string name="back_button_label">Back</string>
+    <string name="next_button_label">Next</string>
+    <string name="skip_button_label">Skip</string>
 
     <string name="switch_multi_camera_lens">LENS</string>
     <string name="switch_to_qrcode">QRCode</string>

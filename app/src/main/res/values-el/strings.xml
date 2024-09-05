@@ -216,7 +216,7 @@
     <string name="preference_record_audio_src">Πηγή ήχου</string>
     <string name="preference_record_audio_src_summary">Χρήση μικροφώνου για την καταγραφή ήχου\n%s</string>
     <string name="preference_record_audio_channels">Κανάλια ήχου</string>
-    <string name="preference_record_audio_channels_summary">Καθορισμός μονοφωνικής ή στερεοφωνικής καταγραφής ήχου (ο ήχος στέρεο υποστηρίζεται μόνο σε ορισμένες συσκευές)\n%s</string>
+    <string name="preference_record_audio_channels_summary">Καθορισμός μονοφωνικής ή στερεοφωνικής καταγραφής ήχου (ο ήχος στέρεο υποστηρίζεται μόνο σε ορισμένες συσκευές)</string>
     <string name="preference_video_flash">Φλας κατά την καταγραφή βίντεο</string>
     <string name="preference_video_flash_summary">Ενεργοποίηση τού φλας κατά την καταγραφή των βίντεο (μπορεί να χρησιμοποιηθεί αν γίνεται καταγραφή από απόσταση)</string>
     
@@ -445,12 +445,13 @@
     <string name="high_speed">Υψηλή Ταχύτητα</string> <!-- in the sense of high speed video frame rates -->
 
     <string name="preference_video_fps_default">Προεπιλογή</string>
-
+    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Δημιουργία έκδοσης</string>
-    <string name="preferences_about_app">Η κάμερα είναι διχαλωτή από το OpenCamera</string>
+    <string name="preferences_about_app">Η κάμερα είναι διχαλωτή από το Camera</string>
     <string name="preferences_authors">Συγγραφέας</string>
     <string name="preferences_source_code">Κωδικός πηγής</string>
     <string name="preferences_licence">Άδεια</string>
     <string name="preferences_app_info_title">Πληροφορίες κάμερας</string>
     <string name="preferences_service_terms">Όροι υπηρεσίας</string>
+
 </resources>
