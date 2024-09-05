@@ -1,0 +1,62 @@
+image: "registry.gitlab.e.foundation/e/os/docker-android-apps-cicd:latest"
+
+stages:
+  - update-from-upstream
+  - build
+
+before_script:
+  - apt update && apt-get install libncurses5 -y
+  - export GRADLE_USER_HOME=$(pwd)/.gradle
+  - chmod +x ./gradlew
+
+cache:
+  key: ${CI_PROJECT_ID}
+  paths:
+    - .gradle/
+
+build:
+  stage: build
+  script:
+    - ./gradlew build -x test
+  artifacts:
+    paths:
+      - app/build/outputs/apk
+
+.update-from-upstream:
+  image: registry.gitlab.e.foundation/e/tools/docker-tools:latest
+  stage: update-from-upstream
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_REF_NAME == $LOCAL_BRANCH'
+  variables:
+    CI_PROJECT_SSH_URL: git@gitlab.e.foundation:$CI_PROJECT_PATH
+    GIT_STRATEGY: none
+  before_script:
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "${SSH_E_ROBOT_PRIVATE_KEY}" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "${SSH_KNOWN_HOSTS}" > ~/.ssh/known_hosts
+    - echo "${SSH_KNOWN_HOSTS}"
+    - chmod 644 ~/.ssh/known_hosts
+    - git config --global user.email $GITLAB_USER_EMAIL
+    - git config --global user.name "$GITLAB_USER_NAME"
+    - cd $CI_BUILD_DIR
+    - rm -rf $CI_PROJECT_DIR
+    - git clone $CI_PROJECT_SSH_URL $CI_PROJECT_DIR
+    - cd $CI_PROJECT_DIR
+  script:
+    - git config http.sslverify false
+    - git fetch origin $LOCAL_BRANCH
+    - git reset --hard FETCH_HEAD
+    - git fetch $UPSTREAM_URL $UPSTREAM_BRANCH
+    - git merge FETCH_HEAD
+    - git push origin $LOCAL_BRANCH
+
+update-default-branch:
+  extends: .update-from-upstream
+  variables:
+    LOCAL_BRANCH: master
+    UPSTREAM_BRANCH: master
+    UPSTREAM_URL: https://git.code.sf.net/p/opencamera/code
+  allow_failure: true
