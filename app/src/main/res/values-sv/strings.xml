@@ -943,4 +943,18 @@
     <string name="qr_address_content_description">Lägg till kontakt</string>
     <string name="qr_email_content_description">Komponera ett nytt mejl till den angivna adressen</string>
     <string name="switch_to_qrcode">QR-kod</string>
+    <string name="qr_sms_content_description">Skicka ett nytt SMS till de angivna mottagarna</string>
+    <string name="qr_tel_title">Ring telefonnummer</string>
+    <string name="qr_tel_content_description">Ring telefonnumret</string>
+    <string name="qr_vin_title">Kolla upp VIN</string>
+    <string name="qr_wifi_title">Anslut till detta trådlösa nätverk</string>
+    <string name="qr_wifi_content_description">Lägg till detta trådlösa nätverk till kända nätverk och anslut enheten till det</string>
+    <string name="qr_icon_description">Ikon</string>
+    <string name="qr_share_description">Dela</string>
+    <string name="qr_copy_description">Kopiera till urklipp</string>
+    <string name="qr_no_app_available_for_action">Ingen app tillgänglig för att hantera denna åtgärd</string>
+    <string name="qr_text">Text</string>
+    <string name="qr_dpp_description">Konfigurera denna enhet</string>
+    <string name="qr_dpp_title">Wi-Fi Easy Connect™ (DPP)</string>
+    <string name="abc_shareactionprovider_share_with">Dela med</string>
 </resources>
