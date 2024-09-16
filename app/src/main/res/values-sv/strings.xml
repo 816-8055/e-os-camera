@@ -957,4 +957,11 @@
     <string name="qr_dpp_description">Konfigurera denna enhet</string>
     <string name="qr_dpp_title">Wi-Fi Easy Connect™ (DPP)</string>
     <string name="abc_shareactionprovider_share_with">Dela med</string>
+    <string name="qr_vin_content_description">Kolla upp fordonets chassinummer (VIN)</string>
+    <string name="qr_fido_content_description">Hantera denna FIDO QR-kod</string>
+    <string name="qr_fido_title">Använd inloggningsnyckel</string>
+    <string name="failed_to_open_camera_two_1_disabled">DIN INTEGRITETSBRYTARE MÅSTE VARA AKTIVERAD</string>
+    <string name="failed_to_open_camera_two_2_disabled">EFTERSOM KAMERAN INTE ÄR TILLGÄNGLIG ;-)</string>
+    <string name="failed_to_open_camera_two_1_enabled">VÄNTA I 5 SEKUNDER PÅ ATT DIN KAMERA</string>
+    <string name="failed_to_open_camera_two_2_enabled">STARTAR DÅ DEN JUST BLIVIT AKTIVERAD</string>
 </resources>
