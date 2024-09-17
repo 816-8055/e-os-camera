@@ -3,8 +3,8 @@ package net.sourceforge.opencamera.preview;
 import net.sourceforge.opencamera.HDRProcessor;
 import net.sourceforge.opencamera.JavaImageFunctions;
 import net.sourceforge.opencamera.JavaImageProcessing;
+import net.sourceforge.opencamera.MainActivity;
 import net.sourceforge.opencamera.cameracontroller.RawImage;
-//import net.sourceforge.opencamera.MainActivity;
 import net.sourceforge.opencamera.MyDebug;
 import net.sourceforge.opencamera.R;
 import net.sourceforge.opencamera.ScriptC_histogram_compute;
@@ -100,6 +100,15 @@ import android.view.View.MeasureSpec;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.Reader;
+import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.RGBLuminanceSource;
 
 /** This class was originally named due to encapsulating the camera preview,
  *  but in practice it's grown to more than this, and includes most of the
@@ -198,7 +207,15 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     private AsyncTask<Void, Void, CameraController> open_camera_task; // background task used for opening camera
     private CloseCameraTask close_camera_task; // background task used for closing camera
     private boolean has_permissions = true; // whether we have permissions necessary to operate the camera (camera, storage); assume true until we've been denied one of them
-    private boolean is_video;
+    public static enum FunctionalMode {
+        PHOTO,
+        VIDEO,
+        QRCODE
+    };
+    private FunctionalMode functionalMode = FunctionalMode.PHOTO;
+    private boolean is_video() {return functionalMode == FunctionalMode.VIDEO;};
+    private boolean is_qrcode() {return functionalMode == FunctionalMode.QRCODE;};
+    private boolean is_photo() {return functionalMode == FunctionalMode.PHOTO;};
     private volatile MediaRecorder video_recorder; // must be volatile for test project reading the state
     private volatile boolean video_start_time_set; // must be volatile for test project reading the state
     private long video_start_time; // system time when the video recording was started, or last resumed if it was paused
@@ -211,6 +228,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
      *  Important to call close() when the video recording is finished, to free up any resources
      *  (e.g., supplied ParcelFileDescriptor).
      */
+
+    private OverlayQRCodeView overlayQRCodeView;
     private static class VideoFileInfo {
         private final ApplicationInterface.VideoMethod video_method;
         private final Uri video_uri; // for VideoMethod.SAF, VideoMethod.URI or VideoMethod.MEDIASTORE
@@ -487,6 +506,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if( canvasView != null ) {
             parent.addView(canvasView);
         }
+
+        overlayQRCodeView = new OverlayQRCodeView(getContext());
     }
 
 	/*private void previewToCamera(float [] coords) {
@@ -690,14 +711,14 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if( MyDebug.LOG )
             Log.d(TAG, "handleSingleTouch");
 
-        if( !this.is_video && this.isTakingPhotoOrOnTimer() ) {
+        if( !this.is_video() && this.isTakingPhotoOrOnTimer() ) {
             // if video, okay to refocus when recording
             return true;
         }
 
         // note, we always try to force start the preview (in case is_preview_paused has become false)
         // except if recording video (firstly, the preview should be running; secondly, we don't want to reset the phase!)
-        if( !this.is_video ) {
+        if( !this.is_video() ) {
             startCameraPreview();
         }
         cancelAutoFocus();
@@ -795,7 +816,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 has_smooth_zoom = true;
                 smooth_zoom = zoom_ratios.get(multitouch_start_zoom_factor)/100.0f;
             }
-             else {
+            else {
                 has_multitouch_start_zoom_factor = false;
                 multitouch_start_zoom_factor = 0;
                 has_smooth_zoom = false;
@@ -1106,6 +1127,40 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     @Override
     public void onSurfaceTextureUpdated(@NonNull SurfaceTexture arg0) {
         refreshPreviewBitmap();
+
+        if (isQRCode()) {
+            enablePreviewBitmap();
+            TextureView textureView = (TextureView) this.cameraSurface;
+            Bitmap bitmap =  textureView.getBitmap(preview_bitmap);
+
+            if (bitmap!=null) {
+                int width = bitmap.getWidth();
+                int height = bitmap.getHeight();
+                int[] pixels = new int[width * height];
+                bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+
+                LuminanceSource source = new RGBLuminanceSource(width, height, pixels);
+                BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
+                Reader reader = new MultiFormatReader();
+
+                try {
+                    Result result = reader.decode(binaryBitmap);
+                    String qrcodeContent = result.getText();
+                    MainActivity mActivity = (MainActivity) this.getContext();
+                    if (MyDebug.LOG)
+                        Log.d(TAG, "Find QRCode qrcodeContent="+qrcodeContent );
+                    if (result.getBarcodeFormat() == BarcodeFormat.QR_CODE) {
+                        mActivity.qrImageAnalyzer.showQrDialog(result);
+                    }
+                } catch (Exception e) {
+                    // K1ZFP TODO Error 2
+                }
+            } else {
+                // K1ZFP TODO Error 1
+            }
+        } else {
+            disablePreviewBitmap();
+        }
     }
 
     private void configureTransform() {
@@ -1276,7 +1331,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 }
             }
             if( due_to_max_filesize || remaining_restart_video > 0 ) {
-                if( is_video ) {
+                if( is_video() ) {
                     String toast = null;
                     if( !due_to_max_filesize )
                         toast = remaining_restart_video + " " + getContext().getResources().getString(R.string.repeats_to_go);
@@ -1657,7 +1712,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         current_focus_index = -1;
         max_num_focus_areas = 0;
         applicationInterface.cameraInOperation(false, false);
-        if( is_video )
+        if( is_video() )
             applicationInterface.cameraInOperation(false, true);
         if( !this.has_surface ) {
             if( MyDebug.LOG ) {
@@ -2037,7 +2092,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             saved_is_video = false;
         }
         // must switch video before setupCameraParameters(), and starting preview
-        if( saved_is_video != this.is_video ) {
+        if( saved_is_video != this.is_video() ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "switch video mode as not in correct mode");
             this.switchVideo(true, false);
@@ -2088,7 +2143,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
         updateFlashForVideo();
         if( take_photo ) {
-            if( this.is_video ) {
+            if( this.is_video() ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "switch to video for take_photo widget");
                 this.switchVideo(true, true);
@@ -2097,8 +2152,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
         // must be done after switching to video mode (so is_video is set correctly)
         if( MyDebug.LOG )
-            Log.d(TAG, "is_video?: " + is_video);
-        if( this.is_video ) {
+            Log.d(TAG, "is_video?: " + is_video());
+        if( this.is_video() ) {
             CameraController.TonemapProfile tonemap_profile = CameraController.TonemapProfile.TONEMAPPROFILE_OFF;
             if( supports_tonemap_curve ) {
                 tonemap_profile = applicationInterface.getVideoTonemapProfile();
@@ -2117,7 +2172,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         // Setup for high speed - must be done after setupCameraParameters() and switching to video mode, but before setPreviewSize() and startCameraPreview().
         // In theory it shouldn't matter if we call setVideoHighSpeed(true) if is_video==false, as it should only have an effect
         // when recording video; but don't set high speed mode in photo mode just to be safe.
-        camera_controller.setVideoHighSpeed(is_video && video_high_speed);
+        camera_controller.setVideoHighSpeed(is_video() && video_high_speed);
 
         if( do_startup_focus && using_android_l && camera_controller.supportsAutoFocus() ) {
             // need to switch flash off for autofocus - and for Android L, need to do this before starting preview (otherwise it won't work in time); for old camera API, need to do this after starting preview!
@@ -2276,9 +2331,13 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
     }
 
-    private int find1xZoom() {
+    public int find1xZoom() {
+        return findNxZoom(1.0f);
+    }
+
+    public int findNxZoom(float zoom) {
         for(int i=0;i<zoom_ratios.size();i++) {
-            if( zoom_ratios.get(i) == 100 ) {
+            if( zoom_ratios.get(i) == zoom * 100 ) {
                 return i;
             }
         }
@@ -2498,7 +2557,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     private void reportFaces(CameraController.Face[] local_faces) {
                         // View.announceForAccessibility requires JELLY_BEAN
                         if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN
-                            ) {
+                        ) {
                             int n_faces = local_faces.length;
                             FaceLocation face_location = FaceLocation.FACELOCATION_UNKNOWN;
                             if( n_faces > 0 ) {
@@ -2634,10 +2693,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         {
             if( MyDebug.LOG ) {
                 Log.d(TAG, "set up video stabilization");
-                Log.d(TAG, "is_video?: " + is_video);
+                Log.d(TAG, "is_video?: " + is_video());
             }
             if( this.supports_video_stabilization ) {
-                boolean using_video_stabilization = is_video && applicationInterface.getVideoStabilizationPref();
+                boolean using_video_stabilization = is_video() && applicationInterface.getVideoStabilizationPref();
                 if( MyDebug.LOG )
                     Log.d(TAG, "using_video_stabilization?: " + using_video_stabilization);
                 camera_controller.setVideoStabilization(using_video_stabilization);
@@ -3083,7 +3142,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 if( MyDebug.LOG )
                     Log.d(TAG, "check if we need high speed video for " + profile.videoFrameWidth + " x " + profile.videoFrameHeight + " at fps " + profile.videoCaptureRate);
                 CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, profile.videoCaptureRate, false);
-                    // n.b., we should pass videoCaptureRate and not videoFrameRate (as for slow motion, it's videoCaptureRate that will be high, not videoFrameRate)
+                // n.b., we should pass videoCaptureRate and not videoFrameRate (as for slow motion, it's videoCaptureRate that will be high, not videoFrameRate)
 
                 if( best_video_size == null && fpsIsHighSpeed("" + profile.videoFrameRate) && video_quality_handler.getSupportedVideoSizesHighSpeed() != null ) {
                     Log.e(TAG, "can't find match for capture rate: " + profile.videoCaptureRate + " and video size: " + profile.videoFrameWidth + " x " + profile.videoFrameHeight + " at fps " + profile.videoCaptureRate);
@@ -3137,7 +3196,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "video_high_speed?: " + video_high_speed);
         }
 
-        if( is_video && video_high_speed && supports_iso_range && is_manual_iso ) {
+        if( is_video() && video_high_speed && supports_iso_range && is_manual_iso ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "manual mode not supported for video_high_speed");
             camera_controller.setManualISO(false, 0);
@@ -3290,7 +3349,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
         // first set picture size (for photo mode, must be done now so we can set the picture size from this; for video, doesn't really matter when we set it)
         CameraController.Size new_size;
-        if( this.is_video ) {
+        if( this.is_video() ) {
             // see comments for getOptimalVideoPictureSize()
             VideoProfile profile = getVideoProfile();
             if( MyDebug.LOG )
@@ -3820,8 +3879,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         String preview_size = applicationInterface.getPreviewSizePref();
         // should always use wysiwig for video mode, otherwise we get incorrect aspect ratio shown when recording video (at least on Galaxy Nexus, e.g., at 640x480)
         // also not using wysiwyg mode with video caused corruption on Samsung cameras (tested with Samsung S3, Android 4.3, front camera, infinity focus)
-        if( preview_size.equals("preference_preview_size_wysiwyg") || this.is_video ) {
-            if( this.is_video ) {
+        if( preview_size.equals("preference_preview_size_wysiwyg") || this.is_video() ) {
+            if( this.is_video() ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "set preview aspect ratio from video size (wysiwyg)");
                 VideoProfile profile = getVideoProfile();
@@ -3879,7 +3938,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         final double ASPECT_TOLERANCE = 0.05;
         if( sizes == null )
             return null;
-        if( is_video && video_high_speed ) {
+        if( is_video() && video_high_speed ) {
             VideoProfile profile = getVideoProfile();
             if( MyDebug.LOG )
                 Log.d(TAG, "video size: " + profile.videoFrameWidth + " x " + profile.videoFrameHeight);
@@ -3939,11 +3998,20 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "no preview size matches the aspect ratio");
             optimalSize = getClosestSize(sizes, targetRatio, null);
         }
+
+        handleDecorFitsSystemWindows(optimalSize, display_size);
+
         if( MyDebug.LOG ) {
             Log.d(TAG, "chose optimalSize: " + optimalSize.width + " x " + optimalSize.height);
             Log.d(TAG, "optimalSize ratio: " + ((double)optimalSize.width / optimalSize.height));
         }
         return optimalSize;
+    }
+
+    private void handleDecorFitsSystemWindows(CameraController.Size optimalSize, Point display_size) {
+        double previewRatio = (double) optimalSize.width / optimalSize.height;
+        double screenRatio = (double) display_size.x / display_size.y;
+        ((MainActivity)getContext()).handleDecorFitsSystemWindows(previewRatio, screenRatio);
     }
 
     public CameraController.Size getOptimalVideoPictureSize(List<CameraController.Size> sizes, double targetRatio) {
@@ -4161,6 +4229,13 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if( MyDebug.LOG )
                 Log.d(TAG, "getImageVideoRotation() lock to portrait, returns " + result);
             return result;
+        } else {
+            int cameraRotationOffset = camera_controller.getCameraOrientation();
+            boolean isFrontFacing = camera_controller.getFacing() == CameraController.Facing.FACING_FRONT;
+            int rotation = isFrontFacing ? cameraRotationOffset + getDisplayRotationDegrees(true) :
+                    cameraRotationOffset - getDisplayRotationDegrees(true);
+
+            current_rotation = (360 + rotation) % 360;
         }
         if( MyDebug.LOG )
             Log.d(TAG, "getImageVideoRotation() returns current_rotation " + current_rotation);
@@ -4700,7 +4775,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             // (important not to return here however - still want to call
             // camera_controller.clearPreviewFpsRange() to clear a previously set fps)
         }
-        else if( this.is_video ) {
+        else if( this.is_video() ) {
             // For Nexus 5 and Nexus 6, we need to set the preview fps using matchPreviewFpsToVideo to avoid problem of dark preview in low light, as described above.
             // When the video recording starts, the preview automatically adjusts, but still good to avoid too-dark preview before the user starts recording.
             // However I'm wary of changing the behaviour for all devices at the moment, since some devices can be
@@ -4771,22 +4846,27 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "camera not opened!");
             return;
         }
-        if( !is_video && !supports_video ) {
+        if( !is_video() && !supports_video ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "video not supported");
             return;
         }
-        boolean old_is_video = is_video;
-        if( this.is_video ) {
+
+        boolean old_is_video = is_video();
+        boolean old_is_qrcode = is_qrcode();
+        if( this.is_video() ) {
             if( video_recorder != null ) {
                 stopVideo(false);
             }
-            this.is_video = false;
-        }
-        else {
+            setQRCode(true);
+        } else if (this.is_qrcode()) {
+            this.functionalMode = FunctionalMode.PHOTO;
+            setQRCode(false);
+        } else if (this.is_photo()) {
             if( this.isOnTimer() ) {
                 cancelTimer();
-                this.is_video = true;
+                ((MainActivity)getContext()).setDecorFitsSystemWindows(true);
+                this.functionalMode = FunctionalMode.VIDEO;
             }
             else if( this.phase == PHASE_TAKING_PHOTO ) {
                 // wait until photo taken
@@ -4794,11 +4874,17 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     Log.d(TAG, "wait until photo taken");
             }
             else {
-                this.is_video = true;
+                ((MainActivity)getContext()).setDecorFitsSystemWindows(true);
+                this.functionalMode = FunctionalMode.VIDEO;
             }
+            // nothing to do for overlayQRCodeView in this mode
         }
 
-        if( is_video != old_is_video ) {
+        if (is_qrcode() != old_is_qrcode) {
+            applicationInterface.setVideoPref(false);
+            this.reopenCamera();
+        }
+        else if (is_video() != old_is_video) {
             setFocusPref(false); // first restore the saved focus for the new photo/video mode; don't do autofocus, as it'll be cancelled when restarting preview
 			/*if( !is_video ) {
 				// changing from video to photo mode
@@ -4807,7 +4893,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
             if( change_user_pref ) {
                 // now save
-                applicationInterface.setVideoPref(is_video);
+                applicationInterface.setVideoPref(true);
             }
             if( !during_startup ) {
                 // if during startup, updateFlashForVideo() needs to always be explicitly called anyway
@@ -4834,7 +4920,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 				// changing from photo to video mode
 				setFocusPref(false);
 			}*/
-            if( is_video ) {
+            if( is_video() ) {
                 if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && applicationInterface.getRecordAudioPref() ) {
                     // check for audio permission now, rather than when user starts video recording
                     // we restrict the checks to Android 6 or later just in case, see note in LocationSupplier.setupLocationListener()
@@ -4862,7 +4948,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     private void setFocusPref(boolean auto_focus) {
         if( MyDebug.LOG )
             Log.d(TAG, "setFocusPref()");
-        String focus_value = applicationInterface.getFocusPref(is_video);
+        String focus_value = applicationInterface.getFocusPref(is_video());
         if( focus_value.length() > 0 ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "found existing focus_value: " + focus_value);
@@ -4877,7 +4963,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "found no existing focus_value");
             // here we set the default values for focus mode
             // note if updating default focus value for photo mode, also update MainActivityTest.setToDefault()
-            if( !updateFocus(is_video ? "focus_mode_continuous_video" : "focus_mode_continuous_picture", true, true, auto_focus) ) {
+            if( !updateFocus(is_video() ? "focus_mode_continuous_video" : "focus_mode_continuous_picture", true, true, auto_focus) ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "continuous focus not supported, so fall back to first");
                 updateFocus(0, true, true, auto_focus);
@@ -4896,12 +4982,12 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if( MyDebug.LOG )
             Log.d(TAG, "updateFocusForVideo()");
         String old_focus_mode = null;
-        if( this.supported_focus_values != null && camera_controller != null && is_video ) {
+        if( this.supported_focus_values != null && camera_controller != null && is_video() ) {
             boolean focus_is_video = focusIsVideo();
             if( MyDebug.LOG ) {
-                Log.d(TAG, "focus_is_video: " + focus_is_video + " , is_video: " + is_video);
+                Log.d(TAG, "focus_is_video: " + focus_is_video + " , is_video: " + is_video());
             }
-            if( focus_is_video != is_video ) {
+            if( focus_is_video != is_video() ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "need to change focus mode");
                 old_focus_mode = this.getCurrentFocusValue();
@@ -4918,7 +5004,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     private void updateFlashForVideo() {
         if( MyDebug.LOG )
             Log.d(TAG, "updateFlashForVideo()");
-        if( is_video ) {
+        if( is_video() ) {
             // check flash is not auto or on
             String current_flash = getCurrentFlashValue();
             if( current_flash != null && !isFlashSupportedForVideo(current_flash) ) {
@@ -4982,7 +5068,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     public void updateFlash(String flash_value) {
         if( MyDebug.LOG )
             Log.d(TAG, "updateFlash(): " + flash_value);
-        if( this.phase == PHASE_TAKING_PHOTO && !is_video ) {
+        if( this.phase == PHASE_TAKING_PHOTO && !is_video() ) {
             // just to be safe - risk of cancelling the autofocus before taking a photo, or otherwise messing things up
             if( MyDebug.LOG )
                 Log.d(TAG, "currently taking a photo");
@@ -5023,7 +5109,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     // don't bother setting done to false as we shouldn't have two torches in a row...
                 }
 
-                if( is_video ) {
+                if( is_video() ) {
                     // check supported for video
                     String new_flash_value = supported_flash_values.get(new_flash_index);
                     if( !isFlashSupportedForVideo(new_flash_value) ) {
@@ -5193,7 +5279,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
             if( save ) {
                 // now save
-                applicationInterface.setFocusPref(focus_value, is_video);
+                applicationInterface.setFocusPref(focus_value, is_video());
             }
         }
     }
@@ -5242,7 +5328,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         String focus_value = current_focus_index != -1 ? supported_focus_values.get(current_focus_index) : null;
         if( MyDebug.LOG )
             Log.d(TAG, "focus_value is " + focus_value);
-        if( camera_controller != null && focus_value != null && focus_value.equals("focus_mode_continuous_picture") && !this.is_video ) {
+        if( camera_controller != null && focus_value != null && focus_value.equals("focus_mode_continuous_picture") && !this.is_video()) {
             if( MyDebug.LOG )
                 Log.d(TAG, "set continuous picture focus move callback");
             camera_controller.setContinuousFocusMoveCallback(new CameraController.ContinuousFocusMoveCallback() {
@@ -5326,7 +5412,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             this.phase = PHASE_NORMAL;
             return;
         }
-        if( is_video && continuous_fast_burst ) {
+        if( is_video() && continuous_fast_burst ) {
             Log.e(TAG, "continuous_fast_burst not supported for video mode");
             this.phase = PHASE_NORMAL;
             return;
@@ -5338,7 +5424,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
         //if( !photo_snapshot && this.phase == PHASE_TAKING_PHOTO ) {
         //if( (is_video && is_video_recording && !photo_snapshot) || this.phase == PHASE_TAKING_PHOTO ) {
-        if( is_video && isVideoRecording() && !photo_snapshot ) {
+        if( is_video() && isVideoRecording() && !photo_snapshot ) {
             // user requested stop video
             if( !video_start_time_set || System.currentTimeMillis() - video_start_time < 500 ) {
                 // if user presses to stop too quickly, we ignore
@@ -5352,7 +5438,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             }
             return;
         }
-        else if( ( !is_video || photo_snapshot ) && this.phase == PHASE_TAKING_PHOTO ) {
+        else if( ( !is_video() || photo_snapshot ) && this.phase == PHASE_TAKING_PHOTO ) {
             // user requested take photo while already taking photo
             if( MyDebug.LOG )
                 Log.d(TAG, "already taking a photo");
@@ -5360,14 +5446,14 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 cancelRepeat();
                 showToast(take_photo_toast, R.string.cancelled_repeat_mode, true);
             }
-            else if( !is_video && camera_controller.getBurstType() == CameraController.BurstType.BURSTTYPE_FOCUS && camera_controller.isCapturingBurst() ) {
+            else if( !is_video() && camera_controller.getBurstType() == CameraController.BurstType.BURSTTYPE_FOCUS && camera_controller.isCapturingBurst() ) {
                 camera_controller.stopFocusBracketingBurst();
                 showToast(take_photo_toast, R.string.cancelled_focus_bracketing, true);
             }
             return;
         }
 
-        if( !is_video || photo_snapshot ) {
+        if( !is_video() || photo_snapshot ) {
             // check it's okay to take a photo
             if( !applicationInterface.canTakeNewPhoto() ) {
                 if( MyDebug.LOG )
@@ -5651,7 +5737,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if( MyDebug.LOG )
             Log.d(TAG, "takePicture");
         //this.thumbnail_anim = false;
-        if( !is_video || photo_snapshot )
+        if( !is_video() || photo_snapshot )
             this.phase = PHASE_TAKING_PHOTO;
         else {
             if( phase == PHASE_TIMER )
@@ -5666,7 +5752,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "camera not opened!");
             this.phase = PHASE_NORMAL;
             applicationInterface.cameraInOperation(false, false);
-            if( is_video )
+            if( is_video() )
                 applicationInterface.cameraInOperation(false, true);
             return;
         }
@@ -5675,7 +5761,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "preview surface not yet available");
             this.phase = PHASE_NORMAL;
             applicationInterface.cameraInOperation(false, false);
-            if( is_video )
+            if( is_video() )
                 applicationInterface.cameraInOperation(false, true);
             return;
         }
@@ -5691,17 +5777,17 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     if( MyDebug.LOG )
                         Log.d(TAG, "location data required, but not available");
                     showToast(null, R.string.location_not_available, true);
-                    if( !is_video || photo_snapshot )
+                    if( !is_video() || photo_snapshot )
                         this.phase = PHASE_NORMAL;
                     applicationInterface.cameraInOperation(false, false);
-                    if( is_video )
+                    if( is_video() )
                         applicationInterface.cameraInOperation(false, true);
                     return;
                 }
             }
         }
 
-        if( is_video && !photo_snapshot ) {
+        if( is_video() && !photo_snapshot ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "start video recording");
             startVideoRecording(max_filesize_restart);
@@ -6559,7 +6645,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             camera_controller.setRotation(getImageVideoRotation());
 
             boolean enable_sound = applicationInterface.getShutterSoundPref();
-            if( is_video && isVideoRecording() )
+            if( is_video() && isVideoRecording() )
                 enable_sound = false; // always disable shutter sound if we're taking a photo while recording video
             if( MyDebug.LOG )
                 Log.d(TAG, "enable_sound? " + enable_sound);
@@ -6663,7 +6749,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if( MyDebug.LOG )
                 Log.d(TAG, "preview not yet started");
         }
-        else if( !(manual && this.is_video) && (this.isVideoRecording() || this.isTakingPhotoOrOnTimer()) ) {
+        else if( !(manual && this.is_video()) && (this.isVideoRecording() || this.isTakingPhotoOrOnTimer()) ) {
             // if taking a video, we allow manual autofocuses
             // autofocus may cause problem if there is a video corruption problem, see testTakeVideoBitrate() on Nexus 7 at 30Mbs or 50Mbs, where the startup autofocus would cause a problem here
             if( MyDebug.LOG )
@@ -6674,7 +6760,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 // remove any previous request to switch back to continuous
                 removePendingContinuousFocusReset();
             }
-            if( manual && !is_video && camera_controller.focusIsContinuous() && supportedFocusValue("focus_mode_auto") ) {
+            if( manual && !is_video() && camera_controller.focusIsContinuous() && supportedFocusValue("focus_mode_auto") ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "switch from continuous to autofocus mode for touch focus");
                 camera_controller.setFocusValue("focus_mode_auto"); // switch to autofocus
@@ -6856,8 +6942,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "starting the camera preview");
             {
                 if( MyDebug.LOG )
-                    Log.d(TAG, "setRecordingHint: " + is_video);
-                camera_controller.setRecordingHint(this.is_video);
+                    Log.d(TAG, "setRecordingHint: " + is_video());
+                camera_controller.setRecordingHint(this.is_video());
             }
             setPreviewFps();
             try {
@@ -7157,7 +7243,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     public boolean isVideoHighSpeed() {
         if( MyDebug.LOG )
             Log.d(TAG, "isVideoHighSpeed");
-        return is_video && video_high_speed;
+        return is_video() && video_high_speed;
     }
 
     public boolean canDisableShutterSound() {
@@ -7415,8 +7501,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     /** Returns the horizontal angle of view in degrees (when unzoomed).
      */
     public float getViewAngleX(boolean for_preview) {
-		if( MyDebug.LOG )
-			Log.d(TAG, "getViewAngleX: " + for_preview);
+        if( MyDebug.LOG )
+            Log.d(TAG, "getViewAngleX: " + for_preview);
         CameraController.Size size = for_preview ? this.getCurrentPreviewSize() : this.getCurrentPictureSize();
         if( size == null ) {
             Log.e(TAG, "can't find view angle x size");
@@ -7449,8 +7535,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     /** Returns the vertical angle of view in degrees (when unzoomed).
      */
     public float getViewAngleY(boolean for_preview) {
-		if( MyDebug.LOG )
-			Log.d(TAG, "getViewAngleY: " + for_preview);
+        if( MyDebug.LOG )
+            Log.d(TAG, "getViewAngleY: " + for_preview);
         CameraController.Size size = for_preview ? this.getCurrentPreviewSize() : this.getCurrentPictureSize();
         if( size == null ) {
             Log.e(TAG, "can't find view angle y size");
@@ -8526,7 +8612,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     }
                     else
                     {
-                    result.new_histogram = computeHistogramRS(allocation_in, preview.rs, histogramScript, preview.histogram_type);
+                        result.new_histogram = computeHistogramRS(allocation_in, preview.rs, histogramScript, preview.histogram_type);
                     }
 
                     if( MyDebug.LOG ) {
@@ -8552,27 +8638,27 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     }
                     else
                     {
-                    Allocation output_allocation = Allocation.createFromBitmap(preview.rs, zebra_stripes_bitmap_buffer);
+                        Allocation output_allocation = Allocation.createFromBitmap(preview.rs, zebra_stripes_bitmap_buffer);
 
-                    histogramScript.set_zebra_stripes_threshold(preview.zebra_stripes_threshold);
-                    histogramScript.set_zebra_stripes_foreground_r(Color.red(preview.zebra_stripes_color_foreground));
-                    histogramScript.set_zebra_stripes_foreground_g(Color.green(preview.zebra_stripes_color_foreground));
-                    histogramScript.set_zebra_stripes_foreground_b(Color.blue(preview.zebra_stripes_color_foreground));
-                    histogramScript.set_zebra_stripes_foreground_a(Color.alpha(preview.zebra_stripes_color_foreground));
-                    histogramScript.set_zebra_stripes_background_r(Color.red(preview.zebra_stripes_color_background));
-                    histogramScript.set_zebra_stripes_background_g(Color.green(preview.zebra_stripes_color_background));
-                    histogramScript.set_zebra_stripes_background_b(Color.blue(preview.zebra_stripes_color_background));
-                    histogramScript.set_zebra_stripes_background_a(Color.alpha(preview.zebra_stripes_color_background));
-                    histogramScript.set_zebra_stripes_width(zebra_stripes_width);
+                        histogramScript.set_zebra_stripes_threshold(preview.zebra_stripes_threshold);
+                        histogramScript.set_zebra_stripes_foreground_r(Color.red(preview.zebra_stripes_color_foreground));
+                        histogramScript.set_zebra_stripes_foreground_g(Color.green(preview.zebra_stripes_color_foreground));
+                        histogramScript.set_zebra_stripes_foreground_b(Color.blue(preview.zebra_stripes_color_foreground));
+                        histogramScript.set_zebra_stripes_foreground_a(Color.alpha(preview.zebra_stripes_color_foreground));
+                        histogramScript.set_zebra_stripes_background_r(Color.red(preview.zebra_stripes_color_background));
+                        histogramScript.set_zebra_stripes_background_g(Color.green(preview.zebra_stripes_color_background));
+                        histogramScript.set_zebra_stripes_background_b(Color.blue(preview.zebra_stripes_color_background));
+                        histogramScript.set_zebra_stripes_background_a(Color.alpha(preview.zebra_stripes_color_background));
+                        histogramScript.set_zebra_stripes_width(zebra_stripes_width);
 
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "time before histogramScript generate_zebra_stripes: " + (System.currentTimeMillis() - debug_time));
-                    histogramScript.forEach_generate_zebra_stripes(allocation_in, output_allocation);
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "time after histogramScript generate_zebra_stripes: " + (System.currentTimeMillis() - debug_time));
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "time before histogramScript generate_zebra_stripes: " + (System.currentTimeMillis() - debug_time));
+                        histogramScript.forEach_generate_zebra_stripes(allocation_in, output_allocation);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "time after histogramScript generate_zebra_stripes: " + (System.currentTimeMillis() - debug_time));
 
-                    output_allocation.copyTo(zebra_stripes_bitmap_buffer);
-                    output_allocation.destroy();
+                        output_allocation.copyTo(zebra_stripes_bitmap_buffer);
+                        output_allocation.destroy();
                     }
 
                     // The original orientation of the bitmap we get from textureView.getBitmap() needs to be rotated to
@@ -8631,29 +8717,29 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     }
                     else
                     {
-                    Allocation output_allocation = Allocation.createFromBitmap(preview.rs, focus_peaking_bitmap_buffer);
+                        Allocation output_allocation = Allocation.createFromBitmap(preview.rs, focus_peaking_bitmap_buffer);
 
-                    histogramScript.set_bitmap(allocation_in);
+                        histogramScript.set_bitmap(allocation_in);
 
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "time before histogramScript generate_focus_peaking: " + (System.currentTimeMillis() - debug_time));
-                    histogramScript.forEach_generate_focus_peaking(allocation_in, output_allocation);
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "time after histogramScript generate_focus_peaking: " + (System.currentTimeMillis() - debug_time));
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "time before histogramScript generate_focus_peaking: " + (System.currentTimeMillis() - debug_time));
+                        histogramScript.forEach_generate_focus_peaking(allocation_in, output_allocation);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "time after histogramScript generate_focus_peaking: " + (System.currentTimeMillis() - debug_time));
 
-                    // median filter
-                    Allocation filtered_allocation = Allocation.createTyped(preview.rs, Type.createXY(preview.rs, Element.RGBA_8888(preview.rs), focus_peaking_bitmap_buffer.getWidth(), focus_peaking_bitmap_buffer.getHeight()));
-                    histogramScript.set_bitmap(output_allocation);
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "time before histogramScript generate_focus_peaking_filtered: " + (System.currentTimeMillis() - debug_time));
-                    histogramScript.forEach_generate_focus_peaking_filtered(output_allocation, filtered_allocation);
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "time after histogramScript generate_focus_peaking_filtered: " + (System.currentTimeMillis() - debug_time));
-                    output_allocation.destroy();
-                    output_allocation = filtered_allocation;
+                        // median filter
+                        Allocation filtered_allocation = Allocation.createTyped(preview.rs, Type.createXY(preview.rs, Element.RGBA_8888(preview.rs), focus_peaking_bitmap_buffer.getWidth(), focus_peaking_bitmap_buffer.getHeight()));
+                        histogramScript.set_bitmap(output_allocation);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "time before histogramScript generate_focus_peaking_filtered: " + (System.currentTimeMillis() - debug_time));
+                        histogramScript.forEach_generate_focus_peaking_filtered(output_allocation, filtered_allocation);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "time after histogramScript generate_focus_peaking_filtered: " + (System.currentTimeMillis() - debug_time));
+                        output_allocation.destroy();
+                        output_allocation = filtered_allocation;
 
-                    output_allocation.copyTo(focus_peaking_bitmap_buffer);
-                    output_allocation.destroy();
+                        output_allocation.copyTo(focus_peaking_bitmap_buffer);
+                        output_allocation.destroy();
 
                     }
 
@@ -8787,10 +8873,33 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
     }
 
+    public void setQRCode(boolean enabled) {
+        final Activity activity = (Activity) Preview.this.getContext();
+        final FrameLayout rootLayout = activity.findViewById(android.R.id.content);
+        if (enabled) {
+            this.functionalMode = FunctionalMode.QRCODE;
+            rootLayout.addView(overlayQRCodeView);
+            int qrcodeCamId = ((MainActivity)getContext()).getBetterQRCodeCameraID();
+            if (qrcodeCamId >= 0) {
+                applicationInterface.setCameraIdPref(qrcodeCamId);
+            }
+        } else if (overlayQRCodeView.getParent() != null) {
+            rootLayout.removeView(overlayQRCodeView);
+        }
+    }
+
+    public boolean isQRCode() {
+        return functionalMode == FunctionalMode.QRCODE;
+    }
+
     /** Whether we are in video mode, or photo mode.
      */
     public boolean isVideo() {
-        return is_video;
+        return functionalMode == FunctionalMode.VIDEO;
+    }
+
+    public boolean isPhoto() {
+        return functionalMode == FunctionalMode.PHOTO;
     }
 
     public boolean isVideoRecording() {

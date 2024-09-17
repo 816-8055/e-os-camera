@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Open Camera</string>
+    <string name="app_name">Camera</string>
     <string name="action_settings">Налады</string>
     <string name="action_popup">Налады ўсплываючых</string>
     <string name="intro_ok">Добра (Гэта паведамленне не будзе паказана зноў)</string>
@@ -200,7 +200,7 @@
     <string name="preference_record_audio_src">Крыніца гуку</string>
     <string name="preference_record_audio_src_summary">Мікрафон падчас запісу аўдыё\n%s</string>
     <string name="preference_record_audio_channels">Аўдыяканалы</string>
-    <string name="preference_record_audio_channels_summary">Мона або стэрэа падчас запісу аўдыё (стэрэа падтрымліваецца толькі на некаторых прыладах)\n%s</string>
+    <string name="preference_record_audio_channels_summary">Мона або стэрэа падчас запісу аўдыё (стэрэа падтрымліваецца толькі на некаторых прыладах)</string>
     <string name="preference_video_flash">Выьліск падчас запісу відэа</string>
     <string name="preference_video_flash_summary">Калі ўключана, то можна будзе ўкл / выкл выбліск падчас запісу відэа </string>
 
@@ -362,6 +362,14 @@
 
     <string name="preference_stamp_style_shadowed">Тэкст з ценем</string>
     <string name="preference_stamp_style_plain">Звычайны тэкст</string>
+    <string name="preferences_about_title">About</string>
+    <string name="preferences_build_version">Зборка версіі</string>
+    <string name="preferences_about_app">Камера раздвоеная ад Camera</string>
+    <string name="preferences_authors">Аўтары</string>
+    <string name="preferences_source_code">Зыходны код</string>
+    <string name="preferences_licence">Ліцэнзія</string>
+    <string name="preferences_app_info_title">Інфармацыя пра камеру</string>
+    <string name="preferences_service_terms">Умовы прадастаўлення паслуг</string>
 
     <string name="preference_immersive_mode_off">Выключана</string>
     <string name="preference_immersive_mode_navigation">Хаваць віртуальныя кнопкі навігацыі на экране</string>

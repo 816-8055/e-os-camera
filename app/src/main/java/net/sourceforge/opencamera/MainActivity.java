@@ -1,15 +1,25 @@
 package net.sourceforge.opencamera;
 
+import net.sourceforge.opencamera.camera2.CameraFinder;
+import net.sourceforge.opencamera.camera2.CameraIdentifier;
 import net.sourceforge.opencamera.cameracontroller.CameraController;
 import net.sourceforge.opencamera.cameracontroller.CameraControllerManager;
 import net.sourceforge.opencamera.cameracontroller.CameraControllerManager2;
+import net.sourceforge.opencamera.camera2.model.CameraModel;
+import net.sourceforge.opencamera.camera2.model.CameraType;
 import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
+import net.sourceforge.opencamera.qr.QrImageAnalyzer;
 import net.sourceforge.opencamera.remotecontrol.BluetoothRemoteControl;
+import net.sourceforge.opencamera.ui.CircleImageView;
 import net.sourceforge.opencamera.ui.DrawPreview;
 import net.sourceforge.opencamera.ui.FolderChooserDialog;
 import net.sourceforge.opencamera.ui.MainUI;
 import net.sourceforge.opencamera.ui.ManualSeekbars;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,10 +27,11 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -38,6 +49,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.display.DisplayManager;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
@@ -96,6 +110,7 @@ import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
@@ -103,6 +118,12 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.ZoomControls;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import kotlin.coroutines.CoroutineContext;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
+import kotlinx.coroutines.Job;
+import kotlinx.coroutines.JobKt;
 
 /** The main Activity for Open Camera.
  */
@@ -119,6 +140,11 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     // components: always non-null (after onCreate())
     private BluetoothRemoteControl bluetoothRemoteControl;
     private PermissionHandler permissionHandler;
+    private CameraManager cameraManager;
+    private CameraFinder camerafinder;
+    private CameraIdentifier cameraIdentifier;
+    private ArrayList<CameraModel> cameraModel;
+    private CameraCharacteristics cameraCharacteristics;
     private SettingsManager settingsManager;
     private MainUI mainUI;
     private ManualSeekbars manualSeekbars;
@@ -141,23 +167,33 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     private boolean camera_in_background; // whether the camera is covered by a fragment/dialog (such as settings or folder picker)
     private GestureDetector gestureDetector;
     private boolean screen_is_locked; // whether screen is "locked" - this is Open Camera's own lock to guard against accidental presses, not the standard Android lock
-    private final Map<Integer, Bitmap> preloaded_bitmap_resources = new Hashtable<>();
+    private final Map<Integer, Bitmap> preloaded_bitmap_resources = new HashMap<>();
     private ValueAnimator gallery_save_anim;
     private boolean last_continuous_fast_burst; // whether the last photo operation was a continuous_fast_burst
     private Future<?> update_gallery_future;
+    private boolean should_run_continuous_fast_burst = false;
 
     private TextToSpeech textToSpeech;
     private boolean textToSpeechSuccess;
+
+    private List<Float> frontZoomRatios = new ArrayList<>();
+    private List<Float> backZoomRatios = new ArrayList<>();
 
     private AudioListener audio_listener; // may be null - created when needed
 
     //private boolean ui_placement_right = true;
 
     private boolean want_no_limits; // whether we want to run with FLAG_LAYOUT_NO_LIMITS
+    private boolean can_draw_nav_bar = true;
     private boolean set_window_insets_listener; // whether we've enabled a setOnApplyWindowInsetsListener()
     private int navigation_gap;
     public static volatile boolean test_preview_want_no_limits; // test flag, if set to true then instead use test_preview_want_no_limits_value; needs to be static, as it needs to be set before activity is created to take effect
     public static volatile boolean test_preview_want_no_limits_value;
+
+    private boolean murenaTwoHwKill = false;
+
+    private Handler handler;
+    private Runnable retryRunnable = null;
 
     // whether this is a multi-camera device (note, this isn't simply having more than 1 camera, but also having more than one with the same facing)
     // note that in most cases, code should check the MultiCamButtonPreferenceKey preference as well as the is_multi_cam flag,
@@ -168,6 +204,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     private List<Integer> back_camera_ids;
     private List<Integer> front_camera_ids;
     private List<Integer> other_camera_ids;
+    private List<Integer> logical_camera_ids;
 
     private final ToastBoxer switch_video_toast = new ToastBoxer();
     private final ToastBoxer screen_locked_toast = new ToastBoxer();
@@ -210,6 +247,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     //private final String CHANNEL_ID = "open_camera_channel";
     //private final int image_saving_notification_id = 1;
 
+    private final float defaultLensZoom = 1.0F;
+
     private static final float WATER_DENSITY_FRESHWATER = 1.0f;
     private static final float WATER_DENSITY_SALTWATER = 1.03f;
     private float mWaterDensity = 1.0f;
@@ -217,6 +256,11 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     // whether to lock to landscape orientation, or allow switching between portrait and landscape orientations
     //public static final boolean lock_to_landscape = true;
     public static final boolean lock_to_landscape = false;
+
+    // QRCode
+    public QrImageAnalyzer qrImageAnalyzer;
+    private Job job;
+    private CoroutineScope coroutineScope;
 
     // handling for lock_to_landscape==false:
 
@@ -249,6 +293,16 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( MyDebug.LOG )
             Log.d(TAG, "activity_count: " + activity_count);
         super.onCreate(savedInstanceState);
+
+        //QRCode
+        job = JobKt.Job(null);
+        coroutineScope = new CoroutineScope() {
+            @Override
+            public CoroutineContext getCoroutineContext() {
+                return Dispatchers.getMain().plus(job);
+            }
+        };
+        qrImageAnalyzer = new QrImageAnalyzer(this, coroutineScope);
 
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false); // initialise any unset preferences to their default values
@@ -312,6 +366,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         magneticSensor = new MagneticSensor(this);
         //speechControl = new SpeechControl(this);
 
+        handler = new Handler();
+
         // determine whether we support Camera2 API
         // must be done before setDeviceDefaults()
         initCamera2Support();
@@ -347,6 +403,30 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: time after updating folder history: " + (System.currentTimeMillis() - debug_time));
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        int isFirstTime = sharedPreferences.getInt("isFirstTimeChange", 0);
+        switch (isFirstTime) {
+            case 0:
+                String edge_pref = applicationInterface.getEdgeModePref();
+                if (DeviceSettings.isMurenaOne() && edge_pref.equals("default")) {
+                    editor.putString(PreferenceKeys.EdgeModePreferenceKey, "off");
+                }
+                String save_location = sharedPreferences.getString(
+                        PreferenceKeys.SaveLocationPreferenceKey, "Camera");
+                if (save_location.equals("OpenCamera")) {
+                    editor.putString(PreferenceKeys.SaveLocationPreferenceKey, "Camera");
+                }
+                isFirstTime++;
+            case 1:
+                editor.putBoolean(PreferenceKeys.MaxBrightnessPreferenceKey, false);
+                isFirstTime++;
+                break;
+            default:
+                break;
+        }
+
+        editor.putInt("isFirstTimeChange", isFirstTime).apply();
 
         // set up sensors
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
@@ -402,6 +482,20 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             getWindow().setAttributes(layout);
         }
 
+        if (getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
+            cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+            camerafinder = new CameraFinder(cameraManager);
+            cameraModel = camerafinder.getCameraModels();
+            cameraIdentifier = new CameraIdentifier(cameraModel);
+            camerafinder.init();
+            cameraIdentifier.init();
+        }
+
+        String[] ignoredCameraIDs = getResources().getStringArray(R.array.config_ignoredCameraIds);
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "ignoredCameraIDs: " + Arrays.toString(ignoredCameraIDs));
+        }
+
         // Setup multi-camera buttons (must be done after creating preview so we know which Camera API is being used,
         // and before initialising on-screen visibility).
         // We only allow the separate icon for switching cameras if:
@@ -412,12 +506,55 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         // If there are more than two cameras, but all cameras have the same "facing, we still stick
         // with using the switch camera icon to iterate over all cameras.
         int n_cameras = preview.getCameraControllerManager().getNumberOfCameras();
-        if( n_cameras > 2 ) {
+        if (getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
+            n_cameras = camerafinder.getAllCameraIdList().size();
+            if( n_cameras > 2 ) {
+                this.back_camera_ids = new ArrayList<>();
+                this.front_camera_ids = new ArrayList<>();
+                this.other_camera_ids = new ArrayList<>();
+                this.logical_camera_ids = new ArrayList<>();
+
+                if (!cameraModel.isEmpty()) {
+                    for (CameraModel model : cameraModel) {
+                        if (model.getCameraType() == CameraType.LOGICAL) {
+                            logical_camera_ids.add(model.getId());
+                        }
+                    }
+                }
+
+                for(String cameraId: camerafinder.getAllCameraIdList()) {
+                    if (Arrays.stream(ignoredCameraIDs).anyMatch(id -> id.equals(cameraId))) {
+                        continue;
+                    }
+                    int id = Integer.parseInt(cameraId);
+                    cameraCharacteristics = camerafinder.getCameraCharacteristics(id);
+                    Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
+                    if (!logical_camera_ids.contains(id)
+                            || getResources().getBoolean(R.bool.allow_logical_camera_ids)) {
+                        switch(facing) {
+                            case CameraMetadata.LENS_FACING_BACK:
+                                back_camera_ids.add(id);
+                                break;
+                            case CameraMetadata.LENS_FACING_FRONT:
+                                front_camera_ids.add(id);
+                                break;
+                            case CameraMetadata.LENS_FACING_EXTERNAL:
+                                other_camera_ids.add(id);
+                                break;
+                        }
+                    }
+                }
+            }
+        } else if (n_cameras > 2) {
             this.back_camera_ids = new ArrayList<>();
             this.front_camera_ids = new ArrayList<>();
             this.other_camera_ids = new ArrayList<>();
-            for(int i=0;i<n_cameras;i++) {
-                switch( preview.getCameraControllerManager().getFacing(i) ) {
+            for (int i = 0; i < n_cameras; i++) {
+                String currentCameraID = String.valueOf(i);
+                if (Arrays.stream(ignoredCameraIDs).anyMatch(id -> id.equals(currentCameraID))) {
+                    continue;
+                }
+                switch (preview.getCameraControllerManager().getFacing(i)) {
                     case FACING_BACK:
                         back_camera_ids.add(i);
                         break;
@@ -429,6 +566,15 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                         other_camera_ids.add(i);
                         break;
                 }
+            }
+        }
+
+        if (n_cameras > 2) {
+            if( MyDebug.LOG ) {
+                Log.d(TAG, "back_camera_ids: " + back_camera_ids);
+                Log.d(TAG, "front_camera_ids: " + front_camera_ids);
+                Log.d(TAG, "other_camera_ids: " + other_camera_ids);
+                Log.d(TAG, "logical_camera_ids" + logical_camera_ids);
             }
             boolean multi_same_facing = back_camera_ids.size() >= 2 || front_camera_ids.size() >= 2 || other_camera_ids.size() >= 2;
             int n_facing = 0;
@@ -446,6 +592,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 Log.d(TAG, "is_multi_cam: " + is_multi_cam);
             }
 
+            if (getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
+                initZoomRatios();
+            }
+
             if( !is_multi_cam ) {
                 this.back_camera_ids = null;
                 this.front_camera_ids = null;
@@ -454,7 +604,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
 
         // initialise on-screen button visibility
-        View switchCameraButton = findViewById(R.id.switch_camera);
+        ImageButton switchCameraButton = findViewById(R.id.switch_camera);
         switchCameraButton.setVisibility(n_cameras > 1 ? View.VISIBLE : View.GONE);
         // switchMultiCameraButton visibility updated below in mainUI.updateOnScreenIcons(), as it also depends on user preference
         View speechRecognizerButton = findViewById(R.id.audio_control);
@@ -463,10 +613,12 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             Log.d(TAG, "onCreate: time after setting button visibility: " + (System.currentTimeMillis() - debug_time));
         View pauseVideoButton = findViewById(R.id.pause_video);
         pauseVideoButton.setVisibility(View.GONE);
-        View takePhotoVideoButton = findViewById(R.id.take_photo_when_video_recording);
+        ImageButton takePhotoVideoButton = findViewById(R.id.take_photo_when_video_recording);
         takePhotoVideoButton.setVisibility(View.GONE);
         View cancelPanoramaButton = findViewById(R.id.cancel_panorama);
         cancelPanoramaButton.setVisibility(View.GONE);
+        View finishPanoramaButton = findViewById(R.id.finish_panorama);
+        finishPanoramaButton.setVisibility(View.GONE);
 
         // We initialise optional controls to invisible/gone, so they don't show while the camera is opening - the actual visibility is
         // set in cameraSetup().
@@ -480,6 +632,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         zoomControls.setVisibility(View.GONE);
         View zoomSeekbar = findViewById(R.id.zoom_seekbar);
         zoomSeekbar.setVisibility(View.INVISIBLE);
+        View zoomSeekbarIcon = findViewById(R.id.zoom_seekbar_icon);
+        zoomSeekbarIcon.setVisibility(View.INVISIBLE);
 
         // initialise state of on-screen icons
         mainUI.updateOnScreenIcons();
@@ -576,7 +730,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         });
 
         // set up switch camera button long click - must be done after setting is_multi_cam
-        if( n_cameras > 2 ) {
+        if( n_cameras > 2 && !getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
             View.OnLongClickListener long_click_listener = new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -612,7 +766,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             Log.d(TAG, "onCreate: time after setting system ui visibility listener: " + (System.currentTimeMillis() - debug_time));
 
         // show "about" dialog for first time use
-        if( !has_done_first_time ) {
+        if(false) {
             if( !is_test ) {
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
                 alertDialog.setTitle(R.string.app_name);
@@ -690,7 +844,6 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 // We set the latest_version whether or not the dialog is shown - if we showed the first time dialog, we don't
                 // want to then show the What's New dialog next time we run! Similarly if the user had disabled showing the dialog,
                 // but then enables it, we still shouldn't show the dialog until the new time Open Camera upgrades.
-                SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putInt(PreferenceKeys.LatestVersionPreferenceKey, version_code);
                 editor.apply();
             }
@@ -750,8 +903,47 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             notificationManager.createNotificationChannel(channel);
         }*/
 
+        calculateNavigationGap();
+
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: total time for Activity startup: " + (System.currentTimeMillis() - debug_time));
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    /**
+     * if navigationMode is no gesture, then retrieve navigationBar's height & update navigation_gap
+     */
+    private void calculateNavigationGap() {
+        int resourceId = getResources().getIdentifier("config_navBarInteractionMode", "integer", "android");
+        if (resourceId > 0) {
+            int navType = getResources().getInteger(resourceId);
+            if (navType != 2) { //gesture mode = 2
+                resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+                if (resourceId > 0) {
+                    navigation_gap = getResources().getDimensionPixelSize(resourceId);
+                }
+            }
+        }
+    }
+
+    public void handleDecorFitsSystemWindows(double previewRatio, double screenRatio) {
+        boolean decorFitsSystemWindows = screenRatio >= previewRatio;
+        setDecorFitsSystemWindows(decorFitsSystemWindows);
+        can_draw_nav_bar = !decorFitsSystemWindows;
+    }
+
+    /**
+     * check is the preview size = maximise && is not in video mode, then return true
+     */
+    public boolean isInFullScreenMode() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String preview_size = sharedPreferences.getString(PreferenceKeys.PreviewSizePreferenceKey, "preference_preview_size_display");
+        return !(preview_size.equals("preference_preview_size_wysiwyg") || preview.isVideo());
     }
 
     /** Whether to use codepaths that are compatible with scoped storage.
@@ -801,15 +993,15 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             int cameraId = getActualCameraId();
             switch( preview.getCameraControllerManager().getFacing(cameraId) ) {
                 case FACING_BACK:
-                    if( back_camera_ids.size() > 0 )
+                    if( back_camera_ids.size() > 1 )
                         return true;
                     break;
                 case FACING_FRONT:
-                    if( front_camera_ids.size() > 0 )
+                    if( front_camera_ids.size() > 1 )
                         return true;
                     break;
                 default:
-                    if( other_camera_ids.size() > 0 )
+                    if( other_camera_ids.size() > 1 )
                         return true;
                     break;
             }
@@ -847,6 +1039,14 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             //Log.d(TAG, "is_pixel_phone? " + is_pixel_phone);
             //Log.d(TAG, "is_pixel_xl_phone? " + is_pixel_xl_phone);
         }*/
+        if ( DeviceSettings.deviceUsingFakeFlash() ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "set fake flash for camera2");
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            final SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean(PreferenceKeys.Camera2FakeFlashPreferenceKey, true);
+            editor.apply();
+        }
         /*if( is_samsung || is_oneplus ) {
             // The problems we used to have on Samsung Galaxy devices are now fixed, by setting
             // TEMPLATE_PREVIEW for the precaptureBuilder in CameraController2. This also fixes the
@@ -912,6 +1112,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 }
             }
         }
+
+        updateCameraResolution();
     }
 
     /** Switches modes if required, if called from a relevant intent/tile.
@@ -1091,7 +1293,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 String new_folder;
                 if( res.alt == null ) {
                     // no alternative, fall back to default
-                    new_folder = "OpenCamera";
+                    new_folder = "Camera";
                 }
                 else {
                     // replace with the alternative
@@ -1245,6 +1447,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( MyDebug.LOG )
             Log.d(TAG, "onStop");
         super.onStop();
+        EventBus.getDefault().unregister(this);
 
         // we stop location listening in onPause, but done here again just to be certain!
         applicationInterface.getLocationSupplier().freeLocationListeners();
@@ -1435,6 +1638,26 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         else {
             mainUI.onKeyUp(keyCode, event);
         }
+
+        if (!camera_in_background && keyCode == 131 && DeviceSettings.isMurenaTwo()) {
+            String cameraState = Utils.getProperty("persist.sys.hwswitch.state", null);
+            if (cameraState == null) return super.onKeyUp(keyCode, event);
+
+            if (retryRunnable != null) {
+                handler.removeCallbacks(retryRunnable);
+            }
+
+            murenaTwoHwKill = Objects.equals(cameraState, "1");
+            retryRunnable = () -> {
+                if (!murenaTwoHwKill) {
+                    preview.retryOpenCamera();
+                } else {
+                    restartOpenCamera();
+                }
+            };
+            handler.postDelayed(retryRunnable, murenaTwoHwKill ? 200 : 5000);
+        }
+
         return super.onKeyUp(keyCode, event);
     }
 
@@ -1466,11 +1689,11 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     }
 
     public void zoomIn() {
-        zoomByStep(1);
+        zoomByStep(-1);
     }
 
     public void zoomOut() {
-        zoomByStep(-1);
+        zoomByStep(1);
     }
 
     public void changeExposure(int change) {
@@ -2025,6 +2248,13 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         applicationInterface.stopPanorama(true);
     }
 
+    public void clickedFinishPanorama(View view) {
+        if (MyDebug.LOG) {
+            Log.d(TAG, "clickedFinishPanorama");
+        }
+        this.takePicture(false);
+    }
+
     public void clickedCycleRaw(View view) {
         if( MyDebug.LOG )
             Log.d(TAG, "clickedCycleRaw");
@@ -2321,20 +2551,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             Log.e(TAG, "getNextMultiCameraId() called but not in multi-cam mode");
             throw new RuntimeException("getNextMultiCameraId() called but not in multi-cam mode");
         }
-        List<Integer> camera_set;
-        // don't use preview.getCameraController(), as it may be null if user quickly switches between cameras
         int currCameraId = getActualCameraId();
-        switch( preview.getCameraControllerManager().getFacing(currCameraId) ) {
-            case FACING_BACK:
-                camera_set = back_camera_ids;
-                break;
-            case FACING_FRONT:
-                camera_set = front_camera_ids;
-                break;
-            default:
-                camera_set = other_camera_ids;
-                break;
-        }
+        List<Integer> camera_set = getCameraSet(currCameraId);
         int cameraId;
         int indx = camera_set.indexOf(currCameraId);
         if( indx == -1 ) {
@@ -2358,6 +2576,24 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         return cameraId;
     }
 
+    private List<Integer> getCameraSet(int currCameraId) {
+        // don't use preview.getCameraController(), as it may be null if user quickly switches between cameras
+        List<Integer> camera_set;
+        switch( preview.getCameraControllerManager().getFacing(currCameraId) ) {
+            case FACING_BACK:
+                camera_set = back_camera_ids;
+                break;
+            case FACING_FRONT:
+                camera_set = front_camera_ids;
+                break;
+            default:
+                camera_set = other_camera_ids;
+                break;
+        }
+
+        return camera_set;
+    }
+
     private void pushCameraIdToast(int cameraId) {
         if( MyDebug.LOG )
             Log.d(TAG, "pushCameraIdToast: " + cameraId);
@@ -2374,7 +2610,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
-    private void userSwitchToCamera(int cameraId) {
+    private void userSwitchToCamera(int cameraId, boolean is_multi_cam) {
         if( MyDebug.LOG )
             Log.d(TAG, "userSwitchToCamera: " + cameraId);
         View switchCameraButton = findViewById(R.id.switch_camera);
@@ -2384,11 +2620,91 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         switchMultiCameraButton.setEnabled(false);
         applicationInterface.reset(true);
         this.getApplicationInterface().getDrawPreview().setDimPreview(true);
-        this.preview.setCamera(cameraId);
+        if (is_multi_cam && getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
+            changeZoomFactor();
+        } else {
+            this.preview.setCamera(cameraId);
+        }
         switchCameraButton.setEnabled(true);
         switchMultiCameraButton.setEnabled(true);
         // no need to call mainUI.setSwitchCameraContentDescription - this will be called from Preview.cameraSetup when the
         // new camera is opened
+    }
+
+    private void initZoomRatios() {
+        String[] auxZoomRatios = getResources().getStringArray(R.array.config_auxCameraZoomRatios);
+        if (auxZoomRatios.length == 0 && !cameraModel.isEmpty()) {
+            for (CameraModel model : cameraModel) {
+                cameraCharacteristics = camerafinder.getCameraCharacteristics(model.getId());
+                Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
+                CameraType cameraType = model.getCameraType();
+                if (cameraType != CameraType.LOGICAL) {
+                    if (facing == CameraMetadata.LENS_FACING_BACK) {
+                        if (cameraType == CameraType.MAIN || cameraType == CameraType.ULTRAWIDE
+                                || cameraType == CameraType.TELE || cameraType == CameraType.MACRO) {
+                            backZoomRatios.add(model.getZoomFactor());
+                        }
+                    } else if (facing == CameraMetadata.LENS_FACING_FRONT) {
+                        if (cameraType == CameraType.MAIN || cameraType == CameraType.ULTRAWIDE) {
+                            frontZoomRatios.add(model.getZoomFactor());
+                        }
+                    }
+                }
+            }
+        } else {
+            for (String zoom : auxZoomRatios) {
+                String[] separated = zoom.split(":");
+                float id = Integer.parseInt(separated[0]);
+                float zoomRatio = Float.parseFloat(separated[1]);
+                if (id == 1) {
+                    frontZoomRatios.add(zoomRatio);
+                } else {
+                    backZoomRatios.add(zoomRatio);
+                }
+            }
+        }
+
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "frontZoomRatios" + frontZoomRatios);
+            Log.d(TAG, "backZoomRatios" + backZoomRatios);
+        }
+    }
+
+    private void changeZoomFactor() {
+        float zoom = getNextMultiZoomRatio(backZoomRatios);
+        if (preview.getCameraControllerManager().getFacing(getActualCameraId())
+                == CameraController.Facing.FACING_FRONT) {
+            zoom = getNextMultiZoomRatio(frontZoomRatios);
+        }
+
+        preview.zoomTo(preview.findNxZoom(zoom), true);
+        updateMultiPixelIcon(backZoomRatios.indexOf(zoom));
+
+        if( MyDebug.LOG )
+            Log.d(TAG, "changeZoomFactor" + zoom);
+    }
+
+    public float getNextMultiZoomRatio(List<Float> zoomRations) {
+        float currentZoom = preview.getZoomRatio();
+        float zoomRatio;
+        int index = zoomRations.indexOf(currentZoom);
+        if ( index == -1 ) {
+            zoomRatio = zoomRations.get(0);
+        } else {
+            index = (index+1) % zoomRations.size();
+            zoomRatio = zoomRations.get(index);
+        }
+        if( MyDebug.LOG )
+            Log.d(TAG, "next zoom: " + zoomRatio);
+        return zoomRatio;
+    }
+
+    private void updateMultiPixelIcon(int index) {
+        Button multiCameraButton = findViewById(R.id.switch_multi_camera);
+        if (multiCameraButton.getVisibility() != View.GONE) {
+            String text = getString(R.string.switch_multi_camera_lens) + " " + (index + 1);
+            multiCameraButton.setText(text);
+        }
     }
 
     /**
@@ -2419,7 +2735,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 // disappear when the user touches the screen anyway.)
                 preview.clearActiveFakeToast();
             }
-            userSwitchToCamera(cameraId);
+            userSwitchToCamera(cameraId, false);
 
             push_switched_camera = true;
         }
@@ -2441,7 +2757,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( this.preview.canSwitchCamera() ) {
             int cameraId = getNextMultiCameraId();
             pushCameraIdToast(cameraId);
-            userSwitchToCamera(cameraId);
+            userSwitchToCamera(cameraId, true);
         }
     }
 
@@ -2490,7 +2806,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     MainActivity.this.closePopup();
                     if( MainActivity.this.preview.canSwitchCamera() ) {
                         pushCameraIdToast(which);
-                        userSwitchToCamera(which);
+                        userSwitchToCamera(which, true);
                     }
                 }
                 setWindowFlagsForCamera();
@@ -2506,6 +2822,56 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         });
         setWindowFlagsForSettings(true); // set set_lock_protect to false - no need to protect this dialog with lock screen (fine to run above lock screen if that option is set)
         showAlert(alertDialog.create());
+    }
+
+    /*  getBetterQRCodeCameraID()
+    Returns the best camera ID, based on the fact that it's probably the first rear camera available.
+    The user always has the option of selecting with the lens switcher in case the choice is wrong.
+    Returns -1 if no camera available. In that case we do *NOT* trig any switch.
+    */
+    public int getBetterQRCodeCameraID() {
+        int best_qrcode_camera = -1;
+        if( MyDebug.LOG )
+            Log.d(TAG, "getBetterQRCodeCameraID");
+        if( !isMultiCamEnabled() ) {
+            Log.e(TAG, "getBetterQRCodeCameraID switch multi camera icon shouldn't have been visible");
+            return best_qrcode_camera;
+        }
+        if( preview.isOpeningCamera() ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "getBetterQRCodeCameraID already opening camera in background thread");
+            return best_qrcode_camera;
+        }
+        if( this.preview.canSwitchCamera() ) {
+            try {
+                CameraManager _cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+                for (String _cameraId : _cameraManager.getCameraIdList()) {
+                    CameraCharacteristics characteristics = _cameraManager.getCameraCharacteristics(_cameraId);
+                    Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+                    if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
+                        best_qrcode_camera = Integer.parseInt(_cameraId);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "best_qrcode_camera ="+best_qrcode_camera);
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return best_qrcode_camera;
+    }
+
+    private void updateMultiCameraIcon() {
+        Button multiCameraButton = findViewById(R.id.switch_multi_camera);
+
+        if (multiCameraButton.getVisibility() != View.GONE) {
+            int currCameraId = getActualCameraId();
+            List<Integer> camera_set = getCameraSet(currCameraId);
+            int index = camera_set.indexOf(currCameraId);
+            String text = getString(R.string.switch_multi_camera_lens) + " " + (index + 1);
+            multiCameraButton.setText(text);
+        }
     }
 
     /**
@@ -2705,7 +3071,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     //case "preference_show_take_photo": // need to update the UI
                 case "preference_show_toasts":
                 case "preference_show_whats_new":
-                //case "preference_multi_cam_button": // need to update the UI
+                    //case "preference_multi_cam_button": // need to update the UI
                 case "preference_keep_display_on":
                 case "preference_max_brightness":
                     //case "preference_resolution": // need to set up camera controller and preview
@@ -2947,6 +3313,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( preview.getCurrentPictureSize() != null ) {
             bundle.putInt("resolution_width", preview.getCurrentPictureSize().width);
             bundle.putInt("resolution_height", preview.getCurrentPictureSize().height);
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+            if (pref.getBoolean("isFirstTimeResolution_" + preview.getCameraId(), true)) {
+                updateCameraResolution();
+            }
         }
 
         //List<String> video_quality = this.preview.getVideoQualityHander().getSupportedVideoQuality();
@@ -3095,6 +3465,38 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 .commit();
          */
         return true;
+    }
+
+    private void updateCameraResolution() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = pref.edit();
+        String[] defaultResolutions = getResources().getStringArray(
+                R.array.config_e_os_camera_default_resolution_lens);
+        for (String entry : defaultResolutions) {
+            if (!entry.matches("\\d+:\\d+x\\d+")) continue;
+
+            String[] mainParts = entry.split(":");
+            String[] resParts = mainParts[1].split("x");
+            int cameraId = Integer.parseInt(mainParts[0]);
+            String resolution = resParts[0] + " " + resParts[1];
+
+            boolean existing = true;
+            if (preview != null && preview.getSupportedPictureSizes(false) != null) {
+                List<CameraController.Size> supportedResolutions =
+                        preview.getSupportedPictureSizes(false);
+                String highestResolution = supportedResolutions.get(0).width + " "
+                        + supportedResolutions.get(0).height;
+                String currentResolution = pref.getString(
+                        PreferenceKeys.getResolutionPreferenceKey(cameraId), "");
+                existing = highestResolution.equals(currentResolution) && cameraId == preview.getCameraId();
+            }
+            if (existing) {
+                editor.putString(PreferenceKeys.getResolutionPreferenceKey(cameraId), resolution);
+                editor.putBoolean("isFirstTimeResolution_" + cameraId, false);
+            }
+        }
+
+        editor.apply();
     }
 
     public void updateForSettings(boolean update_camera) {
@@ -3380,6 +3782,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             changed = changed || (button.getVisibility() != View.GONE);
             button.setVisibility(View.GONE);
         }
+        updateMultiCameraIcon();
+
         if( MyDebug.LOG )
             Log.d(TAG, "checkDisableGUIIcons: " + changed);
         return changed;
@@ -3592,7 +3996,13 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
+    /**
+     * if sdk>=R & can't draw navigation bar, means the DecorFitsSystemWindows=true, then we can ignore navigationGap.
+     */
     public int getNavigationGap() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !can_draw_nav_bar) {
+            return 0;
+        }
         return want_no_limits ? navigation_gap : 0;
     }
 
@@ -3607,7 +4017,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             return;
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-        String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_low_profile");
+        String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_off");
         boolean hide_ui = immersive_mode.equals("immersive_mode_gui") || immersive_mode.equals("immersive_mode_everything");
 
         if( visible ) {
@@ -3628,8 +4038,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     }
 
     /** Set up listener to handle listening for system ui changes (for immersive mode), and setting
-      * a WindowsInsetsListener to find the navigation_gap.
-      */
+     * a WindowsInsetsListener to find the navigation_gap.
+     */
     private void setupSystemUiVisibilityListener() {
         View decorView = getWindow().getDecorView();
 
@@ -3783,7 +4193,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         // whether we are using a Kit Kat style immersive mode (either hiding navigation bar, GUI, or everything)
         if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ) {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-            String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_low_profile");
+            String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_off");
             if( immersive_mode.equals("immersive_mode_navigation") || immersive_mode.equals("immersive_mode_gui") || immersive_mode.equals("immersive_mode_everything") )
                 return true;
         }
@@ -3794,7 +4204,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         // whether we are using a Kit Kat style immersive mode for everything
         if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ) {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-            String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_low_profile");
+            String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_off");
             if( immersive_mode.equals("immersive_mode_everything") )
                 return true;
         }
@@ -3854,7 +4264,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             }
             else {
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_low_profile");
+                String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_off");
                 if( immersive_mode.equals("immersive_mode_low_profile") )
                     getWindow().getDecorView().setSystemUiVisibility(saved_flags | View.SYSTEM_UI_FLAG_LOW_PROFILE);
                 else
@@ -3863,6 +4273,18 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
         else
             getWindow().getDecorView().setSystemUiVisibility(saved_flags);
+    }
+
+    /**
+     * setDecorFitsSystemWindows for build >=R
+     * @return if the operation successful or not
+     */
+    public boolean setDecorFitsSystemWindows(boolean decorFitsSystemWindows) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(decorFitsSystemWindows);
+            return true;
+        }
+        return false;
     }
 
     /** Sets the brightness level for normal operation (when camera preview is visible).
@@ -3875,7 +4297,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         // done here rather than onCreate, so that changing it in preferences takes effect without restarting app
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final WindowManager.LayoutParams layout = getWindow().getAttributes();
-        if( force_max || sharedPreferences.getBoolean(PreferenceKeys.MaxBrightnessPreferenceKey, true) ) {
+        if( force_max || sharedPreferences.getBoolean(PreferenceKeys.MaxBrightnessPreferenceKey, false) ) {
             layout.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL;
         }
         else {
@@ -4059,6 +4481,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
 
         setImmersiveMode(false);
+        setDecorFitsSystemWindows(true);
         camera_in_background = true;
 
         // we disable location listening when showing settings or a dialog etc - saves battery life, also better for privacy
@@ -4259,7 +4682,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     private void updateGalleryIconToBlank() {
         if( MyDebug.LOG )
             Log.d(TAG, "updateGalleryIconToBlank");
-        ImageButton galleryButton = this.findViewById(R.id.gallery);
+        CircleImageView galleryButton = this.findViewById(R.id.gallery);
         int bottom = galleryButton.getPaddingBottom();
         int top = galleryButton.getPaddingTop();
         int right = galleryButton.getPaddingRight();
@@ -4267,7 +4690,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 	    /*if( MyDebug.LOG )
 			Log.d(TAG, "padding: " + bottom);*/
         galleryButton.setImageBitmap(null);
-        galleryButton.setImageResource(R.drawable.baseline_photo_library_white_48);
+        galleryButton.setImageResource(R.drawable.ic_album);
+        galleryButton.setBorderWidth(0);
         // workaround for setImageResource also resetting padding, Android bug
         galleryButton.setPadding(left, top, right, bottom);
         gallery_bitmap = null;
@@ -4287,8 +4711,9 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 Log.d(TAG, "cancel update_gallery_future");
             update_gallery_future.cancel(true);
         }
-        ImageButton galleryButton = this.findViewById(R.id.gallery);
+        CircleImageView galleryButton = this.findViewById(R.id.gallery);
         galleryButton.setImageBitmap(thumbnail);
+        galleryButton.setBorderWidth(6);
         gallery_bitmap = thumbnail;
     }
 
@@ -4444,7 +4869,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
                 update_gallery_future = null;
             }
-        //}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            //}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         };
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -4461,7 +4886,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
         this.runOnUiThread(new Runnable() {
             public void run() {
-                final ImageButton galleryButton = findViewById(R.id.gallery);
+                final CircleImageView galleryButton = findViewById(R.id.gallery);
                 if( started ) {
                     //galleryButton.setColorFilter(0x80ffffff, PorterDuff.Mode.MULTIPLY);
                     if( gallery_save_anim == null ) {
@@ -4506,7 +4931,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     }
 
     /** Creates a notification to indicate still saving images (or updates an existing one).
-      * Update: notifications now removed due to needing permissions on Android 13+.
+     * Update: notifications now removed due to needing permissions on Android 13+.
      */
     private void createImageSavingNotification() {
         if( MyDebug.LOG )
@@ -4550,8 +4975,9 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( MyDebug.LOG )
             Log.d(TAG, "openGallery");
         //Intent intent = new Intent(Intent.ACTION_VIEW, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        Uri uri = applicationInterface.getStorageUtils().getLastMediaScanned();
-        boolean is_raw = uri != null && applicationInterface.getStorageUtils().getLastMediaScannedIsRaw();
+        Uri primaryUri = applicationInterface.getStorageUtils().getLastMediaScanned();
+        Uri uri = null;
+        boolean is_raw = false;
         if( MyDebug.LOG && uri != null ) {
             Log.d(TAG, "found cached most recent uri: " + uri);
             Log.d(TAG, "    is_raw: " + is_raw);
@@ -4602,11 +5028,20 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
             is_raw = false;
         }
+
+        boolean allowEdit = true;
+        if( uri == null ) {
+            uri = primaryUri;
+            is_raw = uri != null && applicationInterface.getStorageUtils().getLastMediaScannedIsRaw();
+            allowEdit = false;
+        }
+
         if( !is_test ) {
             // don't do if testing, as unclear how to exit activity to finish test (for testGallery())
             if( MyDebug.LOG )
                 Log.d(TAG, "launch uri:" + uri);
             final String REVIEW_ACTION = "com.android.camera.action.REVIEW";
+            final String KEY_FROM_SNAPCAM = "from-snapcam";
             boolean done = false;
             if( !is_raw ) {
                 // REVIEW_ACTION means we can view video files without autoplaying.
@@ -4618,6 +5053,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     Log.d(TAG, "try REVIEW_ACTION");
                 try {
                     Intent intent = new Intent(REVIEW_ACTION, uri);
+                    intent.putExtra(KEY_FROM_SNAPCAM, allowEdit);
                     this.startActivity(intent);
                     done = true;
                 }
@@ -4630,6 +5066,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     Log.d(TAG, "try ACTION_VIEW");
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    intent.putExtra(KEY_FROM_SNAPCAM, allowEdit);
                     this.startActivity(intent);
                 }
                 catch(ActivityNotFoundException e) {
@@ -4967,7 +5404,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         editText.setHint(getResources().getString(R.string.preference_save_location));
         editText.setInputType(InputType.TYPE_CLASS_TEXT);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        editText.setText(sharedPreferences.getString(PreferenceKeys.SaveLocationPreferenceKey, "OpenCamera"));
+        editText.setText(sharedPreferences.getString(PreferenceKeys.SaveLocationPreferenceKey, "Camera"));
         InputFilter filter = new InputFilter() {
             // whilst Android seems to allow any characters on internal memory, SD cards are typically formatted with FAT32
             final String disallowed = "|\\?*<\":>";
@@ -5284,6 +5721,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         closePopup();
 
         this.last_continuous_fast_burst = continuous_fast_burst;
+        this.should_run_continuous_fast_burst = continuous_fast_burst;
         this.preview.takePicturePressed(photo_snapshot, continuous_fast_burst);
     }
 
@@ -5484,36 +5922,38 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 Log.d(TAG, "set up zoom");
             if( MyDebug.LOG )
                 Log.d(TAG, "has_zoom? " + preview.supportsZoom());
-            ZoomControls zoomControls = findViewById(R.id.zoom);
+            View zoomControlHolder = findViewById(R.id.zoom);
             SeekBar zoomSeekBar = findViewById(R.id.zoom_seekbar);
+            View zoomSeekbarIcon = findViewById(R.id.zoom_seekbar_icon);
 
             if( preview.supportsZoom() ) {
                 if( sharedPreferences.getBoolean(PreferenceKeys.ShowZoomControlsPreferenceKey, false) ) {
-                    zoomControls.setIsZoomInEnabled(true);
-                    zoomControls.setIsZoomOutEnabled(true);
-                    zoomControls.setZoomSpeed(20);
-
-                    zoomControls.setOnZoomInClickListener(new View.OnClickListener(){
-                        public void onClick(View v){
-                            zoomIn();
-                        }
-                    });
-                    zoomControls.setOnZoomOutClickListener(new View.OnClickListener(){
-                        public void onClick(View v){
-                            zoomOut();
-                        }
-                    });
                     if( !mainUI.inImmersiveMode() ) {
-                        zoomControls.setVisibility(View.VISIBLE);
+                        View zoomInButton = findViewById(R.id.button_zoom_in);
+                        View zoomOutButton = findViewById(R.id.button_zoom_out);
+                        zoomInButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                zoomIn();
+                            }
+                        });
+
+                        zoomOutButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                zoomOut();
+                            }
+                        });
+                        zoomControlHolder.setVisibility(View.VISIBLE);
                     }
                 }
                 else {
-                    zoomControls.setVisibility(View.GONE);
+                    zoomControlHolder.setVisibility(View.GONE);
                 }
 
                 zoomSeekBar.setOnSeekBarChangeListener(null); // clear an existing listener - don't want to call the listener when setting up the progress bar to match the existing state
                 zoomSeekBar.setMax(preview.getMaxZoom());
-                zoomSeekBar.setProgress(preview.getMaxZoom()-preview.getCameraController().getZoom());
+                zoomSeekBar.setProgress(preview.getCameraController().getZoom());
                 zoomSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -5523,7 +5963,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                         // indirectly set zoom via this method, from setting the zoom slider
                         // if hasSmoothZoom()==true, then the preview already handled zooming to the current value
                         if( !preview.hasSmoothZoom() )
-                            preview.zoomTo(preview.getMaxZoom() - progress, false);
+                            preview.zoomTo(progress, false);
+			updateMultiCameraIcon();
                     }
 
                     @Override
@@ -5535,23 +5976,26 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     }
                 });
 
-                if( sharedPreferences.getBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, true) ) {
+                if( sharedPreferences.getBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, false) ) {
                     if( !mainUI.inImmersiveMode() ) {
                         zoomSeekBar.setVisibility(View.VISIBLE);
+                        zoomSeekbarIcon.setVisibility(View.VISIBLE);
                     }
                 }
                 else {
                     zoomSeekBar.setVisibility(View.INVISIBLE); // should be INVISIBLE not GONE, as the focus_seekbar is aligned to be left to this; in future we might want this similarly for exposure panel
+                    zoomSeekbarIcon.setVisibility(View.INVISIBLE);
                 }
             }
             else {
-                zoomControls.setVisibility(View.GONE);
+                zoomControlHolder.setVisibility(View.GONE);
                 zoomSeekBar.setVisibility(View.INVISIBLE); // should be INVISIBLE not GONE, as the focus_seekbar is aligned to be left to this; in future we might want this similarly for the exposure panel
+                zoomSeekbarIcon.setVisibility(View.INVISIBLE);
             }
             if( MyDebug.LOG )
                 Log.d(TAG, "cameraSetup: time after setting up zoom: " + (System.currentTimeMillis() - debug_time));
 
-            View takePhotoButton = findViewById(R.id.take_photo);
+            ImageButton takePhotoButton = findViewById(R.id.take_photo);
             if( sharedPreferences.getBoolean(PreferenceKeys.ShowTakePhotoPreferenceKey, true) ) {
                 if( !mainUI.inImmersiveMode() ) {
                     takePhotoButton.setVisibility(View.VISIBLE);
@@ -5666,18 +6110,6 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {
-                    }
-                });
-
-                ZoomControls seek_bar_zoom = findViewById(R.id.exposure_seekbar_zoom);
-                seek_bar_zoom.setOnZoomInClickListener(new View.OnClickListener(){
-                    public void onClick(View v){
-                        changeExposure(1);
-                    }
-                });
-                seek_bar_zoom.setOnZoomOutClickListener(new View.OnClickListener(){
-                    public void onClick(View v){
-                        changeExposure(-1);
                     }
                 });
             }
@@ -6189,7 +6621,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 simple = false;
             }
         }
-        else {
+        else { //Camera
             if( photo_mode == MyApplicationInterface.PhotoMode.Panorama ) {
                 // don't show resolution in panorama mode
                 toast_string = "";
@@ -6223,7 +6655,9 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 simple = false;
             }
         }
-        if( applicationInterface.getFaceDetectionPref() ) {
+        if (preview.isQRCode()) {
+            toast_string = "QRCode";
+        } else if( applicationInterface.getFaceDetectionPref() ) { //Camera || Video
             // important so that the user realises why touching for focus/metering areas won't work - easy to forget that face detection has been turned on!
             toast_string += "\n" + getResources().getString(R.string.preference_face_detection);
             simple = false;
@@ -6479,7 +6913,18 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     public void takePhotoButtonLongClickCancelled() {
         if( MyDebug.LOG )
             Log.d(TAG, "takePhotoButtonLongClickCancelled");
-        if( preview.getCameraController() != null && preview.getCameraController().isContinuousBurstInProgress() ) {
+        if (preview.getCameraController() == null) {
+            return;
+        }
+        if (preview.getCameraController().isContinuousBurstInProgress()) {
+            preview.getCameraController().stopContinuousBurst();
+        }
+        should_run_continuous_fast_burst = false;
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN_ORDERED)
+    public void onContinuousBurstImageRunningAction(ContinuousBurstImageRunningAction action) {
+        if (!should_run_continuous_fast_burst && preview.getCameraController() != null && preview.getCameraController().isContinuousBurstInProgress()) {
             preview.getCameraController().stopContinuousBurst();
         }
     }

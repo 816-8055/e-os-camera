@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string name="app_name">Open Camera</string>
+    <string name="app_name">Open (Açık kaynaklı) kamera</string>
     <string name="action_settings">Ayarlar</string>
     <string name="action_popup">Popup Ayarları</string>
     <string name="intro_ok">TAMAM (Bu mesaj tekrar gösterilmeyecektir.)</string>
-
-    <string name="on">Açık</string> <!-- whether a setting is turned on, e.g., "Auto-stabilise: On" -->
-    <string name="off">Kapalı</string> <!-- whether a setting is turned off, e.g., "Auto-stabilise: Off" -->
+    <string name="on">Açık</string>
+    <!-- whether a setting is turned on, e.g., "Auto-stabilise: On" -->
+    <string name="off">Kapalı</string>
+    <!-- whether a setting is turned off, e.g., "Auto-stabilise: Off" -->
     
     <string name="choose_save_location">Kayıt yerini seç:</string>
     <string name="clear_folder_history">Klasör geçmişini temizle</string>
@@ -15,10 +15,12 @@
     <string name="choose_another_folder">Başka bir klasör seç</string>
     <string name="changed_save_location">Değiştirilen kayıt konumu:</string>
     <string name="stopped_recording_video">Vidyo kaydı durduruldu</string>
-    <string name="repeats_to_go">repeats to go</string> <!--  intentionally starts lower case -->
+    <string name="repeats_to_go">repeats to go</string>
+    <!--  intentionally starts lower case -->
     <string name="failed_to_reconnect_camera">Kameraya tekrar bağlanma hatası</string>
     <string name="video_may_be_corrupted">Hata oluştu, vidyo dosyası bozulmuş olabilir</string>
-    <string name="not_supported">cihazınız desteklemiyor</string> <!--  intentionally starts lower case -->
+    <string name="not_supported">cihazınız desteklemiyor</string>
+    <!--  intentionally starts lower case -->
     <string name="video_error_unknown">Bilinmeyen hata oluştu, vidyo duraklatıldı</string>
     <string name="video_error_server_died">Server durdu, vidyo duraklatıldı</string>
     <string name="video_max_duration">Vidyo maksimum süreye ulaştı</string>
@@ -56,7 +58,6 @@
     <string name="color_effect">Renk efekti</string>
     <string name="scene_mode">Sahne modu</string>
     <string name="white_balance">Beyaz dengesi</string>
-    
     <string name="angle">Açı</string>
     <string name="direction">Yön</string>
     <string name="failed_to_open_camera_1">KAMERA AÇMA HATASI.</string>
@@ -67,9 +68,9 @@
     <string name="free_memory">Boş</string>
     <string name="screen_lock_message_1">[KİLİTLENDİ:</string>
     <string name="screen_lock_message_2">Açmak için kaydırın]</string>
-    
     <string name="failed_to_stamp">Fotoğrafa tarih bilgisi ekleme hatası</string>
-    <string name="metres_abbreviation">m</string> <!-- symbol short for metres -->
+    <string name="metres_abbreviation">m</string>
+    <!-- symbol short for metres -->
     
     <string name="preference_category_camera_effects">Kamera Efektleri</string>
     <string name="preference_auto_stabilise">Otomatik-stabilize</string>
@@ -88,7 +89,6 @@
     <string name="preference_lock_orientation_summary"> Eğer ayarlanırsa, cihazın yönlendirmesi geçilecektir ve fotoğraf/vidyo yönlendirmesi daha önce belirlenen yönlendirme ayarına uyacaktır\n%s</string>
     <string name="preference_face_detection">Yüz tanıma</string>
     <string name="preference_face_detection_summary">Odak alanları yerine yüz tanımayı kullan</string>
-
     <string name="preference_category_camera_controls">Kamera Kontrolleri</string>
     <string name="preference_timer">Zamanlayıcı</string>
     <string name="preference_timer_beep">Zamanlayıcı ayarla</string>
@@ -105,17 +105,15 @@
     <string name="preference_shutter_sound">Fotoğraf çekme sesi</string>
     <string name="preference_shutter_sound_summary">Fotoğraf çekerken ses çal</string>
     <string name="preference_volume_keys">Ses seviyesi tuşları</string>
-
     <string name="preference_save_location">Kaydetme yeri</string>
     <string name="preference_save_location_summary">Fotoğraf/vidyo dosyaları için kayıt klasörü</string>
-    <string name="preference_using_saf_summary">Fotoğraf ve vidyoları kaydetmek için Storage Access Framework kullan</string>
+    <string name="preference_using_saf_summary">Fotoğrafları ve videoları kaydetmek için Depolama Erişim Çerçevesi\'nin kullanılıp kullanılmayacağı. Harici SD kartlara kaydetmeye izin vermek için bu etkinleştirilmelidir. Android 10+\'da DCIM dışındaki bir klasöre kaydetmek istiyorsanız bu seçenek etkinleştirilmelidir.</string>
     <string name="preference_save_photo_prefix">Fotoğraf adlandırma öneki kaydet</string>
     <string name="preference_save_photo_prefix_summary">Fotoğraflarda dosya adlarını kaydetmede kullanılacak önek</string>
     <string name="preference_save_video_prefix">vidyo adlandırma öneki kaydet</string>
     <string name="preference_save_video_prefix_summary">Vidyolarda dosya adlarını kaydetmede kullanılacak önek</string>
     <string name="preference_show_when_locked">Kilitlendiğinde kamerayı göster</string>
-    <string name="preference_show_when_locked_summary">Etkinleştirilirse, Open Camera yukarıda kilit ekranı göstermeye devam edecektir(Sizin\' ayarlara, galeriye vb. erişmek için yine de ekranı açamanız gerekir)</string>
-
+    <string name="preference_show_when_locked_summary">Etkinleştirilirse, Kamera herhangi bir kilit ekranının üzerinde gösterilmeye devam eder (Ayarlar, Galeri vb.\'ye erişmek için kilidi açmanız gerekir)</string>
     <string name="preference_lock_video">Vidyo kaydederken ekranı kilitle</string>
     <string name="preference_lock_video_summary">Vidyo kaydederken, GUI kazara kaydı durdurmayı önlemek için kilitlenecek. Kilidi açmak için ekranı kaydırın. Vidyo kaydederken eğer uygulama arkaplana giderse ya da ekran boşsa kayıt daima durdurulacaktır.</string>
     <string name="preference_rotate_preview">Önzilemeyi döndür</string>
@@ -131,7 +129,7 @@
     <string name="preference_show_zoom_slider_controls">Zoom kaydırma kontrolünü göster</string>
     <string name="preference_show_zoom_slider_controls_summary">Zoom kontrolü için kaydırma barını göster</string>
     <string name="preference_show_iso">ISO yu göster</string>
-    <string name="preference_show_iso_summary">Şu anki ISO seviyesini göster(Camera2 API si gerekir)</string>
+    <string name="preference_show_iso_summary">Geçerli ISO seviyesini görüntüler. (Camera2 API gerektirir.)</string>
     <string name="preference_free_memory">Boş bellek alanını göster</string>
     <string name="preference_free_memory_summary">Ekranda kalan boş cihaz alanını göster</string>
     <string name="preference_show_angle">Açıyı göster</string>
@@ -149,15 +147,14 @@
     <string name="preference_grid">Çerçeve göster</string>
     <string name="preference_crop_guide">Kırpma yardımcısını göster</string>
     <string name="preference_crop_guide_summary">Kırpma yardımcısı -eğer daha sonra fotoğraf/vidyoları farklı görüntü oranlarında kırpmayı planlıyorsanız kullanışlıdır- özel görüntü oranlarının nasıl göründüğünü dikdörtgen şeklinde gösterir. WYSIWYG fotoğraf modu ya da vidyo modunda olmak gerekir\n%s</string>
-    <string name="preference_show_toasts">\"ileti\" mesajları göster</string>
-    <string name="preference_show_toasts_summary">\"ileti\" mesajlarını açılır pencere şeklinde göster</string>
+    <string name="preference_show_toasts">Ekran üstü mesajları göster</string>
+    <string name="preference_show_toasts_summary">Ekranda geçici bilgi mesajlarının görüntülenip görüntülenmeyeceği</string>
     <string name="preference_thumbnail_animation">Önizleme animasyonunu göster</string>
     <string name="preference_thumbnail_animation_summary">Fotoğraf çekerken önizleme animasyon hareketini göster</string>
     <string name="preference_keep_display_on">Ekranı açık tut</string>
-    <string name="preference_keep_display_on_summary">Etkinleştirilirse, Open Camera kullanıcı arayüzü aktifken ekran kapanmayacaktır</string>
+    <string name="preference_keep_display_on_summary">Etkinleştirilirse, Kamera arayüzü aktifken ekran kapanmayacaktır</string>
     <string name="preference_max_brightness">Maksimum parlaklık için zorla</string>
     <string name="preference_max_brightness_summary">Cihazın öntanımlı ayarına bakmaksızın ekran görüntüsünü maksimum parlaklık için zorlar</string>
-    
     <string name="preference_category_camera_quality">Fotoğraf ve Vidyo Ayarları</string>
     <string name="preference_screen_photo_settings">Fotoğraf ayarları…</string>
     <string name="preference_screen_video_settings">Vidyo ayarları…</string>
@@ -187,26 +184,26 @@
     <string name="video_quality">Vidyo çözünürlüğü</string>
     <string name="preference_force_video_4k">4K UHD vidyo için zorla(deneysel)</string>
     <string name="preference_force_video_4k_summary">3840x2160 çözünürlüğünü arka kameradan vidyo kaydederken etkinleştir- bu ayar sadece cihazınız destekliyorsa çalışacaktır, desteklemiyorsa cihazınız çökebilir!</string>
-    <string name="preference_video_stabilization">Vidyo stabilizasyonunu etkinleştir</string>
-    <string name="preference_video_stabilization_summary">Vidyo stabilizasyonu, önizleme yaparken ve kaydedilmiş vidyolarda kamera hareketine bağlı olarak sarsıntıyı azaltır</string>
+    <string name="preference_video_stabilization">Dijital video sabitlemeyi etkinleştirin</string>
+    <string name="preference_video_stabilization_summary">Video sabitleme, hem önizlemede hem de kaydedilen videolarda kameranın hareketinden kaynaklanan titremeyi azaltır. Cihazınız optik görüntü sabitlemeyi (OIS) destekliyorsa bu gereksiz olabilir.</string>
     <string name="preference_video_bitrate">Vidyo bitrate (ortalama)</string>
     <string name="preference_video_bitrate_summary">Vidyoların ortalama bitoranlarını ayarla(değerler yükseldikçe kalite yükselir fakat dosyalar daha fazla alan kaplar; eğer bitoranı desteklenmezse vidyo kaydederken hatalar oluşabilir)\n%s</string>
     <string name="preference_video_fps">Vidyo kare oranı (ortalama)</string>
-    <string name="preference_video_fps_summary">Vidyoların kare oranını(FPS) ayarla(ortalama olabilir, tamamlanacağının garantisi yoktur ve kare oranı desteklenmezse hatalar oluşabilir)\n%s</string>
+    <string name="preference_video_fps_summary">Videoların kare hızını (FPS) ayarlayın (yaklaşık olabilir, elde edileceği garanti edilmez ve kare hızı desteklenmiyorsa video kaydının başarısız olmasına neden olabilir). Kullanılan gerçek kare hızını bulmak için lütfen sonuç videolarını kontrol edin. Bu ayarın ağır çekim videolar için göz ardı edildiğini unutmayın.
+\n%s</string>
     <string name="preference_video_max_duration">Vidyoların maksimum süresi</string>
     <string name="preference_video_max_duration_summary">Vidyo kaydı belirlenen süreden sonra durdurulacaktır\n%s</string>
     <string name="preference_video_restart">Maksimum süreye ulaşıldığında vidyoyu yeniden başlat</string>
     <string name="preference_video_restart_summary">Vidyo maksimum süreye(ayarlandı ise) ulaşdığında, bu seçenek vidyoyu belirli bir sayıya ulaşana dek yeniden başlatacaktır\n%s</string>
-
     <string name="preference_record_audio">Sesleri kaydet</string>
     <string name="preference_record_audio_summary">Vidyo kaydederken sesleri de kaydet</string>
     <string name="preference_record_audio_src">Sesin Kaynağı</string>
-    <string name="preference_record_audio_src_summary">Ses kaydetmede kullanılacak mikrofon\n%s</string>
+    <string name="preference_record_audio_src_summary">Ses kaydı için kullanılacak mikrofon. Seçeneklerin tam davranışının, seçeneğin cihazınızda nasıl uygulandığına bağlı olduğunu unutmayın. 
+\n%s</string>
     <string name="preference_record_audio_channels">Ses kanalları</string>
-    <string name="preference_record_audio_channels_summary">Ses kaydetmede kullanılacak kanalları mono ya da stereo özelleştir(stereo sadece bazı cihazlarda desteklenir)\n%s</string>
+    <string name="preference_record_audio_channels_summary">Ses kaydetmede kullanılacak kanalları mono ya da stereo özelleştir(stereo sadece bazı cihazlarda desteklenir)</string>
     <string name="preference_video_flash">vidyo kaydederken Flaşı aç</string>
     <string name="preference_video_flash_summary">Etkinleştirildiğinde, flaş vidyo kaydederken yanıp sönecektir(kameranın hala uzak bir yerde kayıt yaptığını anlamak için kullanılabilir)</string>
-    
     <string name="preference_category_online">Karışık</string>
     <string name="preference_online_help">Online yardım</string>
     <string name="preference_donate">Geliştirmeyi desteklemek için bağışta bulunun</string>
@@ -216,13 +213,11 @@
     <string name="preference_about">Hakkında</string>
     <string name="preference_about_summary">Uygulama ve eksiklik bilgisi</string>
     <string name="preference_reset">Ayarları temizle</string>
-    <string name="preference_reset_summary">Tüm Open Camera ayarlarını öntanımlı ayarlara döndür</string>
-    <string name="preference_reset_question">Tüm Open Camera ayarlarını öntanımlı ayarlara döndürmek istediğinize emin misiniz?</string>
-
+    <string name="preference_reset_summary">Tüm Kamera ayarlarını varsayılana sıfırla</string>
+    <string name="preference_reset_question">Tüm Camera ayarlarını öntanımlı ayarlara döndürmek istediğinize emin misiniz?</string>
     <string name="about_available">Etkinleştir</string>
     <string name="about_not_available">Etkin değil</string>
     <string name="about_copy_to_clipboard">Clipboarda kopyala</string>
-    
     <string name="take_photo">Fotoğraf çek</string>
     <string name="gallery">Galeri</string>
     <string name="exposure">Pozlama</string>
@@ -231,7 +226,6 @@
     <string name="flash_mode">Flaş Modu</string>
     <string name="trash">Son Resmi Sil</string>
     <string name="share">Fotoğraf Paylaş</string>
-    
     <string name="parent_folder">Ana Klasör</string>
     <string name="new_folder">Yeni Klasör</string>
     <string name="cant_write_folder">Bu klasöre kaydetme izniniz yok</string>
@@ -239,14 +233,11 @@
     <string name="enter_new_folder">Yeni bir klasör adı girin</string>
     <string name="failed_create_folder">Klasör oluşturma hatası</string>
     <string name="folder_exists">Bu adda bir klasör zaten var</string>
-
     <string name="saf_select_save_location">Kaydedilecek konumu seçin</string>
     <string name="saf_cancelled">Storage Access Framework iptal edildi</string>
-    
     <!-- the permission names such as Microphone should match what Android calls them in the App permission settings -->
     <string name="permission_record_audio_not_available">Mikrofon izni etkin değil</string>
     <string name="permission_location_not_available">Konum izni etkin değil</string>
-
     <string name="duration_unlimited">Sınırsız</string>
     <string name="duration_3s">3 saniye</string>
     <string name="duration_5s">5 saniye</string>
@@ -272,24 +263,20 @@
     <string name="duration_45m">45 dakika</string>
     <string name="duration_1h">1 saat</string>
     <string name="preference_video_fps_default">Öntanımlı ayar</string>
-
     <string name="preference_stamp_dateformat_default">Öntanımlı ayar</string>
     <string name="preference_stamp_dateformat_yyyymmdd">yyyy-aa-gg</string>
     <string name="preference_stamp_dateformat_ddmmyyyy">gg/aa/yyyy</string>
     <string name="preference_stamp_dateformat_mmddyyyy">aa/gg/yyyy</string>
     <string name="preference_stamp_dateformat_none">Tarih bilgisi yok</string>
-
     <string name="flash_off">Flaş Kapalı</string>
     <string name="flash_auto">Flaş Otomatik</string>
     <string name="flash_on">Flaş Açık</string>
     <string name="flash_torch">Flaş Işığı</string>
     <string name="flash_red_eye">Kırmızı Göz</string>
-
     <string name="preference_record_audio_src_camcorder">Camcorder</string>
     <string name="preference_record_audio_src_mic">Harici mikrofon (varsa)</string>
     <string name="preference_record_audio_src_default">Öntanımlı ses kaynağı</string>
     <string name="preference_record_audio_src_voice_communication">Kişi sesine optimize et</string>
-
     <string name="preference_video_bitrate_default">Öntanımlı ayar</string>
     <string name="preference_video_bitrate_100000">100kbps</string>
     <string name="preference_video_bitrate_200000">200kbps</string>
@@ -314,7 +301,6 @@
     <string name="preference_video_bitrate_80000000">80Mbps</string>
     <string name="preference_video_bitrate_90000000">90Mbps</string>
     <string name="preference_video_bitrate_100000000">100Mbps</string>
-
     <string name="preference_burst_mode_off">Kapalı</string>
     <string name="preference_burst_mode_2x">2x</string>
     <string name="preference_burst_mode_3x">3x</string>
@@ -329,7 +315,6 @@
     <string name="preference_burst_mode_200x">200x</string>
     <string name="preference_burst_mode_500x">500x</string>
     <string name="preference_burst_mode_unlimited">Sınırsız</string>
-
     <string name="preference_burst_interval_no_delay">Gecikmesiz</string>
     <string name="preference_burst_interval_1s">1sn</string>
     <string name="preference_burst_interval_2s">2sn</string>
@@ -347,7 +332,6 @@
     <string name="preference_burst_interval_30m">30da</string>
     <string name="preference_burst_interval_1h">1sa</string>
     <string name="preference_burst_interval_2h">2sa</string>
-
     <string name="preference_crop_guide_none">Yok</string>
     <string name="preference_crop_guide_1">1 (1:1)</string>
     <string name="preference_crop_guide_1_25">1.25 (5:4)</string>
@@ -359,15 +343,79 @@
     <string name="preference_crop_guide_2_33">2.33 (21:9)</string>
     <string name="preference_crop_guide_2_35">2.35 (47:20)</string>
     <string name="preference_crop_guide_2_4">2.4 (12:5)</string>
-
     <string name="preference_ui_placement_left">Solak kullanıcı arayüzü</string>
     <string name="preference_ui_placement_right">Sağ el kullanıcı arayüzü</string>
-
     <string name="preference_stamp_style_shadowed">Gölgeli yazı</string>
     <string name="preference_stamp_style_plain">Düz yazı</string>
-
+    <string name="preferences_about_title">About</string>
+    <string name="preferences_build_version">Derleme sürümü</string>
+    <string name="preferences_about_app">Kamera Camera\'dan çatallandı</string>
+    <string name="preferences_authors">Yapımcılar</string>
+    <string name="preferences_source_code">Kaynak kodu</string>
+    <string name="preferences_licence">lisans</string>
+    <string name="preferences_app_info_title">Kamera bilgileri</string>
+    <string name="preferences_service_terms">Kullanım koşulları</string>
     <string name="preference_immersive_mode_off">Kapalı</string>
     <string name="preference_immersive_mode_navigation">Sadece sanal ekran navigasyon butonlarını gizle</string>
     <string name="preference_immersive_mode_gui">GUI(Grafik arayüz) gizle</string>
     <string name="preference_immersive_mode_everything">Herşeyi gizle</string>
+    <string name="preference_audio_noise_control_sensitivity">Ses kontrol hassasiyeti</string>
+    <string name="preference_take_photo_border_summary">Fotoğraf çekildiğini belirtmek için ekranda bir kenarlık görüntüleyin</string>
+    <string name="preference_background_photo_saving_summary">Fotoğrafların bir arka plan iş parçacığına kaydedilip kaydedilmeyeceği (daha hızlı çalışma için)</string>
+    <string name="preference_background_photo_saving">Arkaplan kayıt uygulaması kullan</string>
+    <string name="preference_video_restart_max_filesize">Maksimum dosya boyutuna ulaşınca çekimi yeniden başlat</string>
+    <string name="switch_to_front_camera">Ön kameraya geç</string>
+    <string name="audio_listener_started">Yüksek bir ses çıkarın</string>
+    <string name="dont_show_again">Tekrar gösterme</string>
+    <string name="photo_mode_noise_reduction_full">Gürültü Azaltma</string>
+    <string name="permission_rationale_location">Coğrafi etiketleme (damga ve altyazı seçenekleri de dahil olmak üzere fotoğraf ve videolarda konum verilerinin saklanması) için konum izni gereklidir. Konum izni ayrıca (en azından Android 11 ve öncesi için) Bluetooth LE uzaktan kumanda cihazlarına bağlanmak için de gereklidir.</string>
+    <string name="preference_nr_save">Gürültü Azaltma orijinal görüntüler</string>
+    <string name="preference_raw">RAW</string>
+    <string name="preference_camera2_fake_flash">Alternatif flaş yöntemi kullan</string>
+    <string name="switch_to_video">Video moduna geç</string>
+    <string name="start_video">Video kaydına başla</string>
+    <string name="gb_abbreviation">GB</string>
+    <string name="photo_mode_standard_full">Standart</string>
+    <string name="photo_mode_fast_burst_full">Taramalı Çekim</string>
+    <string name="photo_mode_noise_reduction">GA</string>
+    <string name="preference_hdr_save_expo">Tüm fotoğrafları HDR olarak kaydet</string>
+    <string name="preference_category_video_debugging">Hata ayıklama seçenekleri</string>
+    <string name="permission_rationale_camera">Kamerayı kullanmak için kamera izni gerekli</string>
+    <string name="photo_mode_hdr">HDR</string>
+    <string name="permission_rationale_record_audio">Sesli video kaydetmek ve \"Ses kontrolü\" seçeneklerini kullanmak için mikrofon izni gereklidir</string>
+    <string name="preference_online_help_summary">Tarayıcınızda Kamera web sitesini başlatın</string>
+    <string name="preference_startup_focus_summary">Kamera başlatıldığında otomatik odaklama yapılıp yapılmayacağı. Başlatma sırasında flaşın açılması sorunu yaşıyorsanız, bu seçeneği devre dışı bırakın</string>
+    <string name="photo_mode_expo_bracketing_full">Pozlama Parantezleme</string>
+    <string name="photo_mode_standard">Std</string>
+    <string name="preference_video_restart_max_filesize_summary">Maksimum dosya boyutuna ulaşıldığında otomatik olarak yeniden başlatılıp başlatılmayacağı (cihaz varsayılan maksimum dosya boyutu veya kullanıcı tarafından belirtilen)</string>
+    <string name="photo_mode_expo_bracketing">Pzlm {}</string>
+    <string name="switch_to_photo">Fotoğraf moduna geç</string>
+    <string name="switch_to_back_camera">Arka kameraya geç</string>
+    <string name="preference_video_max_filesize_summary">(Yaklaşık) maksimum dosya boyutuna ulaşıldığında video kaydı duracak ve/veya yeniden başlayacaktır (aşağıdaki seçeneğe bakın). Birçok Android cihazın videolar için maksimum dosya boyutuna sahip olduğunu unutmayın (genellikle 2GB veya 4GB civarında), ancak bu seçenek belirli bir değerin ayarlanmasına izin verir. Bu seçeneğin bir cihazın yerleşik maksimum değerini artırmak için kullanılamayacağını unutmayın. 
+\n%s</string>
+    <string name="preference_video_max_filesize">Video için maksimum dosya boyutu</string>
+    <string name="preference_take_photo_border">Fotoğraf çekerken kenarlığı göster</string>
+    <string name="grid">Izgara</string>
+    <string name="preference_startup_focus">Başlangıçta otomatik odaklama gerçekleştirin</string>
+    <string name="preference_save_zulu_time">Dosya adı için zaman formatı</string>
+    <string name="preference_audio_noise_control_sensitivity_summary">Ses (yüksek gürültü) seçeneği için gürültü seviyesi hassasiyeti</string>
+    <string name="preference_audio_control">Ses kontrol ayarları</string>
+    <string name="preference_expo_bracketing_n_images">Pozlama Parantezleme</string>
+    <string name="preference_camera2_fake_flash_summary">Cihazınız Camera2 API ile hatalı flaş davranışına sahipse bunu etkinleştirin</string>
+    <string name="permission_rationale_storage">Fotoğraf veya video gibi sonuç dosyalarını kaydetmek için depolama okuma/yazma izni gereklidir</string>
+    <string name="preference_category_photo_debugging">Hata ayıklama seçenekleri</string>
+    <string name="no_permission">IZINLER MEVCUT DEĞIL</string>
+    <string name="permission_rationale_title">İzin gerekli</string>
+    <string name="preference_hdr_save_expo_summary">Etkinleştirilirse, HDR fotoğraf modu kullanılırken, üç temel pozlama görüntüsünün yanı sıra son HDR fotoğrafı da kaydedilir. Bunun, özellikle \"Fotoğrafları damgala\" veya Otomatik seviye gibi seçenekler de kullanılıyorsa, kaydetmeyi yavaşlatacağını unutmayın.</string>
+    <string name="preference_category_stamp">Fotoğraf Damgası</string>
+    <string name="photo_mode">Fotoğraf modu</string>
+    <string name="audio_control_stop">Ses dinlemesi durdur</string>
+    <string name="speech_recognizer_started">\"Cheese\" diyin</string>
+    <string name="max_filesize">Maksimum dosya boyutu</string>
+    <string name="mb_abbreviation">MB</string>
+    <string name="audio_control_start">Ses dinlemesi başlat</string>
+    <string name="stop_video">Video kaydını durdur</string>
+    <string name="saf_permission_failed">Bu klasöre kayıt edilemiyor</string>
+    <string name="failed_to_save_photo_raw">RAW fotoğraf kaydı başarısız</string>
+    <string name="next">Sıradaki</string>
 </resources>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Open Camera</string>
+    <string name="app_name">Camera</string>
     <string name="action_settings">Configurações</string>
     <string name="action_popup">Configurações rápidas</string>
     <string name="intro_ok">OK (Essa mensagem não será mostrada novamente)</string>
@@ -108,7 +108,7 @@
     <string name="preference_save_video_prefix">Salvar prefixo de vídeo</string>
     <string name="preference_save_video_prefix_summary">O prefixo usado para salvar o nome dos arquivos de vídeo</string>
     <string name="preference_show_when_locked">Mostrar câmera quando travado</string>
-    <string name="preference_show_when_locked_summary">Se habilitado, o Open Camera ainda será exibido acima de qualquer tela de bloqueio</string>
+    <string name="preference_show_when_locked_summary">Se habilitado, o Camera ainda será exibido acima de qualquer tela de bloqueio</string>
     <string name="preference_lock_video">Travar tela enquanto filma</string>
     <string name="preference_lock_video_summary">Trava a tela enquanto filma para prevenir falhas acidentais na filmagem. Deslize na tela para desbloquear.</string>
     <string name="preference_rotate_preview">Rotação de visualização</string>
@@ -145,7 +145,7 @@
     <string name="preference_thumbnail_animation">Mostrar animação para captura de fotos</string>
     <string name="preference_thumbnail_animation_summary">Exibe uma animação quando uma foto é tirada</string>
     <string name="preference_keep_display_on">Manter a tela ligada</string>
-    <string name="preference_keep_display_on_summary">Se habilitada, a tela não desligará enquanto a IU do Open Camera estiver aberta</string>
+    <string name="preference_keep_display_on_summary">Se habilitada, a tela não desligará enquanto a IU do Camera estiver aberta</string>
     <string name="preference_max_brightness">Forçar brilho máximo</string>
     <string name="preference_max_brightness_summary">Força a exibição da tela a ser em brilho máximo, em vez de no padrão do dispositivo</string>
 	
@@ -329,6 +329,14 @@
 
     <string name="preference_ui_placement_left">Interface para canhoto</string>
     <string name="preference_ui_placement_right">Interface para destro</string>
+    <string name="preferences_about_title">About</string>
+    <string name="preferences_build_version">Versão de compilação</string>
+    <string name="preferences_about_app">A câmera é bifurcada no Camera</string>
+    <string name="preferences_authors">Autor</string>
+    <string name="preferences_source_code">Código fonte</string>
+    <string name="preferences_licence">Licença</string>
+    <string name="preferences_app_info_title">Informações da câmera</string>
+    <string name="preferences_service_terms">Termos de serviço</string>
 
     <string name="preference_immersive_mode_off">Desligado</string>
     <string name="preference_immersive_mode_navigation">Somente esconder as teclas virtuais de navegação</string>

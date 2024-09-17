@@ -8,10 +8,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import net.sourceforge.opencamera.DeviceSettings;
 import net.sourceforge.opencamera.GyroSensor;
 import net.sourceforge.opencamera.ImageSaver;
 import net.sourceforge.opencamera.LocationSupplier;
@@ -19,6 +21,7 @@ import net.sourceforge.opencamera.MainActivity;
 import net.sourceforge.opencamera.MyApplicationInterface;
 import net.sourceforge.opencamera.MyDebug;
 import net.sourceforge.opencamera.PreferenceKeys;
+import net.sourceforge.opencamera.Utils;
 import net.sourceforge.opencamera.preview.ApplicationInterface;
 import net.sourceforge.opencamera.R;
 import net.sourceforge.opencamera.cameracontroller.CameraController;
@@ -42,6 +45,7 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.BatteryManager;
@@ -54,6 +58,8 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.View;
 import android.widget.RelativeLayout;
+
+import androidx.annotation.NonNull;
 
 public class DrawPreview {
     private static final String TAG = "DrawPreview";
@@ -243,7 +249,7 @@ public class DrawPreview {
     private Bitmap location_off_bitmap;
     private Bitmap raw_jpeg_bitmap;
     private Bitmap raw_only_bitmap;
-    private Bitmap auto_stabilise_bitmap;
+    private Drawable auto_stabilise_drawable;
     private Bitmap dro_bitmap;
     private Bitmap hdr_bitmap;
     private Bitmap panorama_bitmap;
@@ -256,8 +262,8 @@ public class DrawPreview {
     private Bitmap x_bokeh_bitmap;
     private Bitmap x_beauty_bitmap;
     private Bitmap photostamp_bitmap;
-    private Bitmap flash_bitmap;
-    private Bitmap face_detection_bitmap;
+    private Drawable flash_drawable;
+    private Drawable face_detection_drawable;
     private Bitmap audio_disabled_bitmap;
     private Bitmap high_speed_fps_bitmap;
     private Bitmap slow_motion_bitmap;
@@ -344,7 +350,7 @@ public class DrawPreview {
         location_off_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ic_gps_off_white_48dp);
         raw_jpeg_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.raw_icon);
         raw_only_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.raw_only_icon);
-        auto_stabilise_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.auto_stabilise_icon);
+        auto_stabilise_drawable =  getContext().getResources().getDrawable(R.drawable.ic_preference_auto_stabilise);
         dro_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.dro_icon);
         hdr_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ic_hdr_on_white_48dp);
         panorama_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.baseline_panorama_horizontal_white_48);
@@ -356,8 +362,8 @@ public class DrawPreview {
         x_bokeh_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.baseline_portrait_white_48);
         x_beauty_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.baseline_face_retouching_natural_white_48);
         photostamp_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ic_text_format_white_48dp);
-        flash_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.flash_on);
-        face_detection_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ic_face_white_48dp);
+        flash_drawable = getContext().getResources().getDrawable(R.drawable.ic_camera_flash_on);
+        face_detection_drawable = getContext().getResources().getDrawable(R.drawable.ic_face);
         audio_disabled_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ic_mic_off_white_48dp);
         high_speed_fps_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ic_fast_forward_white_48dp);
         slow_motion_bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ic_slow_motion_video_white_48dp);
@@ -393,9 +399,8 @@ public class DrawPreview {
             raw_only_bitmap.recycle();
             raw_only_bitmap = null;
         }
-        if( auto_stabilise_bitmap != null ) {
-            auto_stabilise_bitmap.recycle();
-            auto_stabilise_bitmap = null;
+        if( auto_stabilise_drawable != null ) {
+            auto_stabilise_drawable = null;
         }
         if( dro_bitmap != null ) {
             dro_bitmap.recycle();
@@ -441,13 +446,9 @@ public class DrawPreview {
             photostamp_bitmap.recycle();
             photostamp_bitmap = null;
         }
-        if( flash_bitmap != null ) {
-            flash_bitmap.recycle();
-            flash_bitmap = null;
-        }
-        if( face_detection_bitmap != null ) {
-            face_detection_bitmap.recycle();
-            face_detection_bitmap = null;
+
+        if( face_detection_drawable != null ) {
+            face_detection_drawable = null;
         }
         if( audio_disabled_bitmap != null ) {
             audio_disabled_bitmap.recycle();
@@ -684,7 +685,7 @@ public class DrawPreview {
         show_pitch_lines_pref = sharedPreferences.getBoolean(PreferenceKeys.ShowPitchLinesPreferenceKey, false);
         show_geo_direction_lines_pref = sharedPreferences.getBoolean(PreferenceKeys.ShowGeoDirectionLinesPreferenceKey, false);
 
-        String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_low_profile");
+        String immersive_mode = sharedPreferences.getString(PreferenceKeys.ImmersiveModePreferenceKey, "immersive_mode_off");
         immersive_mode_everything_pref = immersive_mode.equals("immersive_mode_everything");
 
         has_stamp_pref = applicationInterface.getStampPref().equals("preference_stamp_yes");
@@ -1180,7 +1181,7 @@ public class DrawPreview {
         int ui_rotation = preview.getUIRotation();
 
         // set up text etc for the multiple lines of "info" (time, free mem, etc)
-        p.setTextSize(16 * scale_font + 0.5f); // convert dps to pixels
+        p.setTextSize(12.6f * scale_font + 0.5f); // convert dps to pixels
         p.setTextAlign(Paint.Align.LEFT);
         int location_x = top_x;
         int location_y = top_y;
@@ -1311,7 +1312,7 @@ public class DrawPreview {
                     Color.WHITE, Color.BLACK, location_x, bottom_y,
                     MyApplicationInterface.Alignment.ALIGNMENT_BOTTOM, null, MyApplicationInterface.Shadow.SHADOW_OUTLINE);
         }
-        p.setTextSize(16 * scale_font + 0.5f); // Restore text size
+        p.setTextSize(12.6f * scale_font + 0.5f); // Restore text size
 
         if( camera_controller != null && show_iso_pref ) {
             if( iso_exposure_string == null || time_ms > last_iso_exposure_time + 500 ) {
@@ -1454,7 +1455,7 @@ public class DrawPreview {
                 p.setAlpha(64);
                 canvas.drawRect(icon_dest, p);
                 p.setAlpha(255);
-                canvas.drawBitmap(face_detection_bitmap, null, icon_dest, p);
+                face_detection_drawable.draw(canvas);
 
                 if( device_ui_rotation == 180 ) {
                     location_x2 -= icon_size + flash_padding;
@@ -1471,7 +1472,7 @@ public class DrawPreview {
                 p.setAlpha(64);
                 canvas.drawRect(icon_dest, p);
                 p.setAlpha(255);
-                canvas.drawBitmap(auto_stabilise_bitmap, null, icon_dest, p);
+                auto_stabilise_drawable.draw(canvas);
 
                 if( device_ui_rotation == 180 ) {
                     location_x2 -= icon_size + flash_padding;
@@ -1627,7 +1628,7 @@ public class DrawPreview {
                     p.setAlpha((int)(64*alpha));
                     canvas.drawRect(icon_dest, p);
                     p.setAlpha((int)(255*alpha));
-                    canvas.drawBitmap(flash_bitmap, null, icon_dest, p);
+                    flash_drawable.draw(canvas);
                     p.setAlpha(255);
                 }
                 else {
@@ -2104,7 +2105,7 @@ public class DrawPreview {
                     // Convert the dps to pixels, based on density scale
                     p.setTextSize(14 * scale_font + 0.5f); // convert dps to pixels
                     p.setTextAlign(Paint.Align.CENTER);
-                    applicationInterface.drawTextWithBackground(canvas, p, getContext().getResources().getString(R.string.zoom) + ": " + zoom_ratio +"x", Color.WHITE, Color.BLACK, canvas.getWidth() / 2, text_base_y - text_y, MyApplicationInterface.Alignment.ALIGNMENT_BOTTOM, ybounds_text, MyApplicationInterface.Shadow.SHADOW_OUTLINE);
+                    applicationInterface.drawTextWithBackground(canvas, p, getZoomText(zoom_ratio), Color.WHITE, Color.BLACK, canvas.getWidth() / 2, text_base_y - text_y - 100, MyApplicationInterface.Alignment.ALIGNMENT_BOTTOM, ybounds_text, MyApplicationInterface.Shadow.SHADOW_OUTLINE);
                 }
             }
 
@@ -2119,7 +2120,16 @@ public class DrawPreview {
             p.setTextAlign(Paint.Align.CENTER);
             int pixels_offset = (int) (20 * scale_font + 0.5f); // convert dps to pixels
             if( preview.hasPermissions() ) {
-                if( preview.openCameraFailed() ) {
+                String cameraState = Utils.getProperty("persist.sys.hwswitch.state", null);
+                if (cameraState != null && DeviceSettings.isMurenaTwo() && preview.openCameraFailed()) {
+                    boolean enabled = Objects.equals(cameraState, "1");
+                    int text1 = enabled ? R.string.failed_to_open_camera_two_1_disabled : R.string.failed_to_open_camera_two_1_enabled;
+                    int text2 = enabled ? R.string.failed_to_open_camera_two_2_disabled : R.string.failed_to_open_camera_two_2_enabled;
+                    canvas.drawText(getContext().getResources().getString(text1), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f, p);
+                    canvas.drawText(getContext().getResources().getString(text2), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f + pixels_offset, p);
+                }
+
+                if ( !DeviceSettings.isMurenaTwo() && preview.openCameraFailed() ) {
                     canvas.drawText(getContext().getResources().getString(R.string.failed_to_open_camera_1), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f, p);
                     canvas.drawText(getContext().getResources().getString(R.string.failed_to_open_camera_2), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f + pixels_offset, p);
                     canvas.drawText(getContext().getResources().getString(R.string.failed_to_open_camera_3), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f + 2 * pixels_offset, p);
@@ -2136,7 +2146,7 @@ public class DrawPreview {
         }
 
         int top_x = (int) (5 * scale_dp + 0.5f); // convert dps to pixels
-        int top_y = (int) (5 * scale_dp + 0.5f); // convert dps to pixels
+        int top_y = (int) (15 * scale_dp + 0.5f); // convert dps to pixels
         View top_icon = main_activity.getMainUI().getTopIcon();
         if( top_icon != null ) {
             if( last_top_icon_shift_time == 0 || time_ms > last_top_icon_shift_time + 1000 ) {
@@ -2175,73 +2185,6 @@ public class DrawPreview {
                     // landscape
                     top_x += top_icon_shift;
                 }
-            }
-        }
-
-        {
-            /*int focus_seekbars_margin_left_dp = 85;
-            if( want_histogram )
-                focus_seekbars_margin_left_dp += DrawPreview.histogram_height_dp;*/
-            // 135 needed to make room for on-screen info lines in DrawPreview.onDrawInfoLines(), including the histogram
-            // but we also need to take the top_icon_shift into account, for widescreen aspect ratios and "icons along top" UI placement
-            int focus_seekbars_margin_left_dp = 135;
-            int new_focus_seekbars_margin_left = (int) (focus_seekbars_margin_left_dp * scale_dp + 0.5f); // convert dps to pixels
-            if( top_icon_shift > 0 ) {
-                //noinspection SuspiciousNameCombination
-                new_focus_seekbars_margin_left += top_icon_shift;
-            }
-
-            if( focus_seekbars_margin_left == -1 || new_focus_seekbars_margin_left != focus_seekbars_margin_left ) {
-                // we check whether focus_seekbars_margin_left has changed, in case there is a performance cost for setting layoutparams
-                this.focus_seekbars_margin_left = new_focus_seekbars_margin_left;
-                if( MyDebug.LOG )
-                    Log.d(TAG, "set focus_seekbars_margin_left to " + focus_seekbars_margin_left);
-
-                // "left" and "right" here are written assuming we're in landscape system orientation
-
-                View view = main_activity.findViewById(R.id.focus_seekbar);
-                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-                preview.getView().getLocationOnScreen(gui_location);
-                int preview_left = gui_location[system_orientation_portrait ? 1 : 0];
-                if( system_orientation == MainActivity.SystemOrientation.REVERSE_LANDSCAPE )
-                    preview_left += preview.getView().getWidth(); // actually want preview-right for reverse landscape
-
-                view.getLocationOnScreen(gui_location);
-                int seekbar_right = gui_location[system_orientation_portrait ? 1 : 0];
-                if( system_orientation == MainActivity.SystemOrientation.LANDSCAPE || system_orientation == MainActivity.SystemOrientation.PORTRAIT ) {
-                    // n.b., we read view.getWidth() even if system_orientation is portrait, because the seekbar is rotated in portrait orientation
-                    seekbar_right += view.getWidth();
-                }
-                else {
-                    // and for reversed landscape, the seekbar is rotated 180 degrees, and getLocationOnScreen() returns the location after the rotation
-                    seekbar_right -= view.getWidth();
-                }
-
-                int min_seekbar_width = (int) (150 * scale_dp + 0.5f); // convert dps to pixels
-                int new_seekbar_width;
-                if( system_orientation == MainActivity.SystemOrientation.LANDSCAPE || system_orientation == MainActivity.SystemOrientation.PORTRAIT ) {
-                    new_seekbar_width = seekbar_right - (preview_left+focus_seekbars_margin_left);
-                }
-                else {
-                    // reversed landscape
-                    new_seekbar_width = preview_left - focus_seekbars_margin_left - seekbar_right;
-                }
-                new_seekbar_width = Math.max(new_seekbar_width, min_seekbar_width);
-                /*if( MyDebug.LOG ) {
-                    Log.d(TAG, "preview_left: " + preview_left);
-                    Log.d(TAG, "seekbar_right: " + seekbar_right);
-                    Log.d(TAG, "new_seekbar_width: " + new_seekbar_width);
-                }*/
-                layoutParams.width = new_seekbar_width;
-                view.setLayoutParams(layoutParams);
-
-                view = main_activity.findViewById(R.id.focus_bracketing_target_seekbar);
-                layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-                layoutParams.width = new_seekbar_width;
-                view.setLayoutParams(layoutParams);
-
-                // need to update due to changing width of focus seekbars
-                main_activity.getMainUI().setFocusSeekbarsRotation();
             }
         }
 
@@ -2310,6 +2253,11 @@ public class DrawPreview {
         else if( zoom_ratio >= 2.0f )
             angle_step = 5;
         return angle_step;
+    }
+
+    @NonNull
+    private String getZoomText(float zoom_ratio) {
+        return "·    " + zoom_ratio + "X" + "    ·";
     }
 
     private void drawAngleLines(Canvas canvas, int device_ui_rotation, long time_ms) {
@@ -2613,7 +2561,7 @@ public class DrawPreview {
         if( camera_controller != null && this.thumbnail_anim && last_thumbnail != null ) {
             int ui_rotation = preview.getUIRotation();
             long time = time_ms - this.thumbnail_anim_start_ms;
-            final long duration = 500;
+            final long duration = 400;
             if( time > duration ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "thumbnail_anim finished");

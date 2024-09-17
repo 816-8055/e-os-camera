@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Open Camera</string>
+    <string name="app_name">Camera</string>
     <string name="action_settings">设置</string>    
     <string name="action_popup">弹出设置</string>
     <string name="intro_ok">好 (此消息将不再显示)</string>
@@ -33,9 +33,9 @@
     <string name="video">视频</string>
     <string name="exposure_locked">曝光锁定</string>
     <string name="exposure_unlocked">曝光解锁</string>
-    <string name="cancelled_timer">已取消倒计时</string>
+    <string name="cancelled_timer">已取消定时器</string>
     <string name="cancelled_repeat_mode">已取消连拍模式</string>
-    <string name="started_timer">开始倒计时</string>
+    <string name="started_timer">已开始定时器</string>
     <string name="failed_to_save_video">保存视频文件失败</string>
     <string name="failed_to_record_video">录制视频失败</string>
     <string name="started_recording_video">已开始录制视频</string>
@@ -90,13 +90,13 @@
     <string name="preference_face_detection_summary">通过识别人脸完成对焦</string>
 
     <string name="preference_category_camera_controls">相机控制</string>
-    <string name="preference_timer">倒计时</string>
-    <string name="preference_timer_beep">倒计时蜂鸣器</string>
-    <string name="preference_timer_beep_summary">倒计时、连拍间隔时发出蜂鸣器声</string>
+    <string name="preference_timer">定时器</string>
+    <string name="preference_timer_beep">定时器蜂鸣</string>
+    <string name="preference_timer_beep_summary">当计时器倒数或连拍模式延迟时蜂鸣</string>
     <string name="preference_timer_speak">语音定时器倒计时</string>
-    <string name="preference_timer_speak_summary">语音播报倒计时或连拍延时（从60秒开始倒数）</string>
+    <string name="preference_timer_speak_summary">说出定时器倒计时或连拍模式延时（从60秒开始）</string>
     <string name="preference_burst_mode">连拍模式</string>
-    <string name="preference_burst_interval">连拍间隔时长</string>
+    <string name="preference_burst_interval">连拍模式间隔</string>
     <string name="preference_screen_camera_controls_more">更多相机控制…</string>
     <string name="preference_touch_capture">触摸快门</string>
     <string name="preference_touch_capture_summary">拍照只需通过触摸预览</string>
@@ -105,7 +105,7 @@
     <string name="preference_shutter_sound">快门声音</string>
     <string name="preference_shutter_sound_summary">拍照时播放声音</string>
     <string name="preference_volume_keys">音量键功能</string>
-    <string name="preference_audio_control">声控拍照</string>
+    <string name="preference_audio_control">语音识别</string>
     <string name="preference_audio_noise_control_sensitivity">麦克风灵敏度</string>
     <string name="preference_audio_noise_control_sensitivity_summary">使用语音识别时麦克风过滤噪声的阈值</string>
     <string name="preference_save_location">保存位置</string>
@@ -116,9 +116,9 @@
     <string name="preference_save_video_prefix">保存视频前缀</string>
     <string name="preference_save_video_prefix_summary">用于保存视频文件名的前缀</string>
     <string name="preference_show_when_locked">锁定时显示相机</string>
-    <string name="preference_show_when_locked_summary">如果开启，Open Camera 将仍然在任何锁屏之上显示 (你仍然必须解锁来访问设置，图库等)</string>
+    <string name="preference_show_when_locked_summary">如果开启，Camera 将仍然在任何锁屏之上显示 (你仍然必须解锁来访问设置，图库等)</string>
     <string name="preference_startup_focus">启动时执行自动对焦</string>
-    <string name="preference_startup_focus_summary">Open Camera 启动时是否执行自动对焦。如果启动时开启闪光灯有问题，禁用此选项</string>
+    <string name="preference_startup_focus_summary">Camera 启动时是否执行自动对焦。如果启动时开启闪光灯有问题，禁用此选项</string>
     <string name="preference_lock_video">录像时锁定屏幕</string>
     <string name="preference_lock_video_summary">当录制视频时，图形用户界面将被锁定以防止意外的停止录像。滑动屏幕以解锁。注意，如果程序转到后台或屏幕是空白，视频录制总是会停止。</string>
     <string name="preference_rotate_preview">旋转预览</string>
@@ -140,7 +140,7 @@
     <string name="preference_show_angle">显示角度</string>
     <string name="preference_show_angle_summary">在屏幕上显示当前的设备与铅垂线的夹角</string>
     <string name="preference_show_angle_line">显示角度线</string>
-    <string name="preference_show_angle_line_summary">显示水平基准线</string>
+    <string name="preference_show_angle_line_summary">显示水平线</string>
     <string name="preference_angle_highlight_color">角度高亮颜色</string>
     <string name="preference_angle_highlight_color_summary">当相机几乎是水平时的高亮颜色</string>
     <string name="preference_show_geo_direction">显示罗盘方向</string>
@@ -153,12 +153,12 @@
     <string name="grid">网格</string> <!-- short form of Show a grid -->
     <string name="preference_crop_guide">显示裁剪框</string>
     <string name="preference_crop_guide_summary">屏幕上显示一个预设比例的矩形框体。\n如果你拍照后会裁剪照片/视频为不同长宽比的照片，这就很有用了。\n%s</string>
-    <string name="preference_show_toasts">显示toast消息</string>
-    <string name="preference_show_toasts_summary">是否显示弹出的toast消息</string>
+    <string name="preference_show_toasts">显示 \"toast\" 消息</string>
+    <string name="preference_show_toasts_summary">是否显示弹出的 \"toast\" 消息</string>
     <string name="preference_thumbnail_animation">显示缩略图动画</string>
     <string name="preference_thumbnail_animation_summary">当拍照时显示移动缩略图动画</string>
     <string name="preference_keep_display_on">保持屏幕常亮</string>
-    <string name="preference_keep_display_on_summary">如果开启，当 Open Camera 的主界面激活时，屏幕将不会关闭。</string>
+    <string name="preference_keep_display_on_summary">如果开启，当 Camera 的主界面激活时，屏幕将不会关闭。</string>
     <string name="preference_max_brightness">强制最大亮度</string>
     <string name="preference_max_brightness_summary">强制屏幕以最大亮度显示，而不是设备默认值</string>
     
@@ -168,7 +168,7 @@
     <string name="preference_screen_location_settings">位置设置…</string>
     <string name="preference_resolution">相机分辨率</string>
     <string name="preference_quality">照片质量</string>
-    <string name="preference_quality_summary">设置保存照片的质量（推荐值90%%）\n%s</string>
+    <string name="preference_quality_summary">设置保存的照片质量（建议值是90%%）\n%s</string>
     <string name="preference_location">存储位置数据 (地理标记)</string>
     <string name="preference_location_summary">在照片/视频中存储 GPS 位置数据</string>
     <string name="preference_gps_direction">存储罗盘方向</string>
@@ -209,8 +209,8 @@
     <string name="preference_record_audio_summary">录像时录音</string>
     <string name="preference_record_audio_src">音频源</string>
     <string name="preference_record_audio_src_summary">麦克风用于录制音频\n%s</string>
-    <string name="preference_record_audio_channels">录音通道数</string>
-    <string name="preference_record_audio_channels_summary">规定使用单声道或者立体声进行录音（仅部分设备支持立体声）\n%s</string>
+    <string name="preference_record_audio_channels">音频声道</string>
+    <string name="preference_record_audio_channels_summary">规定使用单声道或者立体声进行录音（仅部分设备支持立体声）。</string>
     <string name="preference_video_flash">录像时闪光</string>
     <string name="preference_video_flash_summary">如果启用，录像时闪光将开启/关闭 (在一段距离外可以用来告诉相机仍然在录制)。</string>
     
@@ -223,8 +223,8 @@
     <string name="preference_about">关于</string>
     <string name="preference_about_summary">应用程序和调试信息</string>
     <string name="preference_reset">复位设置</string>
-    <string name="preference_reset_summary">重设所有 Open Camera 设置为默认</string>
-    <string name="preference_reset_question">你确定要重设所有 Open Camera 设置为默认值吗？</string>
+    <string name="preference_reset_summary">重设所有 Camera 设置为默认</string>
+    <string name="preference_reset_question">你确定要重设所有 Camera 设置为默认值吗？</string>
 
     <string name="about_available">可用</string>
     <string name="about_not_available">不可用</string>
@@ -262,7 +262,7 @@
 
     <string name="audio_control_start">开始音频监听</string>
     <string name="audio_control_stop">停止音频监听</string>
-    <string name="speech_recognizer_started">说 \"cheese\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
+    <string name="speech_recognizer_started">说 \"cheese\"</string>
     <string name="audio_listener_started">发出大的声音</string>
 
     <string name="duration_unlimited">无限</string>
@@ -339,7 +339,7 @@
     <string name="preference_raw">RAW</string>
     <string name="preference_background_photo_saving">使用后台线程</string>
     <string name="preference_background_photo_saving_summary">使用后台线程保存照片（操作更流畅）</string>
-    <string name="preference_online_help_summary">在浏览器中打开Open Camera网站</string>
+    <string name="preference_online_help_summary">在浏览器中打开Camera网站</string>
     <string name="switch_to_front_camera">切换到前摄像头</string>
     <string name="switch_to_back_camera">切换到后摄像头</string>
     <string name="switch_to_video">切换到摄像模式</string>
@@ -424,13 +424,13 @@
     <string name="preference_show_geo_direction_lines_summary">显示罗盘方向线</string>
     <string name="video_pause">暂停录像</string>
     <string name="video_resume">继续录像</string>
-    <string name="preference_show_take_photo">显示拍照按钮</string>
+    <string name="preference_show_take_photo">显示“拍照按钮”</string>
     <string name="preference_show_take_photo_summary">显示拍照、录像按钮。除非你有其他方法（比如硬件快门、使用音量键），否则不应该取消勾选</string>
 
 
     <string name="preference_expo_bracketing_n_images_summary">包围曝光的图片数量\n%s</string>
 
-    <string name="preference_nr_save_summary">开启降噪模式后仍然保存原图。注意这会让保存照片变慢很多。\n%s</string>
+    <string name="preference_nr_save_summary">在降噪模式中保存原图。注意这会让保存照片慢很多。\n%s</string>
 
     <string name="video_power_critical">停止录像\n电量严重不足</string>
     <string name="preference_video_low_power_check">检查电池报警</string>
@@ -456,7 +456,7 @@
     <string name="preference_camera2_fast_burst">快速HDR/包围曝光</string>
     <string name="preference_camera2_fast_burst_summary">允许更快地完成HDR/包围拍照。如果您的设备在使用HDR/包围模式拍照时出现了问题，请禁用此功能。</string>
 
-    <string name="open_files_saf_exception_ghost">没有在设备上找到文件选择器，所以不能使用辅助图像功能。</string>
+    <string name="open_files_saf_exception_ghost">在设备上没有找到文件选择器，所以不能使用辅助图像功能。</string>
     <string name="saf_permission_failed_open_image">无法打开文件</string>
 
     <string name="preference_camera2_photo_video_recording">允许在录像时拍照</string>
@@ -625,15 +625,11 @@
     <string name="photo_mode_noise_reduction_full">降噪(NR)</string>
     <string name="preference_category_stamp">照片水印</string>
     <string name="preference_hdr_save_expo">保存HDR模式采集的所有原图</string>
-    <string name="preference_hdr_save_expo_summary">启用后使用HDR模式拍照会保存三个基本曝光图像以及最终的HDR照片。注意这会使保存速度变慢，尤其是同时启用了“照片水印”或“自动水平”等功能时。</string>
+    <string name="preference_hdr_save_expo_summary">启用后使用HDR模式拍照会保存三个基本曝光图像以及最终的HDR照片。注意这会使保存速度变慢，尤其是启用了“照片水印”或自动水平等功能时。</string>
 
     <string name="no_permission">没有获得授权</string>
     <string name="permission_rationale_title">需要授权</string>
     <string name="permission_rationale_camera">操作相机需要相机权限</string>
-    <string name="preference_camera2_dummy_capture_hack">启用虚拟捕捉修复HDR/包围曝光</string>
-    <string name="preference_camera2_dummy_capture_hack_summary">如果您的设备在使用HDR或包围曝光模式拍摄照片时出现问题（比如包围曝光模式的图像的曝光度相同），请尝试启用此选项。只有同时启用了下面的快速HDR/包围曝光选项时才会有效。</string>
-    <string name="permission_rationale_bluetooth_scan_connect">发现和连接BLE远程控制设备需蓝牙扫描/连接权限。</string>
-    <string name="unknown_device_no_permission">未知设备（蓝牙连接权限不可用）</string>
     <string name="permission_rationale_record_audio">录像和语音控制需要麦克风权限</string>
 
     <string name="flash_frontscreen_auto">自动开启屏幕补光</string>
@@ -652,12 +648,12 @@
     <string name="preference_screen_settings_manager">配置管理器</string>
 
     <string name="preference_save_settings">保存配置</string>
-    <string name="preference_save_settings_summary">保存Open Camera所有选项的至文件中</string>
+    <string name="preference_save_settings_summary">保存Camera所有选项的至文件中</string>
     <string name="preference_save_settings_filename">保存的文件名</string>
 
     <string name="preference_restore_settings">恢复配置</string>
-    <string name="preference_restore_settings_summary">恢复配置文件到Open Camera。注意这会覆盖现在的所有设定值！</string>
-    <string name="preference_restore_settings_question">这个选项允许你选择一个先前保存的配置文件并恢复到Open Camera中。需要注意这个文件载入后会覆盖当前所有选项的设定值！</string>
+    <string name="preference_restore_settings_summary">恢复配置文件到Camera。注意这会覆盖现在的所有设定值！</string>
+    <string name="preference_restore_settings_question">这个选项允许你选择一个先前保存的配置文件并恢复到Camera中。需要注意这个文件载入后会覆盖当前所有选项的设定值！</string>
 
     <string name="preference_video_output_format">视频格式</string>
     <string name="preference_video_output_format_summary">录像的编码和格式\n%s</string>
@@ -749,7 +745,7 @@
     <string name="bluetooth_not_supported">不支持蓝牙</string>
     <string name="unknown_device">未知设备</string>
     <string name="preference_remote_disconnect_screen_dim">断开控制时熄屏</string>
-    <string name="preference_remote_disconnect_screen_dim_summary">提示：打开Open Camera前，请把默认亮度调到最低</string>
+    <string name="preference_remote_disconnect_screen_dim_summary">提示：打开Camera前，请把默认亮度调到最低</string>
     <string name="preference_water_type">使用盐水计算深度</string>
     <string name="preference_water_type_summary">设置正确的水下兔笼的类型，可以提高水下拍摄时深度计算的准确性</string>
     <string name="remote_connected">控制器已连接</string>
@@ -799,7 +795,7 @@
 
     <string name="cycle_flash">循环闪光灯的模式</string>
     <string name="preference_show_cycle_flash">显示闪光灯按钮</string>
-    <string name="preference_show_cycle_flash_summary">按下按钮后切换闪光灯模式，而不是弹出选项菜单。</string>
+    <string name="preference_show_cycle_flash_summary">按下按钮后循环切换闪光灯模式，而不是弹出菜单选项。</string>
 
     <string name="preference_raw_expo_bracketing">允许RAW包围曝光</string>
     <!--Whether the RAW option should also apply for expo bracketing photo mode (or for HDR mode when \"Save all images for HDR mode\" is enabled). If this option is disabled, only JPEGs will be saved in those photo modes.-->
@@ -834,7 +830,15 @@
     <string name="preference_panorama_save_all">保存原图</string>
     <string name="preference_panorama_save_all_plus_debug">保存原图和debug XML</string>
 
-    <string name="camera_id">ID</string> <!-- ID as in camera ID -->
+    <string name="camera_id">ID</string>
+    <string name="preferences_about_title">About</string>
+    <string name="preferences_build_version">内部版本</string>
+    <string name="preferences_about_app">相机是从Camera分叉的</string>
+    <string name="preferences_authors">作者</string>
+    <string name="preferences_source_code">源代码</string>
+    <string name="preferences_licence">牌照</string>
+    <string name="preferences_app_info_title">相机信息</string>
+    <string name="preferences_service_terms">服务条款</string> <!-- ID as in camera ID -->
 
     <string name="preference_immersive_mode_off">关闭</string>
     <string name="preference_immersive_mode_navigation">只隐藏屏幕上的虚拟导航按钮</string>
@@ -918,8 +922,8 @@
     <string name="preference_video_profile_gamma_2_4">2.4</string>
     <string name="preference_video_profile_gamma_2_6">2.6</string>
     <string name="preference_video_profile_gamma_2_8">2.8</string>
-    <string name="preference_ghost_image_alpha">辅助图像透明度</string>
-    <string name="preference_ghost_image_alpha_summary">设置辅助图像的透明度值。值越低越透明，值越高越不透明。\n%s</string>
+    <string name="preference_ghost_image_alpha">辅助图片透明度</string>
+    <string name="preference_ghost_image_alpha_summary">用于辅助图片的透明度值。较低的值代表更透明，较高的值代表更不透明。\n%s</string>
     <string name="external_camera">外部相机</string>
     <string name="ultrawide">超广角</string>
     <string name="switch_to_external_camera">切换至外部相机</string>
@@ -946,21 +950,13 @@
 
     <string name="preference_comment_ypr">保存三轴运动信息</string>
     <string name="preference_comment_ypr_summary">在照片的 Exit 用户备注字段保存设备的三轴运动信息(仅适用于JPEG格式)</string>
-    <string name="preference_audio_control_summary">启用此功能后，可以点击屏幕上的麦克风按钮来启动监听。麦克风检测到声音后，自动拍照或者录像。
+    <string name="preference_audio_control_summary">根据噪点拍照。
+        当启用后，使用屏幕上的麦克风按钮来启动监听。
         \n%s</string>
     <string name="intro_text">点击来对焦，然后按下蓝色相机按钮以拍照。要禁用最大屏幕亮度，查阅设置/屏幕GUI/\"强制最大亮度\"选项。要在 Android 5 之后的设备上保存至 SD 卡，查阅设置/更多相机控制/\"Storage Access Framework\"。如需更多帮助，在设置中点击“在线帮助”。</string>
 
-    <string name="preference_audio_control_none">不使用</string>
+    <string name="preference_audio_control_none">无</string>
     <string name="preference_audio_control_noise">大的声音</string>
     <string name="preference_audio_control_voice">语音命令: \"cheese\"</string> <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
-    <string name="permission_rationale_storage">需要存储读/写权限才能保存照片或视频文件</string>
-    <string name="permission_rationale_location">地理标记需要位置权限（将位置数据存储在照片和视频，包括水印和）。还需要位置权限（至少对于 Android 11 及更早版本）才能连接到BLE远程控制设备。</string>
-    <string name="preference_hdr_tonemapping">HDR映射</string>
-    <string name="preference_hdr_tonemapping_summary">在HDR模式中使用的色调映射算法\n%s</string>
-    <string name="preference_remove_device_exif">删除设备 EXIF 信息</string>
-    <string name="preference_remove_device_exif_summary">是否删除 JPEG 照片中的设备 EXIF 信息。其他 EXIF 信息（如坐标/海拔）不受影响，RAW/DNG 和视频也不受影响。\n%s</string>
-    <string name="preference_remove_device_exif_off">不删除设备 EXIF 信息</string>
-    <string name="preference_remove_device_exif_on">删除设备 EXIF 信息</string>
-    <string name="preference_remove_device_exif_keep_datetime">删除日期/时间以外的信息</string>
 
 </resources>

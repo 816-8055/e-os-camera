@@ -1,7 +1,9 @@
 package net.sourceforge.opencamera.cameracontroller;
 
+import net.sourceforge.opencamera.ContinuousBurstImageRunningAction;
 import net.sourceforge.opencamera.HDRProcessor;
 import net.sourceforge.opencamera.MyDebug;
+import net.sourceforge.opencamera.R;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -63,6 +65,9 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.TextureView;
+import android.widget.Toast;
+
+import org.greenrobot.eventbus.EventBus;
 
 /** Provides support using Android 5's Camera 2 API
  *  android.hardware.camera2.*.
@@ -75,6 +80,7 @@ public class CameraController2 extends CameraController {
     private CameraDevice camera;
     private final String cameraIdS;
 
+    private final boolean is_fairphone;
     private final boolean is_samsung;
     private final boolean is_samsung_s7; // Galaxy S7 or Galaxy S7 Edge
     private final boolean is_samsung_galaxy_s;
@@ -99,6 +105,8 @@ public class CameraController2 extends CameraController {
     private boolean supports_exposure_time;
     private long min_exposure_time;
     private long max_exposure_time;
+
+    private int toastCounter = 0;
 
     private final static int tonemap_log_max_curve_points_c = 64;
     private final static float [] jtvideo_values_base = new float[] {
@@ -180,7 +188,7 @@ public class CameraController2 extends CameraController {
     private boolean previewIsVideoMode;
     private AutoFocusCallback autofocus_cb;
     private long autofocus_time_ms = -1; // time we set autofocus_cb to non-null
-    private static final long autofocus_timeout_c = 1000; // timeout for calling autofocus_cb (applies for both auto and continuous focus)
+    private static final long autofocus_timeout_c = 500; // timeout for calling autofocus_cb (applies for both auto and continuous focus)
     private boolean capture_follows_autofocus_hint;
     private boolean ready_for_capture;
     private FaceDetectionListener face_detection_listener;
@@ -265,8 +273,8 @@ public class CameraController2 extends CameraController {
     private static final int STATE_WAITING_FAKE_PRECAPTURE_DONE = 5;
     private int state = STATE_NORMAL;
     private long precapture_state_change_time_ms = -1; // time we changed state for precapture modes
-    private static final long precapture_start_timeout_c = 2000;
-    private static final long precapture_done_timeout_c = 3000;
+    private static final long precapture_start_timeout_c = 500;
+    private static final long precapture_done_timeout_c = 1000;
 
     private boolean use_fake_precapture; // see CameraController.setUseCamera2FakeFlash() for details - this is the user/application setting, see use_fake_precapture_mode for whether fake precapture is enabled (as we may do this for other purposes, e.g., front screen flash)
     private boolean use_fake_precapture_mode; // true if either use_fake_precapture is true, or we're temporarily using fake precapture mode (e.g., for front screen flash or exposure bracketing)
@@ -1634,6 +1642,9 @@ public class CameraController2 extends CameraController {
                 takePhotoCompleted();
             }
 
+            if (n_burst_taken == 1) {
+                EventBus.getDefault().post(new ContinuousBurstImageRunningAction());
+            }
             if( MyDebug.LOG )
                 Log.d(TAG, "done onImageAvailable");
         }
@@ -2050,10 +2061,12 @@ public class CameraController2 extends CameraController {
         this.camera_error_cb = camera_error_cb;
 
         //this.is_oneplus = Build.MANUFACTURER.toLowerCase(Locale.US).contains("oneplus");
+        this.is_fairphone = Build.MANUFACTURER.toLowerCase(Locale.US).contains("fairphone");
         this.is_samsung = Build.MANUFACTURER.toLowerCase(Locale.US).contains("samsung");
         this.is_samsung_s7 = Build.MODEL.toLowerCase(Locale.US).contains("sm-g93");
         this.is_samsung_galaxy_s = is_samsung && Build.MODEL.toLowerCase(Locale.US).contains("sm-g");
         if( MyDebug.LOG ) {
+            Log.d(TAG, "is_fairphone: " + is_fairphone);
             Log.d(TAG, "is_samsung: " + is_samsung);
             Log.d(TAG, "is_samsung_s7: " + is_samsung_s7);
             Log.d(TAG, "is_samsung_galaxy_s: " + is_samsung_galaxy_s);
@@ -2901,6 +2914,27 @@ public class CameraController2 extends CameraController {
                 camera_features.picture_sizes.add(new CameraController.Size(camera_size.getWidth(), camera_size.getHeight()));
             }
         }
+
+        if(is_fairphone && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            CameraCharacteristics.Key<int[]> qcfaDimensionKey =
+                    new CameraCharacteristics.Key<>("org.codeaurora.qcamera3.quadra_cfa.qcfa_dimension", int[].class);
+            try {
+                int[] qcfaDimension = characteristics.get(qcfaDimensionKey);
+                if (qcfaDimension != null && qcfaDimension.length == 2) {
+                    int qcfaWidth = qcfaDimension[0];
+                    int qcfaHeight = qcfaDimension[1];
+                    Size qcfaSize = new Size(qcfaWidth, qcfaHeight);
+                    if (!camera_features.picture_sizes.contains(qcfaSize)) {
+                        if (MyDebug.LOG)
+                            Log.d(TAG, "Adding QCFA size: " + qcfaWidth + " x " + qcfaHeight);
+                        camera_features.picture_sizes.add(qcfaSize);
+                    }
+                }
+            } catch (IllegalArgumentException e) {
+              e.printStackTrace();
+            }
+        }
+
         // sizes are usually already sorted from high to low, but sort just in case
         // note some devices do have sizes in a not fully sorted order (e.g., Nokia 8)
         Collections.sort(camera_features.picture_sizes, new CameraController.SizeSorter());
@@ -8402,14 +8436,17 @@ public class CameraController2 extends CameraController {
                         // need to check af_state != null, I received Google Play crash in 1.33 where it was null
                         boolean focus_success = af_state != null && ( af_state == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED );
                         if( MyDebug.LOG ) {
-                            if( focus_success )
+                            if( focus_success ) {
                                 Log.d(TAG, "autofocus success");
-                            else
+                            } else {
                                 Log.d(TAG, "autofocus failed");
-                            if( af_state == null )
+                                onFocusFailed();
+                            }
+                            if( af_state == null ) {
                                 Log.e(TAG, "continuous focus mode but af_state is null");
-                            else
+                            } else {
                                 Log.d(TAG, "af_state: " + af_state);
+                            }
                         }
                         if( af_state == null ) {
                             test_af_state_null_focus++;
@@ -8462,10 +8499,12 @@ public class CameraController2 extends CameraController {
                     ) {
                         boolean focus_success = af_state == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED;
                         if( MyDebug.LOG ) {
-                            if( focus_success )
+                            if( focus_success ) {
                                 Log.d(TAG, "onCaptureCompleted: autofocus success");
-                            else
+                            } else {
                                 Log.d(TAG, "onCaptureCompleted: autofocus failed");
+                                onFocusFailed();
+                            }
                             Log.d(TAG, "af_state: " + af_state);
                         }
                         state = STATE_NORMAL;
@@ -8652,6 +8691,18 @@ public class CameraController2 extends CameraController {
                     precapture_state_change_time_ms = -1;
                     takePictureAfterPrecapture();
                 }
+            }
+        }
+
+        private void onFocusFailed() {
+            // Show only if focus failed twice.
+            if (toastCounter == 1) {
+                Toast.makeText(context,
+                        R.string.preference_failed_focus_mode_message,
+                        Toast.LENGTH_SHORT).show();
+                toastCounter = 0;
+            } else {
+                toastCounter++;
             }
         }
 

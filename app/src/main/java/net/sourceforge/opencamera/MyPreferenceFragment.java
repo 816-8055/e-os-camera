@@ -66,6 +66,7 @@ import java.util.List;
  */
 public class MyPreferenceFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
     private static final String TAG = "MyPreferenceFragment";
+    public static final String BUILD_VERION = "build_version";
 
     private int cameraId;
 
@@ -86,6 +87,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
             Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
+        findPreference(BUILD_VERION).setSummary(BuildConfig.VERSION_NAME);
 
         final Bundle bundle = getArguments();
         this.cameraId = bundle.getInt("cameraId");
@@ -402,7 +404,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                                 Log.d(TAG, "NameNotFoundException exception trying to get version number");
                             e.printStackTrace();
                         }
-                        about_string.append("Open Camera v");
+                        about_string.append("Camera v");
                         about_string.append(version);
                         about_string.append("\nCode: ");
                         about_string.append(version_code);
@@ -677,7 +679,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
 
                         about_string.append("\nUsing SAF?: ");
                         about_string.append(sharedPreferences.getBoolean(PreferenceKeys.UsingSAFPreferenceKey, false));
-                        String save_location = sharedPreferences.getString(PreferenceKeys.SaveLocationPreferenceKey, "OpenCamera");
+                        String save_location = sharedPreferences.getString(PreferenceKeys.SaveLocationPreferenceKey, "Camera");
                         about_string.append("\nSave Location: ");
                         about_string.append(save_location);
                         String save_location_saf = sharedPreferences.getString(PreferenceKeys.SaveLocationSAFPreferenceKey, "");

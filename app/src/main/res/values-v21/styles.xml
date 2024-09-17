@@ -8,9 +8,14 @@
     <style name="AppBaseTheme" parent="@style/Theme.AppCompat.NoActionBar">
         <!-- API 21 theme customizations can go here. -->
         <item name="android:imageButtonStyle">@style/image_button</item>
-        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@color/navigation_background</item>
+        <item name="android:colorAccent">@color/color_default_accent</item>
+        <item name="android:colorControlNormal">@color/color_default_icon</item>
+        <item name="android:windowBackground">@color/color_default_background</item>
+        <item name="colorAccent">@color/color_default_accent</item>
     </style>
     <style name="image_button" parent="@android:style/Widget.Material.ImageButton">
         <item name="android:backgroundTint">#d05a595b</item> <!-- standard material design backgroundTint is #ff5a595b, but we want transparent image buttons -->
     </style>
+    
 </resources>
