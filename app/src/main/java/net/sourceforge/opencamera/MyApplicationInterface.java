@@ -18,6 +18,7 @@ import net.sourceforge.opencamera.preview.ApplicationInterface;
 import net.sourceforge.opencamera.preview.BasicApplicationInterface;
 import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
+import net.sourceforge.opencamera.ui.CircleImageView;
 import net.sourceforge.opencamera.ui.DrawPreview;
 
 import android.annotation.TargetApi;
@@ -1887,9 +1888,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         panorama_pic_accepted = false;
         panorama_dir_left_to_right = true;
 
-        main_activity.getMainUI().setTakePhotoIcon();
-        View cancelPanoramaButton = main_activity.findViewById(R.id.cancel_panorama);
-        cancelPanoramaButton.setVisibility(View.VISIBLE);
+        main_activity.getMainUI().handlePanoromaModeButtonsVisibility();
         main_activity.getMainUI().closeExposureUI(); // close seekbars if open (popup is already closed when taking a photo)
         // taking the photo will end up calling MainUI.showGUI(), which will hide the other on-screen icons
     }
@@ -1925,9 +1924,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         if( is_cancelled ) {
             imageSaver.flushImageBatch();
         }
-        main_activity.getMainUI().setTakePhotoIcon();
-        View cancelPanoramaButton = main_activity.findViewById(R.id.cancel_panorama);
-        cancelPanoramaButton.setVisibility(View.GONE);
+        main_activity.getMainUI().handlePanoromaModeButtonsVisibility();
         main_activity.getMainUI().showGUI(); // refresh UI icons now that we've stopped panorama
     }
 
@@ -2352,6 +2349,9 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         if( dategeo_subtitles && video_method != ApplicationInterface.VideoMethod.URI ) {
             startVideoSubtitlesTask(video_method);
         }
+
+        ImageButton view = main_activity.findViewById(R.id.take_photo);
+        view.setImageResource(R.drawable.ic_camera_video_recording);
     }
 
     @Override
@@ -2458,7 +2458,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                 }
             }
             if( thumbnail != null ) {
-                ImageButton galleryButton = main_activity.findViewById(R.id.gallery);
+                CircleImageView galleryButton = main_activity.findViewById(R.id.gallery);
                 int width = thumbnail.getWidth();
                 int height = thumbnail.getHeight();
                 if( MyDebug.LOG )
