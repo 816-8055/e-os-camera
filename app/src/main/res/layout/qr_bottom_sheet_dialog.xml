@@ -21,7 +21,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/qrcodeColorOnSurface"
+        app:tint="@color/e_icon_color"
         tools:ignore="ContentDescription" />
 
     <androidx.cardview.widget.CardView
@@ -30,7 +30,7 @@
         android:layout_height="88dp"
         android:layout_marginTop="12dp"
         android:clickable="true"
-        app:cardBackgroundColor="@color/qrcodeColorOnSurface"
+        app:cardBackgroundColor="@color/e_floating_background"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -71,7 +71,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:singleLine="true"
-                    android:textColor="@color/qrcodeColorOnSurfaceVariant"
+                    android:textColor="@color/e_primary_text_color"
                     android:textStyle="bold"
                     android:typeface="normal"
                     app:layout_constraintBottom_toTopOf="@+id/data"
@@ -87,7 +87,7 @@
                     android:layout_height="wrap_content"
                     android:maxLines="2"
                     android:ellipsize="end"
-                    android:textColor="@color/qrcodeColorOnSurfaceVariant"
+                    android:textColor="@color/e_secondary_text_color"
                     android:textStyle="normal"
                     android:typeface="normal"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -106,14 +106,14 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
-                android:background="@color/qrcodeSelectableItemBackgroundBorderless"
+                android:background="@null"
                 android:contentDescription="@string/qr_share_description"
                 android:padding="5dp"
-                android:src="@drawable/share"
+                android:src="@drawable/ic_share"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/copy"
                 app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/qrcodeColorOnSurface" />
+                app:tint="@color/e_icon_color" />
 
             <ImageButton
                 android:id="@+id/copy"
@@ -122,14 +122,14 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
-                android:background="@color/qrcodeSelectableItemBackgroundBorderless"
+                android:background="@null"
                 android:contentDescription="@string/qr_copy_description"
                 android:padding="5dp"
                 android:src="@drawable/ic_content_copy"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/qrcodeColorOnSurface" />
+                app:tint="@color/e_icon_color" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

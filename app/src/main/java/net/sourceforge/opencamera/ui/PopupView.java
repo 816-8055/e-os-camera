@@ -43,6 +43,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.ImageView.ScaleType;
 
+import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.SwitchCompat;
 
 /** This defines the UI for the "popup" button, that provides quick access to a
@@ -355,7 +356,7 @@ public class PopupView extends LinearLayout {
                             LayoutParams.MATCH_PARENT
                     );
                     final int left_padding = (int) (10 * scale + 0.5f); // convert dps to pixels
-                    params.setMargins(left_padding, 0, 0, 0);
+                    params.setMargins(left_padding, 20, 0, 40);
                     checkBox.setLayoutParams(params);
                 }
 
@@ -1078,6 +1079,8 @@ public class PopupView extends LinearLayout {
 
         if( MyDebug.LOG )
             Log.d(TAG, "Overall PopupView time: " + (System.nanoTime() - debug_time));
+
+        setBackgroundColor(getResources().getColor(R.color.color_popup_bg));
     }
 
     int getTotalWidth() {
@@ -1332,7 +1335,7 @@ public class PopupView extends LinearLayout {
                 actual_max_per_row = Math.min(actual_max_per_row, max_buttons_per_row);
             int button_width_dp = total_width_dp/actual_max_per_row;
             boolean use_scrollview = false;
-            final int min_button_width_dp = 48; // needs to be at least 48dp to avoid Google Play pre-launch accessibility report warnings
+            final int min_button_width_dp = 24; // needs to be at least 48dp to avoid Google Play pre-launch accessibility report warnings
             if( button_width_dp < min_button_width_dp && max_buttons_per_row == 0 ) {
                 button_width_dp = min_button_width_dp;
                 use_scrollview = true;
@@ -1357,6 +1360,13 @@ public class PopupView extends LinearLayout {
             View current_view = null;
             if( MyDebug.LOG )
                 Log.d(TAG, "addButtonOptionsToPopup time 2.05: " + (System.nanoTime() - debug_time));
+
+            int padding_dp = 0;
+            if (button_width_dp > min_button_width_dp) {
+                padding_dp = button_width_dp - min_button_width_dp;
+                padding_dp /= 2;
+            }
+            final int imageButtonPadding = (int) (padding_dp * scale + 0.5f);
 
             for(int button_indx=0;button_indx<supported_options.size();button_indx++) {
                 final String supported_option = supported_options.get(button_indx);
@@ -1441,6 +1451,7 @@ public class PopupView extends LinearLayout {
                     if( bm != null )
                         image_button.setImageBitmap(bm);
                     else {
+                        image_button.setImageResource(resource);
                         if( MyDebug.LOG )
                             Log.d(TAG, "failed to find bitmap for resource " + resource + "!");
                     }
@@ -1448,8 +1459,7 @@ public class PopupView extends LinearLayout {
                         Log.d(TAG, "addButtonOptionsToPopup time 2.13: " + (System.nanoTime() - debug_time));
                     image_button.setScaleType(ScaleType.FIT_CENTER);
                     image_button.setBackgroundColor(Color.TRANSPARENT);
-                    final int padding = (int) (10 * scale + 0.5f); // convert dps to pixels
-                    view.setPadding(padding, padding, padding, padding);
+                    view.setPadding(imageButtonPadding, imageButtonPadding, imageButtonPadding, imageButtonPadding);
                 }
                 else {
                     @SuppressLint("InflateParams")
@@ -1472,10 +1482,15 @@ public class PopupView extends LinearLayout {
                     Log.d(TAG, "addButtonOptionsToPopup time 2.2: " + (System.nanoTime() - debug_time));
 
                 ViewGroup.LayoutParams params = view.getLayoutParams();
-                params.width = button_width;
-                // be careful of making the height too smaller, as harder to touch buttons; remember that this also affects the
-                // ISO buttons on exposure panel, and not just the main popup!
-                params.height = (int) (55 * ((resource != -1) ? scale : scale_font) + 0.5f); // convert dps to pixels
+                if (resource != -1) {
+                    params.width = button_width;
+                    params.height = button_width;
+                } else {
+                    params.width = button_width;
+                    // be careful of making the height too smaller, as harder to touch buttons; remember that this also affects the
+                    // ISO buttons on exposure panel, and not just the main popup!
+                    params.height = (int) (55 * ((resource != -1) ? scale : scale_font) + 0.5f); // convert dps to pixels
+                }
                 view.setLayoutParams(params);
 
                 view.setContentDescription(button_string);
@@ -1561,7 +1576,9 @@ public class PopupView extends LinearLayout {
         text_view.setText(title + ":");
         text_view.setTextSize(TypedValue.COMPLEX_UNIT_SP, title_text_size_dip);
         text_view.setTypeface(null, Typeface.BOLD);
+        text_view.setPadding(0, 5, 0, 5);
         //text_view.setBackgroundColor(Color.GRAY); // debug
+        text_view.setBackgroundColor(getResources().getColor(R.color.color_popup_title_bg));
         this.addView(text_view);
         if( MyDebug.LOG )
             Log.d(TAG, "addTitleToPopup time: " + (System.nanoTime() - debug_time));
@@ -1605,15 +1622,50 @@ public class PopupView extends LinearLayout {
             final MainActivity main_activity = (MainActivity)this.getContext();
             final long debug_time = System.nanoTime();
 
-            @SuppressLint("InflateParams")
-            final View button_view = LayoutInflater.from(this.getContext()).inflate(R.layout.popupview_button, null);
-            final Button button = button_view.findViewById(R.id.button);
+            LinearLayout ll = new LinearLayout(this.getContext());
+            ll.setOrientation(LinearLayout.HORIZONTAL);
 
-            button.setBackgroundColor(Color.TRANSPARENT); // workaround for Android 6 crash!
-            button.setText(title + "...");
-            button.setAllCaps(false);
-            button.setTextSize(TypedValue.COMPLEX_UNIT_SP, title_text_size_dip);
-            this.addView(button);
+            final View dummyView = new View(this.getContext());
+            dummyView.setBackgroundColor(Color.TRANSPARENT);
+            dummyView.setEnabled(false);
+            dummyView.setClickable(false);
+            ll.addView(dummyView);
+            ViewGroup.LayoutParams dummy_params = dummyView.getLayoutParams();
+            dummy_params.width = arrow_button_w;
+            dummy_params.height = arrow_button_h;
+            dummyView.setLayoutParams(dummy_params);
+
+            final TextView text_view = new TextView(this.getContext());
+            text_view.setText(title);
+            text_view.setTextSize(TypedValue.COMPLEX_UNIT_SP, standard_text_size_dip);
+            text_view.setTextColor(Color.WHITE);
+            text_view.setGravity(Gravity.CENTER);
+            text_view.setSingleLine(true); // if text too long for the button, we'd rather not have wordwrap, even if it means cutting some text off
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+            // Yuck! We want the arrow_button_w to be fairly large so that users can touch the arrow buttons easily, but if
+            // the text is too much for the button size, we'd rather it extend into the arrow buttons (which the user won't see
+            // anyway, since the button backgrounds are transparent).
+            // Needed for OnePlus 3T and Nokia 8, for camera resolution
+            params.setMargins(-arrow_button_w/2, arrow_button_h/4, -arrow_button_w/2, arrow_button_h/4);
+            text_view.setLayoutParams(params);
+            ll.addView(text_view);
+
+            final float scale = getResources().getDisplayMetrics().density;
+            final int padding = (int) (0 * scale + 0.5f); // convert dps to pixels
+            final ImageButton down_button = new ImageButton(this.getContext());
+            down_button.setEnabled(false);
+            down_button.setClickable(false);
+            down_button.setBackgroundColor(Color.TRANSPARENT); // workaround for Android 6 crash!
+            ll.addView(down_button);
+            down_button.setImageDrawable(this.getResources().getDrawable(R.drawable.ic_arrow_down));
+            down_button.setPadding(padding, padding, padding, padding);
+            ViewGroup.LayoutParams vg_params = down_button.getLayoutParams();
+            vg_params.width = arrow_button_w;
+            vg_params.height = arrow_button_h;
+            down_button.setLayoutParams(vg_params);
+            down_button.setContentDescription(title);
+            addView(ll);
+
             if( MyDebug.LOG )
                 Log.d(TAG, "addRadioOptionsToPopup time 1: " + (System.nanoTime() - debug_time));
 
@@ -1624,7 +1676,7 @@ public class PopupView extends LinearLayout {
             if( MyDebug.LOG )
                 Log.d(TAG, "addRadioOptionsToPopup time 2: " + (System.nanoTime() - debug_time));
 
-            button.setOnClickListener(new OnClickListener() {
+            ll.setOnClickListener(new OnClickListener() {
                 private boolean opened = false;
                 private boolean created = false;
 
@@ -1799,8 +1851,8 @@ public class PopupView extends LinearLayout {
             @SuppressLint("InflateParams")
             final View ll2 = LayoutInflater.from(this.getContext()).inflate(R.layout.popupview_arrayoptions, null);
             final TextView text_view = ll2.findViewById(R.id.text_view);
-            final Button prev_button = ll2.findViewById(R.id.button_left);
-            final Button next_button = ll2.findViewById(R.id.button_right);
+            final AppCompatImageButton prev_button = ll2.findViewById(R.id.button_left);
+            final AppCompatImageButton next_button = ll2.findViewById(R.id.button_right);
 
             setArrayOptionsText(supported_options, title, text_view, title_in_options, title_in_options_first_only, current_index);
             //text_view.setBackgroundColor(Color.GRAY); // debug
@@ -1811,16 +1863,11 @@ public class PopupView extends LinearLayout {
             // the text is too much for the button size, we'd rather it extend into the arrow buttons (which the user won't see
             // anyway, since the button backgrounds are transparent).
             // Needed for OnePlus 3T and Nokia 8, for camera resolution
-            params.setMargins(-arrow_button_w/2, 0, -arrow_button_w/2, 0);
+            params.setMargins(-arrow_button_w/2, arrow_button_h/4, -arrow_button_w/2, arrow_button_h/4);
             text_view.setLayoutParams(params);
 
             final float scale = getResources().getDisplayMetrics().density;
             final int padding = (int) (0 * scale + 0.5f); // convert dps to pixels
-            prev_button.setBackgroundColor(Color.TRANSPARENT); // workaround for Android 6 crash!
-            //ll2.addView(prev_button);
-            prev_button.setText("<");
-            prev_button.setTextSize(TypedValue.COMPLEX_UNIT_SP, arrow_text_size_dip);
-            prev_button.setTypeface(null, Typeface.BOLD);
             prev_button.setPadding(padding, padding, padding, padding);
             ViewGroup.LayoutParams vg_params = prev_button.getLayoutParams();
             vg_params.width = arrow_button_w;
@@ -1833,11 +1880,6 @@ public class PopupView extends LinearLayout {
             //ll2.addView(text_view);
             main_activity.getMainUI().getTestUIButtonsMap().put(test_key, text_view);
 
-            next_button.setBackgroundColor(Color.TRANSPARENT); // workaround for Android 6 crash!
-            //ll2.addView(next_button);
-            next_button.setText(">");
-            next_button.setTextSize(TypedValue.COMPLEX_UNIT_SP, arrow_text_size_dip);
-            next_button.setTypeface(null, Typeface.BOLD);
             next_button.setPadding(padding, padding, padding, padding);
             vg_params = next_button.getLayoutParams();
             vg_params.width = arrow_button_w;

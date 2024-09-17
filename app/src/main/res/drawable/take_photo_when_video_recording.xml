@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <stroke android:color="#FFFFFF"
+                android:width="4.5dp"/>
+        </shape>
+    </item>
+    <item android:drawable="@drawable/ic_switch_camera"
+        android:top="6dp"
+        android:left="6dp"
+        android:right="6dp"
+        android:bottom="6dp"
+        android:gravity="center"/>
+</layer-list>

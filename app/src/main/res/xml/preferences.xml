@@ -80,7 +80,7 @@
             android:key="preference_timer"
             android:title="@string/preference_timer"
             android:summary="%s"
-            android:icon="@drawable/ic_timer_white_48dp"
+            android:icon="@drawable/ic_preference_timer"
             android:entries="@array/preference_timer_entries"
             android:entryValues="@array/preference_timer_values"
             android:defaultValue="0"
@@ -107,7 +107,7 @@
         <PreferenceScreen
             android:key="preference_screen_camera_controls_more"
             android:title="@string/preference_screen_camera_controls_more"
-            android:icon="@drawable/ic_more_horiz_white_48dp"
+            android:icon="@drawable/ic_preference_more_horizontal"
             android:persistent="false"
             android:fragment="net.sourceforge.opencamera.PreferenceSubCameraControlsMore"
             />
@@ -115,7 +115,7 @@
         <PreferenceScreen
             android:key="preference_preview"
             android:title="@string/preference_preview"
-            android:icon="@drawable/ic_more_horiz_white_48dp"
+            android:icon="@drawable/ic_preference_camera_preview"
             android:persistent="false"
             android:fragment="net.sourceforge.opencamera.PreferenceSubPreview"
             />
@@ -123,7 +123,7 @@
         <PreferenceScreen
             android:key="preference_screen_gui"
             android:title="@string/preference_screen_gui"
-            android:icon="@drawable/ic_more_horiz_white_48dp"
+            android:icon="@drawable/ic_preference_on_screen_gui"
             android:persistent="false"
             android:fragment="net.sourceforge.opencamera.PreferenceSubGUI"
             />
@@ -137,7 +137,7 @@
         <PreferenceScreen
             android:key="preference_screen_photo_settings"
             android:title="@string/preference_screen_photo_settings"
-            android:icon="@drawable/take_photo_pref"
+            android:icon="@drawable/ic_preference_photo_settings"
             android:persistent="false"
             android:fragment="net.sourceforge.opencamera.PreferenceSubPhoto"
             />
@@ -145,7 +145,7 @@
         <PreferenceScreen
             android:key="preference_screen_video_settings"
             android:title="@string/preference_screen_video_settings"
-            android:icon="@drawable/take_video_pref"
+            android:icon="@drawable/ic_preference_video_settings"
             android:persistent="false"
             android:fragment="net.sourceforge.opencamera.PreferenceSubVideo"
             />
@@ -153,7 +153,7 @@
         <PreferenceScreen
             android:key="preference_screen_location_settings"
             android:title="@string/preference_screen_location_settings"
-            android:icon="@drawable/ic_gps_fixed_white_48dp"
+            android:icon="@drawable/ic_preference_location"
             android:persistent="false"
             android:fragment="net.sourceforge.opencamera.PreferenceSubLocation"
             />
@@ -161,7 +161,7 @@
         <PreferenceScreen
             android:key="preference_screen_processing_settings"
             android:title="@string/preference_screen_processing_settings"
-            android:icon="@drawable/ic_more_horiz_white_48dp"
+            android:icon="@drawable/ic_preference_processing"
             android:persistent="false"
             android:fragment="net.sourceforge.opencamera.PreferenceSubProcessing"
             />
@@ -177,7 +177,7 @@
             android:key="preference_online_help"  
             android:title="@string/preference_online_help"
             android:summary="@string/preference_online_help_summary"
-            android:icon="@drawable/ic_help_outline_white_48dp"
+            android:icon="@drawable/ic_preference_help"
             />  
 
         <!--  if we move this to another PreferenceGroup, we should update code for the findPreference() call -->
@@ -188,7 +188,7 @@
             />
 
         <PreferenceScreen
-            android:icon="@drawable/ic_info_outline_white_48dp"
+            android:icon="@drawable/ic_preference_info"
             android:key="preference_about"
             android:persistent="false"
             android:title="@string/preference_about">
@@ -263,13 +263,13 @@
             android:key="preference_privacy_policy"
             android:title="@string/preference_privacy_policy"
             android:summary="@string/preference_privacy_policy_summary"
-            android:icon="@drawable/ic_info_outline_white_48dp"
+            android:icon="@drawable/ic_preference_info"
             />
 
         <PreferenceScreen
             android:key="preference_screen_licences"
             android:title="@string/preference_screen_licences"
-            android:icon="@drawable/ic_info_outline_white_48dp"
+            android:icon="@drawable/ic_preference_info"
             android:persistent="false"
             android:fragment="net.sourceforge.opencamera.PreferenceSubLicences"
             />
@@ -277,7 +277,7 @@
         <PreferenceScreen
             android:key="preference_screen_settings_manager"
             android:title="@string/preference_screen_settings_manager"
-            android:icon="@drawable/settings"
+            android:icon="@drawable/ic_preference_cog"
             android:persistent="false"
             android:fragment="net.sourceforge.opencamera.PreferenceSubSettingsManager"
             />
