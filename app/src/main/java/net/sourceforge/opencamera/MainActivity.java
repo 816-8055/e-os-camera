@@ -725,7 +725,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         });
 
         // set up switch camera button long click - must be done after setting is_multi_cam
-        if( n_cameras > 2 ) {
+        if( n_cameras > 2 && !getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
             View.OnLongClickListener long_click_listener = new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
