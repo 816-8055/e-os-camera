@@ -69,7 +69,7 @@ build:
 update-default-branch:
   extends: .update-from-upstream
   variables:
-    LOCAL_BRANCH: master
+    LOCAL_BRANCH: main
     UPSTREAM_BRANCH: upstream/master
     UPSTREAM_DEFAULT_BRANCH: master
     UPSTREAM_URL: https://git.code.sf.net/p/opencamera/code
