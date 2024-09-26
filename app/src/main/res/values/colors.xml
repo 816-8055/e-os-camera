@@ -7,13 +7,6 @@
     <color name="shutter_icon_pressed">#40C4FF</color>
     <color name="shutter_icon_video_recording">#F44336</color>
 
-    <!-- QRCode -->
-    <color name="qrcodeColorOnSurface">#FFFFFF</color>
-    <color name="qrcodeSelectableItemBackground">#E5000000</color>
-    <color name="qrcodeColorSurfaceContainerHighest">#8BC34A</color>
-    <color name="qrcodeColorOnSurfaceVariant">#3F51B5</color>
-    <color name="qrcodeSelectableItemBackgroundBorderless">#CB000000</color>
-
     <color name="white">@android:color/white</color>
     <color name="color_default_foreground">@color/e_floating_background_dark</color>
     <color name="color_default_accent">@color/e_accent_dark</color>
@@ -25,5 +18,5 @@
 
     <color name="color_toast_bg">@color/e_disabled_color_light</color>
     <color name="color_popup_title_bg">@color/e_disabled_color_dark</color>
-    <color name="color_popup_bg">#E5000000</color>      
+    <color name="color_popup_bg">#E5000000</color>
 </resources>

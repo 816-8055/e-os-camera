@@ -1241,21 +1241,13 @@ public class MainUI {
             boolean panorama_recording = main_activity.getApplicationInterface().getPhotoMode()
                     == MyApplicationInterface.PhotoMode.Panorama &&
                     main_activity.getApplicationInterface().getGyroSensor().isRecording();
-            boolean isQrMode = main_activity.getPreview().isQRCode();
-            // The switch order is camera -> video -> qrcode -> camera...
             if( main_activity.getPreview().isVideo() ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "set icon to video");
                 resource = main_activity.getPreview().isVideoRecording() ? R.drawable.ic_camera_video_recording : R.drawable.ic_camera_video;
                 content_description = main_activity.getPreview().isVideoRecording() ? R.string.stop_video : R.string.start_video;
-                switch_video_content_description = R.string.switch_to_qrcode;
-            } else if (isQrMode) {
-                if (MyDebug.LOG)
-                    Log.d(TAG, "set icon to qrcode");
-                resource = R.drawable.empty;
-                content_description = 0;
                 switch_video_content_description = R.string.switch_to_photo;
-            } else { // Camera case
+            } else {
                 if( MyDebug.LOG )
                     Log.d(TAG, "set icon to photo");
                 resource = R.drawable.take_photo_selector;
@@ -1263,18 +1255,12 @@ public class MainUI {
                 switch_video_content_description = R.string.switch_to_video;
             }
             view.setImageResource(resource);
-            if (content_description==0) {
-                view.setContentDescription("");
-            } else {
-                view.setContentDescription(main_activity.getResources().getString(content_description));
-            }
+            view.setContentDescription( main_activity.getResources().getString(content_description) );
             view.setTag(resource); // for testing
 
             view = main_activity.findViewById(R.id.switch_video);
             view.setContentDescription( main_activity.getResources().getString(switch_video_content_description) );
             if (main_activity.getPreview().isVideo()) {
-                resource = R.drawable.ic_switch_qrcode;
-            } else if (isQrMode) {
                 resource = R.drawable.ic_switch_camera;
             } else { // camera
                 resource = R.drawable.ic_switch_video;
@@ -1283,11 +1269,10 @@ public class MainUI {
             view.setTag(resource); // for testing
 
             // Hide/Show gallery & switch camera icons.
-            boolean showGalleryAndSwitch = isQrMode || panorama_recording;
             main_activity.findViewById(R.id.gallery).setVisibility(
-                    showGalleryAndSwitch ? View.INVISIBLE : View.VISIBLE);
+                    panorama_recording ? View.INVISIBLE : View.VISIBLE);
             main_activity.findViewById(R.id.switch_camera).setVisibility(
-                    showGalleryAndSwitch ? View.INVISIBLE : View.VISIBLE);
+                    panorama_recording ? View.INVISIBLE : View.VISIBLE);
             }
         }
 	 /**

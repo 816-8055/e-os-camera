@@ -9,7 +9,6 @@ import net.sourceforge.opencamera.camera2.model.CameraModel;
 import net.sourceforge.opencamera.camera2.model.CameraType;
 import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
-import net.sourceforge.opencamera.qr.QrImageAnalyzer;
 import net.sourceforge.opencamera.remotecontrol.BluetoothRemoteControl;
 import net.sourceforge.opencamera.ui.CircleImageView;
 import net.sourceforge.opencamera.ui.DrawPreview;
@@ -118,12 +117,6 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.ZoomControls;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import kotlin.coroutines.CoroutineContext;
-import kotlinx.coroutines.CoroutineScope;
-import kotlinx.coroutines.Dispatchers;
-import kotlinx.coroutines.Job;
-import kotlinx.coroutines.JobKt;
 
 /** The main Activity for Open Camera.
  */
@@ -257,11 +250,6 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     //public static final boolean lock_to_landscape = true;
     public static final boolean lock_to_landscape = false;
 
-    // QRCode
-    public QrImageAnalyzer qrImageAnalyzer;
-    private Job job;
-    private CoroutineScope coroutineScope;
-
     // handling for lock_to_landscape==false:
 
     public enum SystemOrientation {
@@ -293,16 +281,6 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         if( MyDebug.LOG )
             Log.d(TAG, "activity_count: " + activity_count);
         super.onCreate(savedInstanceState);
-
-        //QRCode
-        job = JobKt.Job(null);
-        coroutineScope = new CoroutineScope() {
-            @Override
-            public CoroutineContext getCoroutineContext() {
-                return Dispatchers.getMain().plus(job);
-            }
-        };
-        qrImageAnalyzer = new QrImageAnalyzer(this, coroutineScope);
 
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false); // initialise any unset preferences to their default values
@@ -2824,44 +2802,6 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         showAlert(alertDialog.create());
     }
 
-    /*  getBetterQRCodeCameraID()
-    Returns the best camera ID, based on the fact that it's probably the first rear camera available.
-    The user always has the option of selecting with the lens switcher in case the choice is wrong.
-    Returns -1 if no camera available. In that case we do *NOT* trig any switch.
-    */
-    public int getBetterQRCodeCameraID() {
-        int best_qrcode_camera = -1;
-        if( MyDebug.LOG )
-            Log.d(TAG, "getBetterQRCodeCameraID");
-        if( !isMultiCamEnabled() ) {
-            Log.e(TAG, "getBetterQRCodeCameraID switch multi camera icon shouldn't have been visible");
-            return best_qrcode_camera;
-        }
-        if( preview.isOpeningCamera() ) {
-            if( MyDebug.LOG )
-                Log.d(TAG, "getBetterQRCodeCameraID already opening camera in background thread");
-            return best_qrcode_camera;
-        }
-        if( this.preview.canSwitchCamera() ) {
-            try {
-                CameraManager _cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-                for (String _cameraId : _cameraManager.getCameraIdList()) {
-                    CameraCharacteristics characteristics = _cameraManager.getCameraCharacteristics(_cameraId);
-                    Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-                    if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
-                        best_qrcode_camera = Integer.parseInt(_cameraId);
-                        if( MyDebug.LOG )
-                            Log.d(TAG, "best_qrcode_camera ="+best_qrcode_camera);
-                        break;
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return best_qrcode_camera;
-    }
-
     private void updateMultiCameraIcon() {
         Button multiCameraButton = findViewById(R.id.switch_multi_camera);
 
@@ -3071,7 +3011,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     //case "preference_show_take_photo": // need to update the UI
                 case "preference_show_toasts":
                 case "preference_show_whats_new":
-                    //case "preference_multi_cam_button": // need to update the UI
+                //case "preference_multi_cam_button": // need to update the UI
                 case "preference_keep_display_on":
                 case "preference_max_brightness":
                     //case "preference_resolution": // need to set up camera controller and preview
@@ -4038,8 +3978,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     }
 
     /** Set up listener to handle listening for system ui changes (for immersive mode), and setting
-     * a WindowsInsetsListener to find the navigation_gap.
-     */
+      * a WindowsInsetsListener to find the navigation_gap.
+      */
     private void setupSystemUiVisibilityListener() {
         View decorView = getWindow().getDecorView();
 
@@ -4869,7 +4809,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
                 update_gallery_future = null;
             }
-            //}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        //}.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         };
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -4931,7 +4871,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     }
 
     /** Creates a notification to indicate still saving images (or updates an existing one).
-     * Update: notifications now removed due to needing permissions on Android 13+.
+      * Update: notifications now removed due to needing permissions on Android 13+.
      */
     private void createImageSavingNotification() {
         if( MyDebug.LOG )
@@ -6621,7 +6561,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 simple = false;
             }
         }
-        else { //Camera
+        else {
             if( photo_mode == MyApplicationInterface.PhotoMode.Panorama ) {
                 // don't show resolution in panorama mode
                 toast_string = "";
@@ -6655,9 +6595,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 simple = false;
             }
         }
-        if (preview.isQRCode()) {
-            toast_string = "QRCode";
-        } else if( applicationInterface.getFaceDetectionPref() ) { //Camera || Video
+        if( applicationInterface.getFaceDetectionPref() ) {
             // important so that the user realises why touching for focus/metering areas won't work - easy to forget that face detection has been turned on!
             toast_string += "\n" + getResources().getString(R.string.preference_face_detection);
             simple = false;
