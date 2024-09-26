@@ -38,7 +38,14 @@ public class OverlayQRCodeView extends View {
 
     private void init() {
         qrcode = ContextCompat.getDrawable(this.getContext(), R.drawable.scan_area);
-        DisplayMetrics displayMetrics =this.getContext().getResources().getDisplayMetrics();
+
+        // Ensure the view recalculates the position based on the current orientation
+        addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft,
+                                   oldTop, oldRight, oldBottom) -> updateQRCodeBounds());
+    }
+
+    private void updateQRCodeBounds() {
+        DisplayMetrics displayMetrics = this.getContext().getResources().getDisplayMetrics();
         final int screenWidth = displayMetrics.widthPixels;
         final int screenHeight = displayMetrics.heightPixels;
 
@@ -51,7 +58,10 @@ public class OverlayQRCodeView extends View {
             isValid = false;
         } else {
             qrcode.setBounds(left, top, right, bottom);
+            isValid = true;
         }
+
+        invalidate(); // Redraw the view
     }
 
     @Override
