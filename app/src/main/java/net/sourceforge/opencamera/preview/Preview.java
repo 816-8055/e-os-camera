@@ -1128,8 +1128,11 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     public void onSurfaceTextureUpdated(@NonNull SurfaceTexture arg0) {
         refreshPreviewBitmap();
 
+        boolean previewBitmapWasEnabled = isPreviewBitmapEnabled();
         if (isQRCode()) {
-            enablePreviewBitmap();
+            if (!previewBitmapWasEnabled) {
+                enablePreviewBitmap();
+            }
             TextureView textureView = (TextureView) this.cameraSurface;
             Bitmap bitmap =  textureView.getBitmap(preview_bitmap);
 
@@ -1158,7 +1161,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             } else {
                 // K1ZFP TODO Error 1
             }
-        } else {
+        } else if (!previewBitmapWasEnabled) {
             disablePreviewBitmap();
         }
     }
