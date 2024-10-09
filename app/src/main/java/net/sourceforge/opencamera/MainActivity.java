@@ -5043,7 +5043,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             final String REVIEW_ACTION = "com.android.camera.action.REVIEW";
             final String KEY_FROM_SNAPCAM = "from-snapcam";
             boolean done = false;
-            if( !is_raw ) {
+            if( !is_raw || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) ) {
                 // REVIEW_ACTION means we can view video files without autoplaying.
                 // However, Google Photos at least has problems with going to a RAW photo (in RAW only mode),
                 // unless we first pause and resume Open Camera.
@@ -5052,8 +5052,15 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 if( MyDebug.LOG )
                     Log.d(TAG, "try REVIEW_ACTION");
                 try {
-                    Intent intent = new Intent(REVIEW_ACTION, uri);
-                    intent.putExtra(KEY_FROM_SNAPCAM, allowEdit);
+                    Intent intent = new Intent();
+                    intent.setData(uri);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        intent.setAction(REVIEW_ACTION);
+                        intent.putExtra(KEY_FROM_SNAPCAM, allowEdit);
+                    } else {
+                        intent.setAction(MediaStore.ACTION_REVIEW);
+                        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    }
                     this.startActivity(intent);
                     done = true;
                 }
@@ -5066,7 +5073,9 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                     Log.d(TAG, "try ACTION_VIEW");
                 try {
                     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    intent.putExtra(KEY_FROM_SNAPCAM, allowEdit);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        intent.putExtra(KEY_FROM_SNAPCAM, allowEdit);
+                    }
                     this.startActivity(intent);
                 }
                 catch(ActivityNotFoundException e) {
