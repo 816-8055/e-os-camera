@@ -1504,7 +1504,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         for(Map.Entry<Integer, Bitmap> entry : preloaded_bitmap_resources.entrySet()) {
             if( MyDebug.LOG )
                 Log.d(TAG, "recycle: " + entry.getKey());
-            entry.getValue().recycle();
+            Bitmap recycleValue = entry.getValue();
+            if (recycleValue != null) {
+                recycleValue.recycle();
+            }
         }
         preloaded_bitmap_resources.clear();
         if( textToSpeech != null ) {
