@@ -304,12 +304,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
         //QRCode
         job = JobKt.Job(null);
-        coroutineScope = new CoroutineScope() {
-            @Override
-            public CoroutineContext getCoroutineContext() {
-                return Dispatchers.getMain().plus(job);
-            }
-        };
+        coroutineScope = () -> Dispatchers.getMain().plus(job);
         qrImageAnalyzer = new QrImageAnalyzer(this, coroutineScope);
 
         setContentView(R.layout.activity_main);
