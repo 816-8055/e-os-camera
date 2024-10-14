@@ -102,14 +102,6 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.LuminanceSource;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.Reader;
-import com.google.zxing.Result;
-import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.RGBLuminanceSource;
 
 /** This class was originally named due to encapsulating the camera preview,
  *  but in practice it's grown to more than this, and includes most of the
@@ -1171,32 +1163,11 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 enablePreviewBitmap();
             }
             TextureView textureView = (TextureView) this.cameraSurface;
-            Bitmap bitmap =  textureView.getBitmap(preview_bitmap);
-
-            if (bitmap!=null) {
-                int width = bitmap.getWidth();
-                int height = bitmap.getHeight();
-                int[] pixels = new int[width * height];
-                bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
-
-                LuminanceSource source = new RGBLuminanceSource(width, height, pixels);
-                BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
-                Reader reader = new MultiFormatReader();
-
-                try {
-                    Result result = reader.decode(binaryBitmap);
-                    String qrcodeContent = result.getText();
-                    MainActivity mActivity = (MainActivity) this.getContext();
-                    if (MyDebug.LOG)
-                        Log.d(TAG, "Find QRCode qrcodeContent="+qrcodeContent );
-                    if (result.getBarcodeFormat() == BarcodeFormat.QR_CODE) {
-                        mActivity.qrImageAnalyzer.showQrDialog(result);
-                    }
-                } catch (Exception e) {
-                    // K1ZFP TODO Error 2
-                }
-            } else {
-                // K1ZFP TODO Error 1
+            Bitmap bitmap = textureView.getBitmap(preview_bitmap);
+            MainActivity mActivity = (MainActivity) this.getContext();
+            int rotation = getDisplayRotationDegrees(false);
+            if (bitmap != null) {
+                mActivity.qrImageAnalyzer.readImage(bitmap, rotation);
             }
         } else if (!previewBitmapWasEnabled) {
             disablePreviewBitmap();
