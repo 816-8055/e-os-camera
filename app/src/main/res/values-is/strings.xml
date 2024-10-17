@@ -217,7 +217,7 @@
     <string name="preference_category_online">Ýmislegt</string>
     <string name="preference_online_help">Hjálp á netinu</string>
     <string name="preference_reset">Endurstilla</string>
-    <string name="focus_mode">Virknihamur</string>
+    <string name="focus_mode">Skerpuhamur</string>
     <string name="parent_folder">Yfirmappa</string>
     <string name="new_folder">Ný mappa</string>
     <string name="failed_create_folder">Ekki tókst að búa til möppu</string>
@@ -964,4 +964,13 @@
     <string name="failed_to_open_camera_two_2_disabled">ÞAR SEM MYNDAVÉLIN ER EKKI TILTÆK ;-)</string>
     <string name="failed_to_open_camera_two_1_enabled">BÍDDU Í 5 SEKÚNDUR EFTIR AÐ MYNDAVÉLIN</string>
     <string name="failed_to_open_camera_two_2_enabled">HLAÐIST ÞAR SEM VERIÐ VAR AÐ VIRKJA HANA</string>
+    <string name="focus_peaking_enable">Virkja skerpumerkingu</string>
+    <string name="focus_peaking_disable">Gera skerpumerkingu óvirka</string>
+    <string name="qr_uri_title">Opna slóð</string>
+    <string name="qr_uri_content_description">Opna þessa slóð með viðeigandi forriti ef slíkt er stutt</string>
+    <string name="choose_camera">Veldu myndavél:</string>
+    <string name="preference_show_focus_peaking">Birta tákn fyrir skerpumerkingu</string>
+    <string name="qr_upi_title">Veldu forrit til að borga með</string>
+    <string name="preference_show_focus_peaking_summary">Hvort birta eigi tákn á skjánum til að gera merkingar á skerpu virka eða óvirka. Þegar skerpumerking er virk, birtist áherslulitur á jöðrum þeirra svæða sem eru skörp (í fókus). Skoðaðu Stillingar -&gt; Forskoðun myndavélar -&gt; Skerpumerking.</string>
+    <string name="qr_upi_content_description">Opna þennan UPI-tengil með viðeigandi forriti ef slíkt er stutt</string>
 </resources>
