@@ -12,7 +12,7 @@
     <string name="choose_save_location">Speicherort auswählen:</string>
     <string name="clear_folder_history">Ordnerhistorie löschen</string>
     <string name="clear_folder_history_question">Ordnerhistorie löschen?</string>
-    <string name="choose_another_folder">Bitte wählen Sie einen anderen Ordner</string>
+    <string name="choose_another_folder">Einen anderen Ordner wählen</string>
     <string name="changed_save_location">Speicherort geändert nach:</string>
     <string name="stopped_recording_video">Videoaufnahme angehalten</string>
     <string name="repeats_to_go">Wiederholungen ausbleibend</string>
@@ -75,15 +75,15 @@
     <string name="preference_category_camera_effects">Kameraeffekte</string>
     <string name="preference_auto_stabilise">Bildlagekorrektur</string>
     <string name="preference_auto_stabilise_summary">Die Aufnahme wird automatisch waagerecht ausgerichtet (nur bei Fotos, Aufnahme dauert länger und kann bei kleinem Gerätespeicher fehlschlagen)</string>
-    <string name="preference_color_effect">Farbeffekt</string>
+    <string name="preference_color_effect">Farbeffekt anwenden</string>
     <string name="preference_color_effect_summary">Wendet den gewählten Farbeffekt auf das Foto an</string>
     <string name="preference_scene_mode">Szenenmodus</string>
     <string name="preference_scene_mode_summary">Optimiert das Foto für verschiedene Szenen</string>
     <string name="preference_white_balance">Weißabgleich</string>
     <string name="preference_white_balance_summary">Einstellung zum Weißabgleich vornehmen</string>
-    <string name="preference_iso">ISO-Wert</string>
-    <string name="preference_iso_summary">Einstellung der Lichtempfindlichkeit. Je höher der Wert umso lichtempfindlicher (funktioniert nicht bei allen Geräten)</string>
-    <string name="preference_exposure">Belichtungskorrektur</string>
+    <string name="preference_iso">ISO-Wert einstellen</string>
+    <string name="preference_iso_summary">Einstellung der Lichtempfindlichkeit. Je höher der Wert, umso lichtempfindlicher (funktioniert nicht bei allen Geräten)</string>
+    <string name="preference_exposure">Belichtungskorrektur einstellen</string>
     <string name="preference_exposure_summary">Für die Standardbelichtung auf 0 setzen</string>
     <string name="preference_lock_orientation">Foto-/Video-Orientierung sperren</string>
     <string name="preference_lock_orientation_summary">Wenn aktiviert, wird die Lage des Gerätes ignoriert und die Orientierung der Aufnahme auf diesen Wert fest eingestellt\n%s</string>
@@ -97,17 +97,17 @@
     <string name="preference_timer_speak_summary">Sprachausgabe beim Herunterzählen der Auslöseverzögerung (ab 60 s)</string>
     <string name="preference_burst_mode">Serienbild</string>
     <string name="preference_burst_interval">Serienbild-Intervall</string>
-    <string name="preference_screen_camera_controls_more">Mehr Kamera-Einstellungen…</string>
+    <string name="preference_screen_camera_controls_more">Mehr Kamera-Einstellungen …</string>
     <string name="preference_touch_capture">Aufnahme bei Berührung</string>
-    <string name="preference_touch_capture_summary">Aufnahme eines Fotos oder Videos durch Tippen oder Doppelklicken auf die Vorschau</string>
+    <string name="preference_touch_capture_summary">Aufnahme eines Fotos oder Videos durch Tippen oder Doppelklicken der Vorschau</string>
     <string name="preference_pause_preview">Pause nach der Fotoaufnahme</string>
     <string name="preference_pause_preview_summary">Nach der Aufnahme pausieren mit der Möglichkeit, das Foto zu teilen oder zu löschen</string>
     <string name="preference_shutter_sound">Auslöseton</string>
     <string name="preference_shutter_sound_summary">Abspielen eines Tones bei der Aufnahme</string>
     <string name="preference_volume_keys">Lautstärketasten</string>
-    <string name="preference_audio_control">Audio Steuerungsoptionen</string>
-    <string name="preference_audio_noise_control_sensitivity">Audio Steuerung Empfindlichkeit</string>
-    <string name="preference_audio_noise_control_sensitivity_summary">Mikroempfindlichkeit für lautes Geräusch</string>
+    <string name="preference_audio_control">Audio-Steuerungsoptionen</string>
+    <string name="preference_audio_noise_control_sensitivity">Empfindlichkeit der Audio-Steuerung</string>
+    <string name="preference_audio_noise_control_sensitivity_summary">Geräuschpegel-Empfindlichkeit der Audio-Steuerung (laute Geräusche)</string>
     <string name="preference_save_location">Speicherort</string>
     <string name="preference_save_location_summary">Ordner, wo die Fotos/Videos gespeichert werden</string>
     <string name="preference_using_saf_summary">Für das Speichern der Fotos/Videos Storage Access Framework verwenden. Dies sollte aktiviert werden, um das Speichern auf externen SD-Karten zu ermöglichen. Bei Android 10 und höher muss dies Option aktiviert werden, wenn in einem Ordner außerhalb DCIM gespeichert werden soll.</string>
@@ -117,14 +117,14 @@
     <string name="preference_save_video_prefix_summary">Den Präfix für die Dateinamen der Videos einstellen</string>
     <string name="preference_save_zulu_time">Zeitformat für den Dateinamen</string>
     <string name="preference_show_when_locked">Kamera trotz Sperre anzeigen</string>
-    <string name="preference_show_when_locked_summary">Wenn aktiviert, wird Camera über dem Sperrbildschirm stehen (das Entsperren ist jedoch für den Zugriff auf Einstellungen, Galerie usw. nötig)</string>
+    <string name="preference_show_when_locked_summary">Wenn aktiviert, wird Kamera über dem Sperrbildschirm angezeigt (das Entsperren ist jedoch für den Zugriff auf Einstellungen, Galerie usw. nötig)</string>
     <string name="preference_startup_focus">Verwende Auto-Fokus bei Start der App</string>
     <string name="preference_startup_focus_summary">Beim Starten der Kamera automatisch fokussieren. Deaktiviere diese Option, falls der Blitz beim Starten auch immer angeht.</string>
     <string name="preference_lock_video">Bildschirm bei Videoaufnahme sperren</string>
-    <string name="preference_lock_video_summary">Wenn aktiviert, wird bei Videoaufnahmen die Oberfläche gesperrt, um versehentliches Stoppen zu verhindern. Zum Entsperren einfach wischen.</string>
+    <string name="preference_lock_video_summary">Wenn aktiviert, wird bei Videoaufnahmen die Oberfläche gesperrt, um versehentliches Stoppen zu verhindern. Zum Entsperren einfach wischen. Die Videoaufnahme wird automatisch angehalten, wenn die App im Hintergrund ausgeführt wird oder der Bildschirm ausgeht.</string>
     <string name="preference_rotate_preview">Vorschau drehen</string>
     <string name="preference_rotate_preview_summary">Vorschaubild drehen (hat keinen Einfluss auf die Aufnahme)\n%s</string>
-    <string name="preference_screen_gui">Benutzeroberfläche…</string>
+    <string name="preference_screen_gui">Benutzeroberfläche …</string>
     <string name="preference_preview_size">Vorschaugröße</string>
     <string name="preference_ui_placement">Ausrichtung der Oberfläche</string>
     <string name="preference_immersive_mode">Automatisches Ausblenden</string>
@@ -164,48 +164,53 @@
     <string name="preference_keep_display_on">Bildschirm immer an</string>
     <string name="preference_keep_display_on_summary">Wenn aktiviert, wird der Bildschirm nie ausgeschaltet, solange die Kamera-Benutzeroberfläche aktiv ist</string>
     <string name="preference_max_brightness">Maximale Helligkeit erzwingen</string>
-    <string name="preference_max_brightness_summary">Wenn aktiviert, wird der Bildschirm auf die höchste Helligkeit eingestellt.</string>
+    <string name="preference_max_brightness_summary">Erzwingt die maximale Helligkeit des Bildschirms, auch wenn der Gerätestandard anders eingestellt ist</string>
     <string name="preference_category_camera_quality">Foto- und Video-Einstellungen</string>
-    <string name="preference_screen_photo_settings">Foto-Einstellungen…</string>
-    <string name="preference_screen_video_settings">Video-Einstellungen…</string>
-    <string name="preference_screen_location_settings">Standort-Einstellungen…</string>
+    <string name="preference_screen_photo_settings">Foto-Einstellungen …</string>
+    <string name="preference_screen_video_settings">Video-Einstellungen …</string>
+    <string name="preference_screen_location_settings">Standort-Einstellungen …</string>
     <string name="preference_resolution">Kamera-Auflösung</string>
     <string name="preference_quality">Bildqualität</string>
-    <string name="preference_quality_summary">Die Qualität beim Speichern der Fotos einstellen (Empfehlung: 90%%)\n%s</string>
+    <string name="preference_quality_summary">Die Qualität der gespeicherten Fotos einstellen (Empfehlung: 90%%). Dies hat keine Auswirkungen beim PNG-Format.
+\n%s</string>
     <string name="preference_raw">RAW</string>
-    <string name="preference_location">Geotagging</string>
-    <string name="preference_location_summary">GPS-Standortdaten in den Aufnahmen (Foto/Video) speichern (Bei Fotos ist das nur in den JPEG und DNG-Format möglich)</string>
-    <string name="preference_gps_direction">Himmelsrichtung</string>
+    <string name="preference_location">Standort-Daten speichern (Geotagging)</string>
+    <string name="preference_location_summary">GPS-Standortdaten in den Aufnahmen (Foto/Video) speichern (Bei Fotos ist das nur im JPEG und DNG-Format möglich)</string>
+    <string name="preference_gps_direction">Himmelsrichtung speichern</string>
     <string name="preference_gps_direction_summary">Speichere die GPS-Kompassrichtung in den Fotos (nur JPEG-Format)</string>
-    <string name="preference_require_location">Standortdaten erforderlich</string>
-    <string name="preference_require_location_summary">Wenn aktiviert, werden die Aufnahmen nur bei Verfügbarkeit der Standortdaten ausgelöst.</string>
+    <string name="preference_require_location">Standortdaten erfordern</string>
+    <string name="preference_require_location_summary">Wenn aktiviert, werden die Aufnahmen nur bei Verfügbarkeit der Standortdaten ausgelöst</string>
     <string name="preference_stamp">Fotos stempeln</string>
     <string name="preference_stamp_summary">Wenn aktiviert, werden die Fotos mit Datum, Zeit, eigenem Text und/oder GPS-Daten (sofern aktiviert) gestempelt\n%s</string>
-    <string name="preference_stamp_dateformat">Datumsstempel</string>
-    <string name="preference_stamp_timeformat">Zeitstempel</string>
-    <string name="preference_stamp_gpsformat">GPS-Stempel</string>
+    <string name="preference_stamp_dateformat">Datumsstempel formatieren</string>
+    <string name="preference_stamp_timeformat">Zeitstempel formatieren</string>
+    <string name="preference_stamp_gpsformat">GPS-Stempel formatieren</string>
     <string name="preference_textstamp">Textstempel</string>
     <string name="preference_textstamp_summary">Definition eines eigenen Textstempels</string>
-    <string name="preference_stamp_fontsize">Stempel-Schriftgröße</string>
-    <string name="preference_stamp_fontsize_summary">Einstellung der Stempel-Schriftgröße\n%s</string>
-    <string name="preference_stamp_font_color">Stempel-Schriftfarbe</string>
-    <string name="preference_stamp_font_color_summary">Einstellung der Stempel-Schriftfarbe\n%s</string>
-    <string name="preference_stamp_style">Stempelstil</string>
-    <string name="preference_stamp_style_summary">Einstellung der Stempelart\n%s</string>
-    <string name="preference_background_photo_saving">Benutze Hintergrund-Thread</string>
-    <string name="preference_background_photo_saving_summary">Legt fest, ob ein Hintergrund-Thread zum Speichern eines Bildes zur schnelleren Ausführung benutzt wird</string>
+    <string name="preference_stamp_fontsize">Schriftgröße</string>
+    <string name="preference_stamp_fontsize_summary">Einstellung der Text-Stempel-Schriftgröße
+\n%s</string>
+    <string name="preference_stamp_font_color">Schriftfarbe</string>
+    <string name="preference_stamp_font_color_summary">Einstellung der Text-Stempel-Schriftfarbe
+\n%s</string>
+    <string name="preference_stamp_style">Textstil</string>
+    <string name="preference_stamp_style_summary">Einstellung des Text-Stempels-Stils
+\n%s</string>
+    <string name="preference_background_photo_saving">Benutze Hintergrund-Prozess</string>
+    <string name="preference_background_photo_saving_summary">Legt fest, ob ein Hintergrund-Prozess zum Speichern eines Bildes (zur schnelleren Ausführung) benutzt werden soll</string>
     <string name="video_quality">Video-Auflösung</string>
-    <string name="preference_force_video_4k">Erzwinge UHD/4K (experimentell)</string>
+    <string name="preference_force_video_4k">Erzwinge UHD/4K (funktioniert nicht auf allen Geräten)</string>
     <string name="preference_force_video_4k_summary">Aktiviert die Auflösung von 3840x2160 für die Videoaufnahme der Hauptkamera. Diese Funktion ist ein Hack, der ermöglichen soll, dass 4K-Aufnahmen bei 4K-Kameras gemacht werden, selbst wenn keine Drittanbieter-Apps unterstützt werden. Bitte ausprobieren, ob das auf deinem Gerät funktioniert.</string>
     <string name="preference_video_stabilization">Digitale Video-Stabilisierung aktivieren</string>
     <string name="preference_video_stabilization_summary">Die Video-Stabilisierung reduziert Bildwackeln in der Vorschau und der Aufnahme. Dies ist eventuell nicht erforderlich, wenn das Gerät optische Bildstabilisierung (OIS) unterstützt.</string>
     <string name="preference_video_bitrate">Video-Bitrate (durchschnittlich)</string>
     <string name="preference_video_bitrate_summary">Einstellung der durchschnittlichen Bitrate der Videoaufnahme (je höher umso besser die Qualität und höher die Dateigröße). Nicht alle Geräte unterstützen alle Bitraten\n%s</string>
-    <string name="preference_video_fps">Bildwiederholfrequenz</string>
-    <string name="preference_video_fps_summary">Einstellung der Bildwiederholrate (FPS) der Videoaufnahme. Dieser Wert kann nicht immer garantiert werden. Die Videoaufnahme kann fehlschlagen, wenn die Bildrate nicht unterstützt wird. Bitte prüfen Sie die erzeugten Videos, um die tatsächliche Bildrate zu ermitteln. Diese Einstellung wird nicht bei Slow-Motion-Videos berücksichtigt.
+    <string name="preference_video_fps">Video-Bildfrequenz (ungefähr)</string>
+    <string name="preference_video_fps_summary">Einstellung der Bildfrequenz (FPS) der Videoaufnahme. Dieser Wert kann nicht immer garantiert werden. Die Videoaufnahme kann fehlschlagen, wenn die Bildrate nicht unterstützt wird. Bitte prüfen Sie die erzeugten Videos, um die tatsächliche Bildrate zu ermitteln. Diese Einstellung wird nicht bei Slow-Motion-Videos berücksichtigt.
 \n%s</string>
-    <string name="preference_video_max_duration">Maximaldauer</string>
-    <string name="preference_video_max_duration_summary">Die Videoaufnahme wird nach dieser Zeit abgebrochen.\n%s</string>
+    <string name="preference_video_max_duration">Maximaldauer der Videos</string>
+    <string name="preference_video_max_duration_summary">Die Videoaufnahme wird nach dieser Dauer abgebrochen.
+\n%s</string>
     <string name="preference_video_restart">Neustart der Aufnahme nach Maximaldauer</string>
     <string name="preference_video_restart_summary">Nach dem Erreichen der Maximaldauer wird die Aufnahme so oft wie angegeben neu gestartet\n%s</string>
     <string name="preference_video_max_filesize">Maximale Dateigröße für Video</string>
@@ -223,18 +228,18 @@
     <string name="preference_video_flash_summary">Wenn aktiviert, blinkt der Blitz während der Videoaufnahme (damit man aus der Ferne erkennen kann, ob die Aufnahme läuft)</string>
     <string name="preference_category_online">Verschiedenes</string>
     <string name="preference_online_help">Online-Hilfe</string>
-    <string name="preference_online_help_summary">Öffne die Camera Website in deinem Browser</string>
-    <string name="preference_donate">Spende</string>
-    <string name="preference_donate_summary">Wenn Ihnen diese App gefällt, würde ich mich über eine Spende freuen, indem Sie meine Spenden-App kaufen. Dazu brauchen Sie nur diese Option anzuklicken. Danke!</string>
+    <string name="preference_online_help_summary">Die Kamera-Webseite im Browser öffnen</string>
+    <string name="preference_donate">Die Weiterentwicklung mit einer Spende unterstützen</string>
+    <string name="preference_donate_summary">Wenn Ihnen diese App gefällt, würde ich mich über eine Spende freuen, indem Sie meine Spenden-App kaufen. Dazu brauchen Sie nur diese Option anzutippen. Danke!</string>
     <string name="preference_use_camera2">Camera2-API verwenden</string>
     <string name="preference_use_camera2_summary">Aktiviert die Camera2-API mit Zusatzfunktionen (experimentell, Neustart erforderlich)</string>
     <string name="preference_about">Über</string>
     <string name="preference_about_summary">Anwendungs- und Debug-Informationen</string>
     <string name="preference_reset">Einstellungen zurücksetzen</string>
-    <string name="preference_reset_summary">Standard-Einstellungen von Camera wiederherstellen</string>
-    <string name="preference_reset_question">Sind Sie sich sicher, alle Einstellungen von Camera auf die Standardwerte zurückzusetzen?</string>
-    <string name="about_available">verfügbar</string>
-    <string name="about_not_available">nicht verfügbar</string>
+    <string name="preference_reset_summary">Standard-Einstellungen der Kamera wiederherstellen</string>
+    <string name="preference_reset_question">Sind Sie sich sicher, alle Einstellungen von Kamera auf die Standardwerte zurückzusetzen?</string>
+    <string name="about_available">Verfügbar</string>
+    <string name="about_not_available">Nicht verfügbar</string>
     <string name="about_copy_to_clipboard">In die Zwischenablage kopieren</string>
     <string name="take_photo">Foto aufnehmen</string>
     <string name="gallery">Galerie</string>
@@ -244,8 +249,8 @@
     <string name="flash_mode">Blitzmodus</string>
     <string name="switch_to_front_camera">Umschalten auf Frontkamera</string>
     <string name="switch_to_back_camera">Umschalten auf Rückkamera</string>
-    <string name="switch_to_video">Umschalten in Video Modus</string>
-    <string name="switch_to_photo">Umschalten in Kamera Modus</string>
+    <string name="switch_to_video">Umschalten in den Video-Modus</string>
+    <string name="switch_to_photo">Umschalten in den Kamera-Modus</string>
     <string name="trash">Letztes Foto löschen</string>
     <string name="share">Foto teilen</string>
     <string name="parent_folder">Übergeordnetes Verzeichnis</string>
@@ -273,8 +278,16 @@
     <string name="speech_recognizer_started">Sag \"cheese\"</string>
     <string name="audio_listener_started">Mache ein lautes Geräusch</string>
     <string name="auto_stabilise_info">Autostabilisierung rotiert die Fotos so, dass sie waagerecht erscheinen.\n\nDies bedeutet aber auch eine geringere Auflösung aufgrund von Rotation und Beschneidung.</string>
-    <string name="raw_info">DNG-Dateien enthalten die volle, unkomprimierte Bildinformation der Kamera. Manche Galerie-Apps erkennen das DNG-Format nicht. DNG-Dateien können in  spezialisierten Foto-Editor-Apps verwendet werden. Verschiedene Bildbearbeitungsoptionen wie \"Fotostempel\" oder \"Autostabilisierung\" werden nur bei JPEG-Dateien angewandt und nicht bei DNG-Dateien.</string>
-    <string name="hdr_info">Der HDR-Modus ist nützlich für Motive mit starkem Kontrast. Dabei werden mehrere Bilder mit verschiedener Belichtung kombiniert.\n\nHDR ist nicht für bewegte Szenen geeignet, kann Farbänderungen bewirken und benötigt mehr Zeit.</string>
+    <string name="raw_info">DNG-Dateien enthalten die volle, unkomprimierte Bildinformation der Kamera. 
+\n
+\nManche Galerie-Apps erkennen das DNG-Format nicht. DNG-Dateien können in spezialisierten Foto-Editor-Apps verwendet werden.
+\n
+\nVerschiedene Bildbearbeitungsoptionen wie Fotostempel oder Autostabilisierung werden nur bei Nicht-DNG-Dateien (JPEG etc) angewandt und nicht bei DNG-Dateien.</string>
+    <string name="hdr_info">Der HDR-Modus ist nützlich für Motive mit starkem Kontrast. Dabei werden mehrere Bilder mit verschiedener Belichtung kombiniert.
+\n
+\nHDR ist nicht für bewegte Szenen geeignet und kann Farbänderungen bewirken.
+\n
+\nHDR-Aufnahmen benötigen mehr Zeit zur Berechnung.</string>
     <string name="dont_show_again">Nicht wieder zeigen</string>
     <string name="photo_mode">Foto Modus</string>
     <string name="photo_mode_standard">Std</string>
@@ -320,7 +333,7 @@
     <string name="bright">Hell</string>
     <!-- exposure compensation bright -->
     <string name="exposure_shutter_speed">Verschlusszeit</string>
-    <string name="camera_error">Ernsthafter Kamera Fehler</string>
+    <string name="camera_error">Schwerwiegender Kamera-Fehler</string>
     <string name="preference_camera2_fast_burst">Aktiviere schnellen HDR-/Expo-Burst</string>
     <string name="preference_camera2_fast_burst_summary">Erlaubt schnellere Aufnahmen im HDR-/Expo-Modus. Deaktiviere diesen Modus, falls dein Gerät damit Probleme hat.</string>
     <string name="camera">Kamera</string>
@@ -935,10 +948,28 @@
     <string name="qr_vin_title">VIN suchen</string>
     <string name="qr_vin_content_description">Diese VIN (Fahrzeug-Identifikationsnummer) suchen</string>
     <string name="qr_tel_title">Diese Telefonnummer anrufen</string>
-
     <string name="failed_to_open_camera_two_1_disabled">IHRE PRIVACY-SCHALTER MUSS AKTIVIERT SEIN</string>
     <string name="failed_to_open_camera_two_2_disabled">DA DIE KAMERA NICHT VERFÜGBAR IST ;-)</string>
-
     <string name="failed_to_open_camera_two_1_enabled">BITTE WARTEN SIE 5 SEKUNDEN AUF IHRE KAMERA</string>
     <string name="failed_to_open_camera_two_2_enabled">UM SIE ZU LADEN, DA SIE SOEBEN AKTIVIERT WURDE</string>
+    <string name="preference_show_focus_peaking">Zeige Fokussier-Symbol an</string>
+    <string name="preference_show_focus_peaking_summary">Soll ein Symbol angezeigt werden, mit dem Fokus-Peaking ein- oder ausgeschaltet werden kann? Wenn dies aktiviert ist, wird eine Fokusquadratanzeige der Konturen angezeigt. Siehe auch Einstellungen/Kamera-Vorschaubild/Fokus-Peaking.</string>
+    <string name="focus_peaking_enable">Fokus-Peaking aktivieren</string>
+    <string name="focus_peaking_disable">Fokus-Peaking deaktivieren</string>
+    <string name="qr_icon_description">Symbol</string>
+    <string name="qr_share_description">Teilen</string>
+    <string name="qr_fido_title">Passkey benutzen</string>
+    <string name="qr_upi_title">Eine App zum Bezahlen auswählen</string>
+    <string name="qr_uri_title">URL öffnen</string>
+    <string name="qr_uri_content_description">Diese URL mit einer passenden App öffnen, falls dies unterstützt wird</string>
+    <string name="qr_text">Text</string>
+    <string name="qr_wifi_title">Mit diesem WLAN verbinden</string>
+    <string name="abc_shareactionprovider_share_with">Teilen mit</string>
+    <string name="choose_camera">Linse auswählen:</string>
+    <string name="qr_copy_description">In den Zwischenspeicher kopieren</string>
+    <string name="qr_upi_content_description">Diesen UPI-Link mit einer passenden App öffnen, falls dies unterstützt wird</string>
+    <string name="qr_wifi_content_description">Dieses WLAN zu der Liste bekannter Netzwerke hinzufügen und sich damit verbinden</string>
+    <string name="qr_no_app_available_for_action">Es ist keine App für diese Aktion vorhanden</string>
+    <string name="qr_dpp_description">Dieses Gerät konfigurieren</string>
+    <string name="qr_fido_content_description">Diesen FIDO QR-Code verwalten</string>
 </resources>
