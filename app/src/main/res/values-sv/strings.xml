@@ -964,4 +964,7 @@
     <string name="failed_to_open_camera_two_2_disabled">EFTERSOM KAMERAN INTE ÄR TILLGÄNGLIG ;-)</string>
     <string name="failed_to_open_camera_two_1_enabled">VÄNTA I 5 SEKUNDER PÅ ATT DIN KAMERA</string>
     <string name="failed_to_open_camera_two_2_enabled">STARTAR DÅ DEN JUST BLIVIT AKTIVERAD</string>
+    <string name="choose_camera">Välj kamera:</string>
+    <string name="qr_uri_title">Öppna URL</string>
+    <string name="qr_upi_title">Välj app för att betala</string>
 </resources>
