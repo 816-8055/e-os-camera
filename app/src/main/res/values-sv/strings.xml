@@ -967,4 +967,7 @@
     <string name="choose_camera">Välj kamera:</string>
     <string name="qr_uri_title">Öppna URL</string>
     <string name="qr_upi_title">Välj app för att betala</string>
+    <string name="preference_show_focus_peaking">Visa ikon för fokusmarkering</string>
+    <string name="focus_peaking_enable">Aktivera fokusmarkering</string>
+    <string name="focus_peaking_disable">Inaktivera fokusmarkering</string>
 </resources>
