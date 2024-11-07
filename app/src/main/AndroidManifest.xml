@@ -45,7 +45,7 @@
         <!-- should not change the android:name, including moving to a subpackage - see http://android-developers.blogspot.co.uk/2011/06/things-that-cannot-change.html -->
         <activity
             android:name="net.sourceforge.opencamera.MainActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize|keyboardHidden"
             android:launchMode="singleInstance"
             android:clearTaskOnLaunch="true"
             android:exported="true"
@@ -107,7 +107,6 @@
             android:exported="true"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
-            android:screenOrientation="nosensor"
             android:visibleToInstantApps="true"
             android:windowSoftInputMode="stateAlwaysHidden|adjustPan">
         </activity>
