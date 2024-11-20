@@ -430,9 +430,6 @@
     <string name="preferences_licence">Licence</string>
     <string name="preferences_app_info_title">Informations sur Caméra</string>
     <string name="preferences_service_terms">Conditions d\'utilisation</string>
-    <string name="speech_recognizer_extra_info">(Votre voix peut être envoyée à des serveurs
-\ndistants par Android pour effectuer
-\nune reconnaissance vocale.)</string>
     <string name="exposure_compensation_seekbar">Barre de réglage de la compensation de l\'exposition</string>
     <string name="cycle_raw">Faire défiler les modes RAW</string>
     <string name="cycle_flash">Modes du flash</string>

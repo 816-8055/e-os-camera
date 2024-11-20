@@ -466,7 +466,6 @@
     <string name="preference_ui_placement_right">Jobbkezes felhasználói felület</string>
     <string name="preference_stamp_style_shadowed">Árnyékos szöveg</string>
     <string name="preference_stamp_style_plain">Sima szöveg</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Összeállított verzió</string>
     <string name="preferences_about_app">A fényképezőgép villás az Camera-tól</string>
     <string name="preferences_authors">Szerzők</string>

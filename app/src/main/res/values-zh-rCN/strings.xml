@@ -831,7 +831,6 @@
     <string name="preference_panorama_save_all_plus_debug">保存原图和debug XML</string>
 
     <string name="camera_id">ID</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">内部版本</string>
     <string name="preferences_about_app">相机是从Camera分叉的</string>
     <string name="preferences_authors">作者</string>

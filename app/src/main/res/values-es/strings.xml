@@ -555,7 +555,6 @@
     <string name="preference_ui_placement_right">Interfaz de usuario para diestros</string>
     <string name="preference_stamp_style_shadowed">Texto sombreado</string>
     <string name="preference_stamp_style_plain">Texto plano</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Versión de compilación</string>
     <string name="preferences_about_app">Camera es una bifurcación de Camera</string>
     <string name="preferences_authors">Autores</string>

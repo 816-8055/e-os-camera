@@ -418,7 +418,6 @@
 
     <string name="preference_stamp_style_shadowed">Texto sombreado</string>
     <string name="preference_stamp_style_plain">Texto simples</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Versão de compilação</string>
     <string name="preferences_about_app">A câmera é bifurcada no Camera</string>
     <string name="preferences_authors">Autor</string>

@@ -445,7 +445,6 @@
     <string name="high_speed">Υψηλή Ταχύτητα</string> <!-- in the sense of high speed video frame rates -->
 
     <string name="preference_video_fps_default">Προεπιλογή</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Δημιουργία έκδοσης</string>
     <string name="preferences_about_app">Η κάμερα είναι διχαλωτή από το Camera</string>
     <string name="preferences_authors">Συγγραφέας</string>
