@@ -2,12 +2,19 @@ image: "registry.gitlab.e.foundation/e/os/docker-android-apps-cicd:latest"
 
 stages:
   - update-from-upstream
+  - lint
   - build
 
 before_script:
   - apt update && apt-get install libncurses5 -y
   - export GRADLE_USER_HOME=$(pwd)/.gradle
   - chmod +x ./gradlew
+
+lint:
+  stage: lint
+  script:
+    - chmod +x check_lint.sh
+    - ./check_lint.sh
 
 cache:
   key: ${CI_PROJECT_ID}
