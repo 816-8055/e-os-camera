@@ -779,7 +779,6 @@
 
     <string name="preference_stamp_style_shadowed">Đổ bóng</string>
     <string name="preference_stamp_style_plain">Thuần túy</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Phiên bản xây dựng</string>
     <string name="preferences_about_app">Máy ảnh được rẽ nhánh từ Camera</string>
     <string name="preferences_authors">Tác giả</string>

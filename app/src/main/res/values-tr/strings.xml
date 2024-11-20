@@ -347,7 +347,6 @@
     <string name="preference_ui_placement_right">Sağ el kullanıcı arayüzü</string>
     <string name="preference_stamp_style_shadowed">Gölgeli yazı</string>
     <string name="preference_stamp_style_plain">Düz yazı</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Derleme sürümü</string>
     <string name="preferences_about_app">Kamera Camera\'dan çatallandı</string>
     <string name="preferences_authors">Yapımcılar</string>

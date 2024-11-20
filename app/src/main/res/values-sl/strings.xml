@@ -862,7 +862,6 @@
 
     <string name="preference_stamp_style_shadowed">Osenčeno besedilo</string>
     <string name="preference_stamp_style_plain">Golo besedilo</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Različica za izdelavo</string>
     <string name="preferences_about_app">Kamera je vilica Camera</string>
     <string name="preferences_authors">Avtor</string>

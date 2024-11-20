@@ -366,7 +366,6 @@
 
     <string name="preference_stamp_style_shadowed">Vystínovaný text</string>
     <string name="preference_stamp_style_plain">Prostý text</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Sestavte verzi</string>
     <string name="preferences_about_app">Kamera je vidlice z Camera</string>
     <string name="preferences_authors">Autor</string>

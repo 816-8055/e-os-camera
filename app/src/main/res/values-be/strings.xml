@@ -362,7 +362,6 @@
 
     <string name="preference_stamp_style_shadowed">Тэкст з ценем</string>
     <string name="preference_stamp_style_plain">Звычайны тэкст</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Зборка версіі</string>
     <string name="preferences_about_app">Камера раздвоеная ад Camera</string>
     <string name="preferences_authors">Аўтары</string>
