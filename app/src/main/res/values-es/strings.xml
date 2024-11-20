@@ -555,7 +555,6 @@
     <string name="preference_ui_placement_right">Interfaz de usuario para diestros</string>
     <string name="preference_stamp_style_shadowed">Texto sombreado</string>
     <string name="preference_stamp_style_plain">Texto plano</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Versión de compilación</string>
     <string name="preferences_about_app">Camera es una bifurcación de Camera</string>
     <string name="preferences_authors">Autores</string>
@@ -812,7 +811,7 @@
     <string name="preference_panorama_save_summary">Si se guardan las imágenes originales en modo panorámico. Ten en cuenta que guardar las fotos panorámicas es más lento. También permite la opción de guardar un archivo XML que puede ser útil para reportar problemas con el modo panorama.
 \n%s</string>
     <string name="camera_id">ID</string>
-    <string name="preference_image_format_summary">Selecciona el formato utilizado para guardar las fotos. Esto afecta las fotos \"estándar\" (no RAW). Sólo JPEG permite guardar metadatos Exif. Ten en cuenta que el formato PNG no es realmente sin pérdidas, sino que se convierte a partir de un JPEG con una calidad del 100%.
+    <string name="preference_image_format_summary">Selecciona el formato utilizado para guardar las fotos. Esto afecta las fotos \"estándar\" (no RAW). Sólo JPEG permite guardar metadatos Exif. Ten en cuenta que el formato PNG no es realmente sin pérdidas, sino que se convierte a partir de un JPEG con una calidad del 100%%.
 \n%s</string>
     <string name="preference_panorama_save_no">No guardar imágenes originales</string>
     <string name="failed_to_process_panorama">Error al crear imágen panorama</string>

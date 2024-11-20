@@ -430,9 +430,6 @@
     <string name="preferences_licence">Licence</string>
     <string name="preferences_app_info_title">Informations sur Caméra</string>
     <string name="preferences_service_terms">Conditions d\'utilisation</string>
-    <string name="speech_recognizer_extra_info">(Votre voix peut être envoyée à des serveurs
-\ndistants par Android pour effectuer
-\nune reconnaissance vocale.)</string>
     <string name="exposure_compensation_seekbar">Barre de réglage de la compensation de l\'exposition</string>
     <string name="cycle_raw">Faire défiler les modes RAW</string>
     <string name="cycle_flash">Modes du flash</string>
@@ -454,8 +451,7 @@
 \n%s</string>
     <string name="preference_camera_api_summary">Sélectionner l\'API Camera2 pour activer des fonctions supplémentaires telles que les modes manuels d\'exposition, de mise au point, de balance des blancs, ainsi que le mode RAW (s\'il est pris en charge par l\'appareil). La modification de l\'API entraînera un redémarrage.
 \n%s</string>
-    <string name="preference_image_format_summary">Sélectionnez le format de fichier utilisé pour l\'enregistrement des photos. Cela concerne les photos \"standard\" (pas RAW). Seul le format JPEG permet de sauvegarder les métadonnées Exif. N.B : le format PNG ne permet pas d\'éviter véritablement les pertes, en effet il est converti à partir d\'un JPEG de qualité 100 %.
-\n%s</string>
+    <string name="preference_image_format_summary">Sélectionnez le format de fichier utilisé pour l\'enregistrement des photos. Cela concerne les photos \"standard\" (pas RAW). Seul le format JPEG permet de sauvegarder les métadonnées Exif. N.B : le format PNG ne permet pas d\'éviter véritablement les pertes, en effet il est converti à partir d\'un JPEG de qualité 100%%.\n%s</string>
     <string name="preference_panorama_save_all_plus_debug">Enregistrer les images d\'origine ainsi que le rapport XML</string>
     <string name="preference_panorama_save_summary">Enregistrer ou non les images originales en mode panoramique. Notez que cela ralentira l\'enregistrement des photos panoramiques. Permet aussi la possibilité d\'enregistrer un fichier XML qui peut être utile pour signaler des problèmes de panorama.
 \n%s</string>

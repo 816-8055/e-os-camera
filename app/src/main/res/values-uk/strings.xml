@@ -425,7 +425,6 @@
     <string name="preference_ui_placement_right">Інтерфейс для правші</string>
     <string name="preference_stamp_style_shadowed">Текст с тінью</string>
     <string name="preference_stamp_style_plain">Звичайний текст</string>
-    <string name="preferences_about_title">About</string>
     <string name="preferences_build_version">Збірка версії</string>
     <string name="preferences_about_app">Камера роздвоєна від Camera</string>
     <string name="preferences_authors">Автори</string>
