@@ -11,10 +11,10 @@
     android:letterSpacing="0.0"
     android:textAlignment="center"
     android:textAllCaps="false"
-    android:textColor="@color/qrcodeColorOnSurface"
+    android:textColor="@color/e_primary_text_color"
     android:textSize="15sp"
     android:textStyle="normal"
     android:typeface="normal"
     app:cornerRadius="8dp"
-    app:strokeColor="@color/qrcodeColorOnSurfaceVariant"
+    app:strokeColor="@color/e_accent"
     app:strokeWidth="1dp" />
