@@ -8,6 +8,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/e_floating_background"
     android:paddingHorizontal="16dp">
 
     <ImageView
@@ -30,7 +31,7 @@
         android:layout_height="88dp"
         android:layout_marginTop="12dp"
         android:clickable="true"
-        app:cardBackgroundColor="@color/qrcodeColorOnSurface"
+        app:cardBackgroundColor="@color/e_floating_background_variant"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"

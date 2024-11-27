@@ -18,6 +18,8 @@ import android.graphics.Rect
 import android.os.Build
 import android.text.method.LinkMovementMethod
 import android.util.Log
+import android.view.ContextThemeWrapper
+import android.view.LayoutInflater
 import android.view.textclassifier.TextClassificationManager
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -271,13 +273,16 @@ class QrImageAnalyzer(private val activity: Activity, private val scope: Corouti
         }
     }
 
-    private fun inflateButton() = MaterialButton::class.cast(
-        activity.layoutInflater.inflate(
-            R.layout.qr_bottom_sheet_action_button,
-            bottomSheetDialogActionsLayout,
-            false
-        )
-    ).apply {
-        layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+    private fun inflateButton(): MaterialButton {
+        val materialContext = ContextThemeWrapper(activity, R.style.Theme_MaterialComponents_Light_Dialog)
+        return MaterialButton::class.cast(
+            LayoutInflater.from(materialContext).inflate(
+                R.layout.qr_bottom_sheet_action_button,
+                bottomSheetDialogActionsLayout,
+                false
+            )
+        ).apply {
+            layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+        }
     }
 }
