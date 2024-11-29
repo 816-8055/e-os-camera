@@ -19,6 +19,7 @@ import net.sourceforge.opencamera.preview.ApplicationInterface.NoFreeStorageExce
 import net.sourceforge.opencamera.preview.camerasurface.CameraSurface;
 import net.sourceforge.opencamera.preview.camerasurface.MySurfaceView;
 import net.sourceforge.opencamera.preview.camerasurface.MyTextureView;
+import net.sourceforge.opencamera.qr.QrImageAnalyzer;
 
 import java.io.File;
 //import java.io.FileOutputStream;
@@ -452,6 +453,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     public volatile boolean test_started_next_output_file;
     public volatile boolean test_runtime_on_video_stop; // force throwing a RuntimeException when stopping video (this usually happens naturally when stopping video too soon)
     public volatile boolean test_burst_resolution;
+
+    private static final long EXECUTION_DELAY_IN_MS = 500; // Execution delay
+    private long lastExecutionTime = 0; // Track the last execution time
 
     public Preview(ApplicationInterface applicationInterface, ViewGroup parent) {
         if( MyDebug.LOG ) {
@@ -1157,19 +1161,32 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     public void onSurfaceTextureUpdated(@NonNull SurfaceTexture arg0) {
         refreshPreviewBitmap();
 
+        if (!isQRCode()) return;
+
+        MainActivity mainActivity = (MainActivity) this.getContext();
+        QrImageAnalyzer qrImageAnalyzer = mainActivity.qrImageAnalyzer;
+
+        // Check if the function is being called too quickly
+        if (qrImageAnalyzer.isQrDialogShowing()
+                || (System.currentTimeMillis() - lastExecutionTime) < EXECUTION_DELAY_IN_MS) {
+            return; // Skip below code if it's within executionDelay
+        }
+
+        lastExecutionTime = System.currentTimeMillis();
+
         boolean previewBitmapWasEnabled = isPreviewBitmapEnabled();
-        if (isQRCode()) {
-            if (!previewBitmapWasEnabled) {
-                enablePreviewBitmap(false, true);
-            }
-            TextureView textureView = (TextureView) this.cameraSurface;
-            Bitmap bitmap = textureView.getBitmap(preview_bitmap);
-            MainActivity mActivity = (MainActivity) this.getContext();
-            int rotation = getDisplayRotationDegrees(false);
-            if (bitmap != null) {
-                mActivity.qrImageAnalyzer.readImage(bitmap, rotation);
-            }
-        } else if (!previewBitmapWasEnabled) {
+        if (!previewBitmapWasEnabled) {
+            enablePreviewBitmap(false, true);
+        }
+
+        TextureView textureView = (TextureView) this.cameraSurface;
+        Bitmap bitmap = textureView.getBitmap(preview_bitmap);
+        int rotation = getDisplayRotationDegrees(false);
+        if (bitmap != null) {
+            qrImageAnalyzer.readImage(bitmap, rotation);
+        }
+
+        if (!previewBitmapWasEnabled) {
             disablePreviewBitmap();
         }
     }
