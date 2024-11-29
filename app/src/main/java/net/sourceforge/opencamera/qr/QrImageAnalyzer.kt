@@ -85,6 +85,8 @@ class QrImageAnalyzer(private val activity: Activity, private val scope: Corouti
         activity.getSystemService(TextClassificationManager::class.java)
     }
 
+    private var isAboutToShow = false
+
     // QR
     private val reader by lazy {
         BarcodeReader().apply {
@@ -132,11 +134,18 @@ class QrImageAnalyzer(private val activity: Activity, private val scope: Corouti
         } catch (ignored: Exception) { }
     }
 
+    fun isQrDialogShowing(): Boolean {
+        return bottomSheetDialog.isShowing || isAboutToShow
+    }
+
     private fun showQrDialog(result: BarcodeReader.Result) {
         scope.launch(Dispatchers.Main) {
-            if (bottomSheetDialog.isShowing) {
+            if (isQrDialogShowing()) {
                 return@launch
             }
+
+            // showQrDialog is getting called even before its about to show.
+            isAboutToShow = true
 
             val text = result.text ?: return@launch
             bottomSheetDialogData.text = text
@@ -269,6 +278,7 @@ class QrImageAnalyzer(private val activity: Activity, private val scope: Corouti
             bottomSheetDialog.setOnDismissListener {
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
+            isAboutToShow = false
         }
     }
 
