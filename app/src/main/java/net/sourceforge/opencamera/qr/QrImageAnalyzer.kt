@@ -12,7 +12,6 @@ import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Build
@@ -32,6 +31,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.cardview.widget.CardView
 import androidx.core.graphics.drawable.DrawableCompat
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.zxing.BarcodeFormat
@@ -52,6 +52,7 @@ class QrImageAnalyzer(private val activity: Activity, private val scope: Corouti
     private val bottomSheetDialog by lazy {
         BottomSheetDialog(activity).apply {
             setContentView(R.layout.qr_bottom_sheet_dialog)
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
     }
     private val bottomSheetDialogCardView by lazy {
@@ -273,11 +274,8 @@ class QrImageAnalyzer(private val activity: Activity, private val scope: Corouti
             }
 
             // Show dialog
-            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             bottomSheetDialog.show()
-            bottomSheetDialog.setOnDismissListener {
-                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            }
+
             isAboutToShow = false
         }
     }
