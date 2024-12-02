@@ -1,5 +1,6 @@
 package net.sourceforge.opencamera.ui;
 
+import net.sourceforge.opencamera.DeviceSettings;
 import net.sourceforge.opencamera.MyApplicationInterface;
 import net.sourceforge.opencamera.ScaleUtils;
 import net.sourceforge.opencamera.cameracontroller.CameraController;
@@ -226,7 +227,8 @@ public class MainUI {
 
         MainActivity.SystemOrientation system_orientation = main_activity.getSystemOrientation();
         boolean system_orientation_portrait = system_orientation == MainActivity.SystemOrientation.PORTRAIT;
-        boolean system_orientation_reversed_landscape = system_orientation == MainActivity.SystemOrientation.REVERSE_LANDSCAPE;
+        boolean system_orientation_reversed_landscape = !DeviceSettings.isTablet(main_activity) &&
+                system_orientation == MainActivity.SystemOrientation.REVERSE_LANDSCAPE;
         if( MyDebug.LOG ) {
             Log.d(TAG, "    system_orientation = " + system_orientation);
             Log.d(TAG, "    system_orientation_portrait? " + system_orientation_portrait);
