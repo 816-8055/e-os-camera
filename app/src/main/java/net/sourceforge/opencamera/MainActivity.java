@@ -2831,10 +2831,6 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         int best_qrcode_camera = -1;
         if( MyDebug.LOG )
             Log.d(TAG, "getBetterQRCodeCameraID");
-        if( !isMultiCamEnabled() ) {
-            Log.e(TAG, "getBetterQRCodeCameraID switch multi camera icon shouldn't have been visible");
-            return best_qrcode_camera;
-        }
         if( preview.isOpeningCamera() ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "getBetterQRCodeCameraID already opening camera in background thread");

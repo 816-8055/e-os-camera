@@ -8870,9 +8870,17 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if (enabled) {
             this.functionalMode = FunctionalMode.QRCODE;
             rootLayout.addView(overlayQRCodeView);
-            int qrcodeCamId = ((MainActivity)getContext()).getBetterQRCodeCameraID();
-            if (qrcodeCamId >= 0) {
-                applicationInterface.setCameraIdPref(qrcodeCamId);
+            MainActivity mainActivity = (MainActivity) this.getContext();
+            int qrcodeCamId = 0;
+            if (mainActivity.isMultiCamEnabled()) {
+                int betterQrcodeCamId = mainActivity.getBetterQRCodeCameraID();
+                if (qrcodeCamId >= 0) {
+                    qrcodeCamId = betterQrcodeCamId;
+                }
+            }
+            applicationInterface.setCameraIdPref(qrcodeCamId);
+            if (MyDebug.LOG) {
+                Log.d(TAG, "Using qrcodeCamId: " + qrcodeCamId);
             }
         } else if (overlayQRCodeView.getParent() != null) {
             rootLayout.removeView(overlayQRCodeView);
