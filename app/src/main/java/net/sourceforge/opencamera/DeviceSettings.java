@@ -16,6 +16,7 @@
 
 package net.sourceforge.opencamera;
 
+import android.content.Context;
 import android.os.Build;
 
 import java.util.Locale;
@@ -41,5 +42,10 @@ public class DeviceSettings {
 
     public static boolean isMurenaTwo() {
         return Build.DEVICE.toLowerCase(Locale.US).contains("two");
+    }
+
+    public static boolean isTablet(Context context) {
+        int smallestScreenWidth = context.getResources().getConfiguration().smallestScreenWidthDp;
+        return smallestScreenWidth >= 600;
     }
 }
