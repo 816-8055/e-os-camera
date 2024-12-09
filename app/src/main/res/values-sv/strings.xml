@@ -970,4 +970,7 @@
     <string name="preference_show_focus_peaking">Visa ikon för fokusmarkering</string>
     <string name="focus_peaking_enable">Aktivera fokusmarkering</string>
     <string name="focus_peaking_disable">Inaktivera fokusmarkering</string>
+    <string name="qr_uri_content_description">Öppna denna URL med en lämplig app om det stöds</string>
+    <string name="preference_show_focus_peaking_summary">Huruvida en ikon ska visas på skärmen för att aktivera eller inaktivera fokusmarkering. När fokusmarkering är aktiverat kommer markeringar visas på områden som är i fokus (konturer). Se Inställningar/Kameraförhandsvisning/Fokusmarkering.</string>
+    <string name="qr_upi_content_description">Öppna denna UPI-länk med en lämplig app om det stöds</string>
 </resources>
