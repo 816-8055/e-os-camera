@@ -1285,6 +1285,12 @@ public class MainUI {
                 content_description = R.string.take_photo;
                 switch_video_content_description = R.string.switch_to_video;
             }
+
+            /* for qr we just make the drawable empty
+            so as to not break constraints
+            the view is still clickable */
+            view.setEnabled(!isQrMode);
+
             view.setImageResource(resource);
             if (content_description==0) {
                 view.setContentDescription("");
