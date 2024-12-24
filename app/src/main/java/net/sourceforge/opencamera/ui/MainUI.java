@@ -1077,12 +1077,13 @@ public class MainUI {
                     == MyApplicationInterface.PhotoMode.Panorama &&
                     main_activity.getApplicationInterface().getGyroSensor().isRecording();
             boolean isQrMode = main_activity.getPreview().isQRCode();
+            boolean video_recording = main_activity.getPreview().isVideoRecording();
             // The switch order is camera -> video -> qrcode -> camera...
             if( main_activity.getPreview().isVideo() ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "set icon to video");
-                resource = main_activity.getPreview().isVideoRecording() ? R.drawable.take_video_recording : R.drawable.take_video_selector;
-                content_description = main_activity.getPreview().isVideoRecording() ? R.string.stop_video : R.string.start_video;
+                resource = video_recording ? R.drawable.take_video_recording : R.drawable.take_video_selector;
+                content_description = video_recording ?  R.string.stop_video : R.string.start_video;
                 switch_video_content_description = R.string.switch_to_qrcode;
             } else if (isQrMode) {
                 if (MyDebug.LOG)
@@ -1131,11 +1132,12 @@ public class MainUI {
             view.setTag(resource); // for testing
 
             // Hide/Show gallery & switch camera icons.
-            boolean showGalleryAndSwitch = isQrMode || panorama_recording;
+            boolean showGallery = isQrMode || panorama_recording;
+            boolean showSwitch = isQrMode || panorama_recording || video_recording;
             main_activity.findViewById(R.id.gallery).setVisibility(
-                    showGalleryAndSwitch ? View.INVISIBLE : View.VISIBLE);
+                    showGallery ? View.INVISIBLE : View.VISIBLE);
             main_activity.findViewById(R.id.switch_camera).setVisibility(
-                    showGalleryAndSwitch ? View.INVISIBLE : View.VISIBLE);
+                    showSwitch ? View.INVISIBLE : View.VISIBLE);
         }
     }
 
