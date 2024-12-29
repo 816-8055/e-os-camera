@@ -518,7 +518,7 @@
     <string name="preferences_source_code">Kildekode</string>
     <string name="preferences_licence">lisens</string>
     <string name="preferences_app_info_title">Kamerainformasjon</string>
-    <string name="preferences_service_terms">Tjenestevilkår</string>
+    <string name="preferences_service_terms">Bruksvilkår</string>
     <string name="preference_immersive_mode_off">Av</string>
     <string name="preference_immersive_mode_navigation">Skjul bare de virtuelle navigasjonsknappene</string>
     <string name="preference_immersive_mode_gui">Skjul grensesnittet</string>
