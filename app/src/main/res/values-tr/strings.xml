@@ -417,4 +417,19 @@
     <string name="saf_permission_failed">Bu klasöre kayıt edilemiyor</string>
     <string name="failed_to_save_photo_raw">RAW fotoğraf kaydı başarısız</string>
     <string name="next">Sıradaki</string>
+    <string name="preference_expo_bracketing_n_images_summary">Pozlama basamaklama modu için görüntü sayısı
+\n%s</string>
+    <string name="raw_info">DNG dosyaları kameranızdan gelen sıkıştırılmamış ve işlenmemiş bilgilerin tamamını içerir.
+\n
+\nBazı galeri uygulamalarının DNG dosyalarını tanımadığını unutmayın. DNG görüntüleri özel görüntü düzenleyicilerle kullanılabilir.
+\n
+\nFotoğrafları damgala ve Otomatik seviye gibi çeşitli işleme seçeneklerinin DNG görüntülerine değil, yalnızca DNG olmayan (JPEG/vb) görüntülere uygulanacağını unutmayın.</string>
+    <string name="hdr_info">HDR modu, parlaklıkta büyük farklılıklar olan çekimler için kullanışlıdır. Farklı pozlamalarda birden fazla çekim yaparak ve son görüntüyü oluşturmak için bunları birleştirerek çalışır.
+\n
+\nHDR\'nin hızlı hareket içeren sahneler için uygun olmadığını ve daha az doğru renk üretimi ile sonuçlanabileceğini unutmayın.
+\n
+\nHDR modunda fotoğraf çekmek daha yavaş olacaktır.</string>
+    <string name="auto_stabilise_info">Otomatik seviye, fotoğrafları düz görünecek şekilde otomatik olarak döndürür.
+\n
+\nBunun, görüntülerin biraz daha düşük çözünürlükte çıkacağı anlamına geldiğini unutmayın (gerekli döndürme ve kırpma nedeniyle).</string>
 </resources>
