@@ -960,7 +960,7 @@
     <string name="qr_fido_content_description">Meðhöndla þennan FIDO QR-kóða</string>
     <string name="qr_fido_title">Nota aðgangslykil</string>
     <string name="abc_shareactionprovider_share_with">Deila með</string>
-    <string name="failed_to_open_camera_two_1_disabled">FRIÐHELGISROFINN ÞINN VERÐUR AÐ VERA VIRKUR</string>
+    <string name="failed_to_open_camera_two_1_disabled">FRIÐHELGISROFINN ÞINN VERÐUR AÐ VERA VIRKJAÐUR</string>
     <string name="failed_to_open_camera_two_2_disabled">ÞAR SEM MYNDAVÉLIN ER EKKI TILTÆK ;-)</string>
     <string name="failed_to_open_camera_two_1_enabled">BÍDDU Í 5 SEKÚNDUR EFTIR AÐ MYNDAVÉLIN</string>
     <string name="failed_to_open_camera_two_2_enabled">HLAÐIST ÞAR SEM VERIÐ VAR AÐ VIRKJA HANA</string>
