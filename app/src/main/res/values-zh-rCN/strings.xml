@@ -881,4 +881,9 @@
     <string name="preference_audio_control_noise">大的声音</string>
     <string name="preference_audio_control_voice">语音命令: \"cheese\"</string>
     <!-- note that cheese shouldn't be translated, as we listen for this no matter what language is being used -->
+<string name="permission_rationale_storage">保存照片或视频等文件需要存储权限</string>
+    <string name="preference_failed_focus_mode_message">请拿稳手机以拍出清晰的照片。</string>
+    <string name="preference_camera2_dummy_capture_hack">启用虚拟捕获HDR/expo修复</string>
+    <string name="permission_rationale_location">在地理位置标记中需要位置权限（在食品和图片中存储位置信息，包括时间戳和副标题选项）。
+\n在连接使用蓝牙低能耗技术的遥控器时也需要位置权限（对于Android 11及更早版本）。</string>
 </resources>
