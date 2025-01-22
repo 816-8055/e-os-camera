@@ -835,7 +835,7 @@
     <string name="preferences_about_app">相机是从Camera分叉的</string>
     <string name="preferences_authors">作者</string>
     <string name="preferences_source_code">源代码</string>
-    <string name="preferences_licence">牌照</string>
+    <string name="preferences_licence">许可证</string>
     <string name="preferences_app_info_title">相机信息</string>
     <string name="preferences_service_terms">服务条款</string> <!-- ID as in camera ID -->
 
