@@ -177,7 +177,7 @@
     <string name="switch_multi_camera_lens">LINSA</string>
     <string name="iso">ISO</string>
     <string name="video_quality">Upplausn myndskeiðs</string>
-    <string name="preference_save_location">Vista staðsetningu</string>
+    <string name="preference_save_location">Staðsetning vistunar</string>
     <string name="preference_preview_size">Stærð forskoðunar</string>
     <string name="preference_show_time">Birta tíma</string>
     <string name="app_name">Myndavél</string>
