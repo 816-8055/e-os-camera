@@ -514,7 +514,7 @@
     <string name="preference_stamp_style_plain">Ren tekst</string>
     <string name="preferences_build_version">Bygg versjon</string>
     <string name="preferences_about_app">Kamera er gaffel fra Camera</string>
-    <string name="preferences_authors">Forfatter</string>
+    <string name="preferences_authors">Utviklere</string>
     <string name="preferences_source_code">Kildekode</string>
     <string name="preferences_licence">lisens</string>
     <string name="preferences_app_info_title">Kamerainformasjon</string>
