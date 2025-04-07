@@ -921,10 +921,8 @@
     <string name="preference_hdr_tonemapping_summary">Algoritmo da utilizzare per la mappatura dei toni nelle foto con modalità HDR
 \n%s</string>
     <string name="preference_hdr_tonemapping">Mappatura dei toni HDR</string>
-
     <string name="failed_to_open_camera_two_1_disabled">IL TUO INTERRUTTORE DELLA PRIVACY DEVE ESSERE ATTIVATO</string>
     <string name="failed_to_open_camera_two_2_disabled">POICHÉ LA TELECAMERA NON È DISPONIBILE ;-)</string>
-
     <string name="failed_to_open_camera_two_1_enabled">PER FAVORE ATTENDI 5 SECONDI PER LA TUA TELECAMERA</string>
     <string name="failed_to_open_camera_two_2_enabled">PER CARICARLA, POICHÉ È STATA APPENA ATTIVATA</string>
 </resources>
