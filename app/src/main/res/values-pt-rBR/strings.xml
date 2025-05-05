@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Camera</string>
     <string name="action_settings">Configurações</string>
     <string name="action_popup">Configurações rápidas</string>
     <string name="intro_ok">OK (Essa mensagem não será mostrada novamente)</string>
-
-    <string name="on">Ligado</string> <!-- whether a setting is turned on, e.g., "Auto-stabilise: On" -->
-    <string name="off">Desligado</string> <!-- whether a setting is turned off, e.g., "Auto-stabilise: Off" -->
+    <string name="on">Ligado</string>
+    <!-- whether a setting is turned on, e.g., "Auto-stabilise: On" -->
+    <string name="off">Desligado</string>
+    <!-- whether a setting is turned off, e.g., "Auto-stabilise: Off" -->
 	
     <string name="choose_save_location">Escolha um local de armazenamento:</string>
     <string name="clear_folder_history">Limpar histórico de pastas?</string>
@@ -15,10 +15,12 @@
     <string name="choose_another_folder">Escolha outra pasta</string>
     <string name="changed_save_location">Local de armazenamento alterado para:</string>
     <string name="stopped_recording_video">Gravação de vídeo finalizada</string>
-    <string name="repeats_to_go">repeats to go</string> <!--  intentionally starts lower case -->
+    <string name="repeats_to_go">repeats to go</string>
+    <!--  intentionally starts lower case -->
     <string name="failed_to_reconnect_camera">Falha ao reconectar à câmera</string>
     <string name="video_may_be_corrupted">Erro, arquivo de vídeo pode estar corrompido</string>
-    <string name="not_supported">Dispositivo não suportado</string> <!--  intentionally starts lower case -->
+    <string name="not_supported">Dispositivo não suportado</string>
+    <!--  intentionally starts lower case -->
     <string name="video_error_unknown">Erro desconhecido, vídeo interrompido</string>
     <string name="video_error_server_died">Servidor parou, vídeo interrompido</string>
     <string name="video_max_duration">Duração máx de vídeo atingido</string>
@@ -56,7 +58,6 @@
     <string name="color_effect">Efeito de cor</string>
     <string name="scene_mode">Modo de cena</string>
     <string name="white_balance">Balanço do branco</string>
-	
     <string name="angle">Ângulo</string>
     <string name="direction">Direção</string>
     <string name="failed_to_open_camera_1">FALHA AO INICIAR CÂMERA.</string>
@@ -67,9 +68,9 @@
     <string name="free_memory">Livre</string>
     <string name="screen_lock_message_1">[TRAVADO:</string>
     <string name="screen_lock_message_2">Deslize para destravar]</string>
-	
     <string name="failed_to_stamp">Falha ao estampar foto</string>
-    <string name="metres_abbreviation">m</string> <!-- symbol short for metres -->
+    <string name="metres_abbreviation">m</string>
+    <!-- symbol short for metres -->
 	
     <string name="preference_category_camera_effects">Efeitos de Câmera</string>
     <string name="preference_auto_stabilise">Auto-estabilização</string>
@@ -88,7 +89,6 @@
     <string name="preference_lock_orientation_summary">Se definida, a orientação do dispositivo será ignorada e a orientação da foto/vídeo será respeitada de acordo com a orientação especificada\n%s</string>
     <string name="preference_face_detection">Detecção de rosto</string>
     <string name="preference_face_detection_summary">Usa detecção facial em vez de áreas focais.</string>
-
     <string name="preference_category_camera_controls">Controles de Câmera</string>
     <string name="preference_timer">Temporizador</string>
     <string name="preference_timer_beep">Som do Temporizador</string>
@@ -97,49 +97,50 @@
     <string name="preference_burst_interval">Intervalo Disparo Contínuo</string>
     <string name="preference_screen_camera_controls_more">Mais controles de câmera</string>
     <string name="preference_pause_preview">Pausar depois de tirar foto</string>
-    <string name="preference_pause_preview_summary">Pausar a tela depois de tirar uma foto, com a opção para compartilhar ou deletar foto</string>
+    <string name="preference_pause_preview_summary">Pausar a tela depois de tirar uma foto, com a opção para compartilhar ou excluir a foto</string>
     <string name="preference_shutter_sound">Som de captura</string>
     <string name="preference_shutter_sound_summary">Toca um som quando tira uma foto</string>
     <string name="preference_volume_keys">Teclas de volume</string>
     <string name="preference_save_location">Local de armazenamento</string>
-    <string name="preference_save_location_summary">Escolha a pasta para salvar os arquivos de foto/vídeo</string>
+    <string name="preference_save_location_summary">Pasta para salvar os arquivos de foto/vídeo</string>
     <string name="preference_save_photo_prefix">Salvar prefixo de foto</string>
     <string name="preference_save_photo_prefix_summary">O prefixo usado para salvar o nome dos arquivos de foto</string>
     <string name="preference_save_video_prefix">Salvar prefixo de vídeo</string>
     <string name="preference_save_video_prefix_summary">O prefixo usado para salvar o nome dos arquivos de vídeo</string>
     <string name="preference_show_when_locked">Mostrar câmera quando travado</string>
-    <string name="preference_show_when_locked_summary">Se habilitado, o Camera ainda será exibido acima de qualquer tela de bloqueio</string>
+    <string name="preference_show_when_locked_summary">Se ativada, Câmera ainda será exibida acima de qualquer tela de bloqueio (você ainda terá que desbloquear para acessar Configurações, Galeria etc.)</string>
     <string name="preference_lock_video">Travar tela enquanto filma</string>
-    <string name="preference_lock_video_summary">Trava a tela enquanto filma para prevenir falhas acidentais na filmagem. Deslize na tela para desbloquear.</string>
+    <string name="preference_lock_video_summary">Durante a gravação de vídeo, a GUI será bloqueada para evitar a interrupção acidental da gravação. Passe o dedo na tela para desbloquear. Observe que a gravação de vídeo sempre será interrompida se o aplicativo entrar em segundo plano ou se a tela for apagada.</string>
     <string name="preference_rotate_preview">Rotação de visualização</string>
-    <string name="preference_rotate_preview_summary">Opção para rotacionar a visualização (não afetará o resultado das fotos/vídeos)\n%s</string>
-	
+    <string name="preference_rotate_preview_summary">Opção para girar a visualização (não afetará as fotos/vídeos resultantes)
+\n%s</string>
     <string name="preference_screen_gui">GUI na tela…</string>
-    <string name="preference_preview_size">Tamanho de Visualização</string>
+    <string name="preference_preview_size">Tamanho de visualização</string>
     <string name="preference_ui_placement">Orientação IU</string>
-    <string name="preference_immersive_mode">Modo Imersivo</string>
+    <string name="preference_immersive_mode">Modo imersivo</string>
     <string name="preference_show_zoom">Mostrar zoom</string>
-    <string name="preference_show_zoom_summary">Exibe o atual nível de zoom da câmera na tela (quando ampliado)</string>
+    <string name="preference_show_zoom_summary">Exibir o nível de zoom atual da câmera na tela (quando ampliado)</string>
     <string name="preference_show_zoom_controls">Mostrar controle de zoom -/+</string>
     <string name="preference_show_zoom_controls_summary">Mostrar botões -/+ para controlar o zoom</string>
     <string name="preference_show_zoom_slider_controls">Mostrar controle deslizante de zoom</string>
     <string name="preference_show_zoom_slider_controls_summary">Mostrar controle deslizante de zoom</string>
     <string name="preference_show_iso">Mostrar ISO</string>
-    <string name="preference_show_iso_summary">Exibir o atual nível de ISO (requer Camera2 API)</string>
+    <string name="preference_show_iso_summary">Exibe o nível ISO atual. (Requer a API Camera2.)</string>
     <string name="preference_free_memory">Mostrar memória livre</string>
     <string name="preference_free_memory_summary">Exibe na tela o espaço de armazenamento restante do dispositivo</string>
     <string name="preference_show_angle">Exibir ângulo</string>
     <string name="preference_show_angle_summary">Exibe na tela o ângulo de orientação atual do dispositivo</string>
     <string name="preference_show_angle_line">Exibir linha de ângulo</string>
-    <string name="preference_show_angle_line_summary">Exibe uma linha horizontal com o ângulo</string>
+    <string name="preference_show_angle_line_summary">Exibe uma linha de nível horizontal</string>
     <string name="preference_show_geo_direction">Exibir direção da bússola</string>
     <string name="preference_show_geo_direction_summary">Exibe na tela a direção da bússola do dispositivo</string>
     <string name="preference_show_time">Exibir hora</string>
     <string name="preference_show_time_summary">Exibe na tela a hora atual</string>
     <string name="preference_show_battery">Exibir bateria</string>
-    <string name="preference_show_battery_summary">Exibe na tela o atual nível de bateria</string>
+    <string name="preference_show_battery_summary">Exibir o nível atual da bateria na tela</string>
     <string name="preference_grid">Mostrar grade</string>
-    <string name="grid">Grade</string> <!-- short form of Show a grid -->
+    <string name="grid">Grade</string>
+    <!-- short form of Show a grid -->
     <string name="preference_crop_guide">Mostrar uma guia cortada</string>
     <string name="preference_crop_guide_summary">Uma guia cortada exibe um retângulo mostrando a relação de aspecto especificada, o que é útil se você planeja cortar a foto/o vídeo depois para ajustá-la/ajustá-lo a essa diferente relação de aspecto. Requer o modo WYSIWYG ou estar em modo de vídeo\n%s</string>
     <string name="preference_thumbnail_animation">Mostrar animação para captura de fotos</string>
@@ -148,7 +149,6 @@
     <string name="preference_keep_display_on_summary">Se habilitada, a tela não desligará enquanto a IU do Camera estiver aberta</string>
     <string name="preference_max_brightness">Forçar brilho máximo</string>
     <string name="preference_max_brightness_summary">Força a exibição da tela a ser em brilho máximo, em vez de no padrão do dispositivo</string>
-	
     <string name="preference_category_camera_quality">Configurações de Foto e Vídeo</string>
     <string name="preference_screen_photo_settings">Configurações de Foto</string>
     <string name="preference_screen_video_settings">Configurações de Vídeo</string>
@@ -169,10 +169,10 @@
     <string name="preference_stamp_fontsize">Tamanho da fonte</string>
     <string name="preference_stamp_fontsize_summary">Tamanho da fonte usada na marca d\'água sobre as fotos\n%s</string>
     <string name="video_quality">Resolução do vídeo</string>
-    <string name="preference_force_video_4k">Forçar resolução 4K UHD (experimental)</string>
-    <string name="preference_force_video_4k_summary">Habilita a resolução 3840x2160 para gravação de vídeos na câmera traseira - isso funcionará se seu dispositivo suportar e pode falhar se não suportar!</string>
-    <string name="preference_video_stabilization">Habilitar estabilização de vídeo</string>
-    <string name="preference_video_stabilization_summary">Estabilização de vídeo reduz a agitação devido a movimentação da câmera tanto na pré-visualização quanto em vídeos gravados.</string>
+    <string name="preference_force_video_4k">Forçar vídeo 4K UHD (só funciona em alguns dispositivos)</string>
+    <string name="preference_force_video_4k_summary">Habilite a resolução de 3840x2160 para gravação de vídeo na câmera traseira - essa opção é um hack que pode permitir dispositivos 4K em câmeras 4K que não expõem a opção para aplicativos de câmera de terceiros. Não há garantia de que funcione, portanto, teste antes de usar.</string>
+    <string name="preference_video_stabilization">Ativar a estabilização de vídeo digital</string>
+    <string name="preference_video_stabilization_summary">A estabilização de vídeo reduz o tremor devido ao movimento da câmera, tanto na visualização quanto nos vídeos gravados. Isso pode ser desnecessário se o seu dispositivo for compatível com a estabilização óptica de imagem (OIS).</string>
     <string name="preference_video_bitrate">Taxa de bits de vídeo (aprox)</string>
     <string name="preference_video_bitrate_summary">Defina aproximadamente a taxa de bits dos vídeos (maior quer dizer melhor qualidade, mas ocupa mais espaço; pode falhar a gravação se a taxa de bits não for suportada)\n%s</string>
     <string name="preference_video_fps">Taxa de quadros de vídeo (aprox)</string>
@@ -198,11 +198,9 @@
     <string name="preference_reset">Restaurar configurações</string>
     <string name="preference_reset_summary">Restaurar todas as configurações para padrão</string>
     <string name="preference_reset_question">Você tem certeza que quer restaurar todas as configurações para padrão?</string>
-
     <string name="about_available">Disponível</string>
     <string name="about_not_available">Não disponível</string>
     <string name="about_copy_to_clipboard">Copiar para área de transferência</string>
-	
     <string name="take_photo">Tirar Foto</string>
     <string name="gallery">Galeria</string>
     <string name="exposure">Exposição</string>
@@ -211,7 +209,6 @@
     <string name="flash_mode">Modo de Flash</string>
     <string name="trash">Deletar Última Foto</string>
     <string name="share">Compartilhar Foto</string>
-	
     <string name="parent_folder">Pasta Principal</string>
     <string name="new_folder">Nova Pasta</string>
     <string name="cant_write_folder">Impossível salvar nessa pasta</string>
@@ -219,7 +216,6 @@
     <string name="enter_new_folder">Digite um nome para a nova pasta</string>
     <string name="failed_create_folder">Falha ao criar pasta</string>
     <string name="folder_exists">A pasta já existe</string>
-
     <string name="duration_unlimited">Ilimitado</string>
     <string name="duration_3s">3 segundos</string>
     <string name="duration_5s">5 segundos</string>
@@ -245,18 +241,15 @@
     <string name="duration_45m">45 minutos</string>
     <string name="duration_1h">1 hora</string>
     <string name="preference_video_fps_default">Padrão</string>
-
     <string name="flash_off">Flash Desligado</string>
     <string name="flash_auto">Flash Automático</string>
     <string name="flash_on">Flash Ligado</string>
     <string name="flash_torch">Lanterna</string>
     <string name="flash_red_eye">Olho Vermelho</string>
-
     <string name="preference_record_audio_src_camcorder">Filmadora</string>
     <string name="preference_record_audio_src_mic">Microfone Externo (se existir)</string>
     <string name="preference_record_audio_src_default">Áudio padrão</string>
     <string name="preference_record_audio_src_voice_communication">Otimizado para voz</string>
-
     <string name="preference_video_bitrate_default">Default</string>
     <string name="preference_video_bitrate_100000">100kbps</string>
     <string name="preference_video_bitrate_200000">200kbps</string>
@@ -281,7 +274,6 @@
     <string name="preference_video_bitrate_80000000">80Mbps</string>
     <string name="preference_video_bitrate_90000000">90Mbps</string>
     <string name="preference_video_bitrate_100000000">100Mbps</string>
-
     <string name="preference_burst_mode_off">Desligado</string>
     <string name="preference_burst_mode_2x">2x</string>
     <string name="preference_burst_mode_3x">3x</string>
@@ -296,7 +288,6 @@
     <string name="preference_burst_mode_200x">200x</string>
     <string name="preference_burst_mode_500x">500x</string>
     <string name="preference_burst_mode_unlimited">Ilimitado</string>
-
     <string name="preference_burst_interval_no_delay">Nenhum</string>
     <string name="preference_burst_interval_1s">1s</string>
     <string name="preference_burst_interval_2s">2s</string>
@@ -314,7 +305,6 @@
     <string name="preference_burst_interval_30m">30min</string>
     <string name="preference_burst_interval_1h">1h</string>
     <string name="preference_burst_interval_2h">2h</string>
-
     <string name="preference_crop_guide_none">Nenhuma</string>
     <string name="preference_crop_guide_1">1 (1:1)</string>
     <string name="preference_crop_guide_1_25">1.25 (5:4)</string>
@@ -326,19 +316,42 @@
     <string name="preference_crop_guide_2_33">2.33 (21:9)</string>
     <string name="preference_crop_guide_2_35">2.35 (47:20)</string>
     <string name="preference_crop_guide_2_4">2.4 (12:5)</string>
-
     <string name="preference_ui_placement_left">Interface para canhoto</string>
     <string name="preference_ui_placement_right">Interface para destro</string>
     <string name="preferences_build_version">Versão de compilação</string>
     <string name="preferences_about_app">A câmera é bifurcada no Camera</string>
-    <string name="preferences_authors">Autor</string>
+    <string name="preferences_authors">Autores</string>
     <string name="preferences_source_code">Código fonte</string>
     <string name="preferences_licence">Licença</string>
     <string name="preferences_app_info_title">Informações da câmera</string>
     <string name="preferences_service_terms">Termos de serviço</string>
-
     <string name="preference_immersive_mode_off">Desligado</string>
     <string name="preference_immersive_mode_navigation">Somente esconder as teclas virtuais de navegação</string>
     <string name="preference_immersive_mode_gui">Esconder IGU</string>
     <string name="preference_immersive_mode_everything">Esconder tudo</string>
+    <string name="preference_touch_capture_summary">Tire uma foto ou grave um vídeo apenas tocando ou tocando duas vezes na visualização</string>
+    <string name="preference_stamp_timeformat">Formato de carimbo de tempo</string>
+    <string name="preference_stamp_dateformat">Formato de carimbo de data</string>
+    <string name="qr_wifi_content_description">Adicione esta rede Wi-Fi à lista de redes conhecidas e conecte o dispositivo a ela</string>
+    <string name="qr_upi_content_description">Abrir este link UPI com o aplicativo apropriado, se suportado</string>
+    <string name="failed_to_save_photo_raw">Falha ao salvar a foto RAW</string>
+    <string name="preference_touch_capture">Tocar para capturar</string>
+    <string name="preference_audio_control">Opções de controle de áudio</string>
+    <string name="preference_audio_noise_control_sensitivity">Sensibilidade do controle de áudio</string>
+    <string name="preference_save_zulu_time">Formato de hora para o nome do arquivo</string>
+    <string name="preference_startup_focus">Executar o foco automático na inicialização</string>
+    <string name="preference_stamp_font_color">Cor da fonte</string>
+    <string name="preference_stamp_style">Estilo de texto</string>
+    <string name="qr_wifi_title">Conectar-se a esta rede Wi-Fi</string>
+    <string name="abc_shareactionprovider_share_with">Compartilhar com</string>
+    <string name="qr_sms_title">Enviar um novo SMS</string>
+    <string name="qr_sms_content_description">Enviar um novo SMS para os destinatários especificados</string>
+    <string name="qr_tel_content_description">Ligue para o número de telefone</string>
+    <string name="qr_text">Texto</string>
+    <string name="qr_upi_title">Escolher aplicativo para pagar</string>
+    <string name="qr_uri_title">Abrir URL</string>
+    <string name="qr_uri_content_description">Abrir este URL com o aplicativo apropriado, se suportado</string>
+    <string name="qr_vin_title">Pesquisar VIN</string>
+    <string name="qr_vin_content_description">Pesquisar o número de identificação do veículo (VIN)</string>
+    <string name="qr_tel_title">Ligar para número de telefone</string>
 </resources>
