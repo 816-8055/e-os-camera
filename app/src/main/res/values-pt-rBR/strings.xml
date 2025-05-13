@@ -470,4 +470,48 @@
     <string name="preference_video_log_off">Padrão</string>
     <string name="preference_video_bitrate_150000000">150Mbps</string>
     <string name="preference_video_bitrate_200000000">200Mbps</string>
+    <string name="noise_reduction_mode_default">Padrão</string>
+    <string name="preference_startup_focus_summary">Se o foco automático deve ser usado quando a câmera é iniciada. Se você tiver o problema de o flash ligar ao iniciar, desative essa opção</string>
+    <string name="preference_stamp_gpsformat">Formato de carimbo GPS</string>
+    <string name="preference_background_photo_saving">Usar thread em segundo plano</string>
+    <string name="preference_background_photo_saving_summary">Se deseja salvar fotos em um thread em segundo plano (para uma operação mais rápida)</string>
+    <string name="preference_video_restart_max_filesize">Reiniciar no tamanho máximo do arquivo</string>
+    <string name="preference_video_restart_max_filesize_summary">Se deve ser reiniciado automaticamente quando o tamanho máximo do arquivo for atingido (seja o tamanho máximo do arquivo padrão do dispositivo ou especificado pelo usuário)</string>
+    <string name="preference_online_help_summary">Abra o site da câmera em seu navegador</string>
+    <string name="saf_select_save_location">Selecione um local para salvar</string>
+    <string name="permission_record_audio_not_available">A permissão de Microfone não está disponível</string>
+    <string name="speech_recognizer_started">Diga \"cheese\"</string>
+    <string name="auto_stabilise_info">Autonivelar girará automaticamente as fotos para que elas apareçam niveladas.
+\n
+\nObserve que isso significa que as imagens terão uma resolução um pouco menor (devido à rotação e ao corte necessários).</string>
+    <string name="photo_mode_standard">Pdr</string>
+    <string name="photo_mode_noise_reduction">RR</string>
+    <string name="video_power_critical">O vídeo foi encerrado
+\nNível da bateria criticamente baixo</string>
+    <string name="exposure_shutter_speed">Velocidade do obturador</string>
+    <string name="video_pause">Vídeo pausado</string>
+    <string name="video_resume">Vídeo retomado</string>
+    <string name="pause_video">Pausar gravação de vídeo</string>
+    <string name="resume_video">Retomar gravação de vídeo</string>
+    <string name="capturing">Capturando…</string>
+    <string name="white_balance_warm">Quente</string>
+    <string name="face_detected">rosto</string>
+    <string name="faces_detected">rostos</string>
+    <string name="left_of_screen">à esquerda da tela</string>
+    <string name="right_of_screen">à direita da tela</string>
+    <string name="top_of_screen">na parte superior da tela</string>
+    <string name="bottom_of_screen">na parte inferior da tela</string>
+    <string name="centre_of_screen">no centro</string>
+    <string name="high_speed">Alta Velocidade</string>
+    <string name="preference_category_exif_tags">Tags EXIF personalizadas</string>
+    <string name="preference_fast_burst_n_images">Número de fotos</string>
+    <string name="preference_stamp_dateformat_none">Nenhum</string>
+    <string name="preference_focus_bracketing_n_images">Número de fotos</string>
+    <string name="preference_video_capture_rate">Velocidade</string>
+    <string name="anti_banding_50hz">50Hz</string>
+    <string name="anti_banding_60hz">60Hz</string>
+    <string name="anti_banding_auto">Automático</string>
+    <string name="anti_banding_off">Desativado</string>
+    <string name="preference_record_audio_src_unprocessed">Não processado</string>
+    <string name="preference_record_audio_src_voice_recognition">Otimizado para reconhecimento de voz</string>
 </resources>
