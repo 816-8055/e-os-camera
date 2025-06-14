@@ -514,4 +514,5 @@
     <string name="anti_banding_off">Desativado</string>
     <string name="preference_record_audio_src_unprocessed">Não processado</string>
     <string name="preference_record_audio_src_voice_recognition">Otimizado para reconhecimento de voz</string>
+    <string name="next">Próximo</string>
 </resources>
