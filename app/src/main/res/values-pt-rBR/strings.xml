@@ -321,7 +321,7 @@
     <string name="preferences_build_version">Versão de compilação</string>
     <string name="preferences_about_app">A câmera é bifurcada no Camera</string>
     <string name="preferences_authors">Autores</string>
-    <string name="preferences_source_code">Código fonte</string>
+    <string name="preferences_source_code">Código-fonte</string>
     <string name="preferences_licence">Licença</string>
     <string name="preferences_app_info_title">Informações da câmera</string>
     <string name="preferences_service_terms">Termos de serviço</string>
@@ -360,7 +360,7 @@
     <string name="white_balance_fluorescent">Fluorescente</string>
     <string name="switch_to_front_camera">Mudar para a câmera frontal</string>
     <string name="permission_rationale_storage">A permissão de leitura/gravação do armazenamento é necessária para salvar os arquivos resultantes, como fotos ou vídeos</string>
-    <string name="preference_calibrate_level_calibration_reset">Calibração do nível redefinida</string>
+    <string name="preference_calibrate_level_calibration_reset">Redefinir calibração do nível</string>
     <string name="audio_listener_started">Fazer um barulho alto</string>
     <string name="scene_mode_night_portrait">Retrato noturno</string>
     <string name="saf_permission_failed_open_image">Não é possível abrir esta imagem</string>
@@ -515,4 +515,18 @@
     <string name="preference_record_audio_src_unprocessed">Não processado</string>
     <string name="preference_record_audio_src_voice_recognition">Otimizado para reconhecimento de voz</string>
     <string name="next">Próximo</string>
+    <string name="preference_stamp_font_color_summary">Cor da fonte a ser usada ao estampar texto em fotos
+\n%s</string>
+    <string name="preference_stamp_style_summary">Estilo a ser usado ao estampar texto em fotos
+\n%s</string>
+    <string name="preference_video_low_power_check">Verificação de bateria crítica</string>
+    <string name="preference_video_low_power_check_summary">Interrompa a gravação de vídeo se o nível da bateria estiver criticamente baixo. Isso ajuda a reduzir o risco de os vídeos serem corrompidos se o dispositivo for desligado repentinamente devido à falta de energia.</string>
+    <string name="preference_front_camera_mirror">Espelhar câmera frontal</string>
+    <string name="preference_exif_artist_summary">Texto a ser armazenado nos metadados da imagem para a tag do artista (somente no formato JPEG). (Deixe em branco para nenhum.)</string>
+    <string name="preference_exif_copyright">Direitos autorais</string>
+    <string name="preference_exif_copyright_summary">Texto a ser armazenado nos metadados da imagem para a tag de direitos autorais (somente no formato JPEG). (Deixe em branco para nenhum.)</string>
+    <string name="processing">Processando…</string>
+    <string name="flash_frontscreen_auto">Flash por Tela Auto</string>
+    <string name="flash_frontscreen_on">Flash por Tela Ligado</string>
+    <string name="flash_frontscreen_torch">Lanterna por Tela</string>
 </resources>
