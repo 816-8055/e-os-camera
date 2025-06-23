@@ -28,10 +28,12 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -477,18 +479,18 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             getWindow().setAttributes(layout);
         }
 
-        if (getResources().getBoolean(R.bool.zoom_level_switch_supported)) {
+        String[] ignoredCameraIDs = getResources().getStringArray(R.array.config_ignoredCameraIds);
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "ignoredCameraIDs: " + Arrays.toString(ignoredCameraIDs));
+        }
+
+        if (getResources().getBoolean(R.bool.zoom_level_switch_supported) || ignoredCameraIDs.length > 0) {
             cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
             camerafinder = new CameraFinder(cameraManager);
             cameraModel = camerafinder.getCameraModels();
             cameraIdentifier = new CameraIdentifier(cameraModel);
             camerafinder.init();
             cameraIdentifier.init();
-        }
-
-        String[] ignoredCameraIDs = getResources().getStringArray(R.array.config_ignoredCameraIds);
-        if( MyDebug.LOG ) {
-            Log.d(TAG, "ignoredCameraIDs: " + Arrays.toString(ignoredCameraIDs));
         }
 
         // Setup multi-camera buttons (must be done after creating preview so we know which Camera API is being used,
@@ -2530,13 +2532,31 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 }
             }
             else {
-                int n_cameras = preview.getCameraControllerManager().getNumberOfCameras();
-                cameraId = (cameraId+1) % n_cameras;
+                int n_cameras = getNumberOfValidCameraIds();
+                cameraId = (cameraId + 1) % n_cameras;
             }
         }
         if( MyDebug.LOG )
             Log.d(TAG, "next cameraId: " + cameraId);
         return cameraId;
+    }
+
+    private int getNumberOfValidCameraIds() {
+        Set<String> ignoredIds = new HashSet<>(Arrays.asList(
+                getResources().getStringArray(R.array.config_ignoredCameraIds)
+        ));
+        if (ignoredIds.isEmpty()) {
+            return preview.getCameraControllerManager().getNumberOfCameras();
+        }
+        List<String> allCameraIds = camerafinder.getAllCameraIdList();
+        List<String> validCameraIds = new ArrayList<>();
+        for (String id : allCameraIds) {
+            if (!ignoredIds.contains(id)) {
+                validCameraIds.add(id);
+            }
+        }
+
+        return validCameraIds.size();
     }
 
     /* Returns the cameraId that the "Switch multi camera" button will switch to.
