@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -2476,6 +2477,25 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
+    private int getValidCameraIds() {
+        int numberOfCameras = preview.getCameraControllerManager().getNumberOfCameras();
+        Set<String> ignoredIds = new HashSet<>(Arrays.asList(
+                getResources().getStringArray(R.array.config_ignoredCameraIds)
+        ));
+        if (ignoredIds.isEmpty()) {
+            return numberOfCameras;
+        }
+        List<String> validCameraIds = new ArrayList<>();
+        for (int i = 0; i < numberOfCameras; i++) {
+            String id = String.valueOf(i);
+
+            if (!ignoredIds.contains(id)) {
+                validCameraIds.add(id);
+            }
+        }
+        return validCameraIds.size();
+    }
+
     /* Returns the cameraId that the "Switch camera" button will switch to.
      * Note that this may not necessarily be the next camera ID, on multi camera devices (if
      * isMultiCamEnabled() returns true).
@@ -2511,8 +2531,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 }
             }
             else {
-                int n_cameras = preview.getCameraControllerManager().getNumberOfCameras();
-                cameraId = (cameraId+1) % n_cameras;
+                int n_cameras = getValidCameraIds();
+                cameraId = (cameraId + 1) % n_cameras;
             }
         }
         if( MyDebug.LOG )
