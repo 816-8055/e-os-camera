@@ -43,6 +43,7 @@ import kotlinx.coroutines.withContext
 import net.sourceforge.opencamera.MyDebug
 import net.sourceforge.opencamera.R
 import net.sourceforge.opencamera.ext.px
+import net.sourceforge.opencamera.ext.sendWithBalAllowed
 import zxingcpp.BarcodeReader
 import kotlin.reflect.cast
 
@@ -188,7 +189,7 @@ class QrImageAnalyzer(private val activity: Activity, private val scope: Corouti
                 with(textClassification.actions[0]) {
                     bottomSheetDialogCardView.setOnClickListener {
                         try {
-                            actionIntent.send()
+                            actionIntent.sendWithBalAllowed()
                         } catch (e: PendingIntent.CanceledException) {
                             Toast.makeText(
                                 activity,
@@ -206,7 +207,7 @@ class QrImageAnalyzer(private val activity: Activity, private val scope: Corouti
                     bottomSheetDialogActionsLayout.addView(inflateButton().apply {
                         setOnClickListener {
                             try {
-                                action.actionIntent.send()
+                                action.actionIntent.sendWithBalAllowed()
                             } catch (e: PendingIntent.CanceledException) {
                                 Toast.makeText(
                                     activity,
