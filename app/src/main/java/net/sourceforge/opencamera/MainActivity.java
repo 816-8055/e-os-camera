@@ -1100,7 +1100,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             int cameraId = Integer.parseInt(mainParts[0]);
             String resolution = resParts[0] + " " + resParts[1];
 
-            editor.putString(PreferenceKeys.getResolutionPreferenceKey(cameraId), resolution);
+            editor.putString(PreferenceKeys.getResolutionPreferenceKey(cameraId, applicationInterface.getCameraIdSPhysicalPref()), resolution);
         }
 
         editor.apply();
