@@ -3,6 +3,7 @@ package net.sourceforge.opencamera.preview;
 import net.sourceforge.opencamera.HDRProcessor;
 import net.sourceforge.opencamera.JavaImageFunctions;
 import net.sourceforge.opencamera.JavaImageProcessing;
+import net.sourceforge.opencamera.MainActivity;
 import net.sourceforge.opencamera.cameracontroller.RawImage;
 //import net.sourceforge.opencamera.MainActivity;
 import net.sourceforge.opencamera.MyDebug;
@@ -1176,7 +1177,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
         boolean previewBitmapWasEnabled = isPreviewBitmapEnabled();
         if (!previewBitmapWasEnabled) {
-            enablePreviewBitmap();
+            enablePreviewBitmap(true, true);
         }
 
         TextureView textureView = (TextureView) this.cameraSurface;
@@ -4527,7 +4528,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             this.focus_set_for_target_distance = false;
             this.focus_set_for_target_distance_ms = System.currentTimeMillis();
             if( applicationInterface.isFocusBracketingSourceAutoPref() ) {
-                String focus_value = applicationInterface.getFocusPref(is_video);
+                String focus_value = applicationInterface.getFocusPref(is_video());
                 if( !focus_value.isEmpty() ) {
                     camera_controller.setFocusValue(focus_value); // in case using focus bracketing in auto focus mode
                 }
@@ -9153,7 +9154,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     qrcodeCamId = betterQrcodeCamId;
                 }
             }
-            applicationInterface.setCameraIdPref(qrcodeCamId);
+            applicationInterface.setCameraIdPref(qrcodeCamId, null);
             if (MyDebug.LOG) {
                 Log.d(TAG, "Using qrcodeCamId: " + qrcodeCamId);
             }
