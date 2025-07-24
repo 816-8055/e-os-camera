@@ -6,7 +6,6 @@ stages:
   - build
 
 before_script:
-  - apt update && apt-get install libncurses5 -y
   - export GRADLE_USER_HOME=$(pwd)/.gradle
   - chmod +x ./gradlew
 
@@ -30,7 +29,7 @@ build:
       - app/build/outputs/apk
 
 .update-from-upstream:
-  image: registry.gitlab.e.foundation/e/tools/docker-tools:latest
+  image: registry.gitlab.e.foundation/e/os/docker-android-apps-cicd:slim-latest
   stage: update-from-upstream
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_REF_NAME == $LOCAL_BRANCH'
@@ -38,7 +37,7 @@ build:
     CI_PROJECT_SSH_URL: git@gitlab.e.foundation:$CI_PROJECT_PATH
     GIT_STRATEGY: none
   before_script:
-    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )'
+    - "command -v ssh-agent >/dev/null"
     - eval $(ssh-agent -s)
     - echo "${SSH_E_ROBOT_PRIVATE_KEY}" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
