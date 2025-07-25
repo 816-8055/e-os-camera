@@ -2915,23 +2915,33 @@ public class CameraController2 extends CameraController {
             }
         }
 
-        if(is_fairphone && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            CameraCharacteristics.Key<int[]> qcfaDimensionKey =
-                    new CameraCharacteristics.Key<>("org.codeaurora.qcamera3.quadra_cfa.qcfa_dimension", int[].class);
-            try {
-                int[] qcfaDimension = characteristics.get(qcfaDimensionKey);
-                if (qcfaDimension != null && qcfaDimension.length == 2) {
-                    int qcfaWidth = qcfaDimension[0];
-                    int qcfaHeight = qcfaDimension[1];
-                    Size qcfaSize = new Size(qcfaWidth, qcfaHeight);
-                    if (!camera_features.picture_sizes.contains(qcfaSize)) {
-                        if (MyDebug.LOG)
-                            Log.d(TAG, "Adding QCFA size: " + qcfaWidth + " x " + qcfaHeight);
-                        camera_features.picture_sizes.add(qcfaSize);
+        if (is_fairphone && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            CameraCharacteristics.Key<int[]>[] customDimensionKeys = new CameraCharacteristics.Key[] {
+                    new CameraCharacteristics.Key<>("org.codeaurora.qcamera3.quadra_cfa.qcfa_dimension", int[].class),
+                    new CameraCharacteristics.Key<>("com.fp.device.capabilities.sensor.highresolution", int[].class)
+            };
+
+            String[] keyLabels = new String[] {
+                    "QCFA size (legacy)",
+                    "High-resolution size"
+            };
+
+            for (int i = 0; i < customDimensionKeys.length; i++) {
+                try {
+                    int[] dimension = characteristics.get(customDimensionKeys[i]);
+                    if (dimension != null && dimension.length == 2) {
+                        int width = dimension[0];
+                        int height = dimension[1];
+                        Size size = new Size(width, height);
+                        if (!camera_features.picture_sizes.contains(size)) {
+                            if (MyDebug.LOG)
+                                Log.d(TAG, "Adding " + keyLabels[i] + ": " + width + " x " + height);
+                            camera_features.picture_sizes.add(size);
+                        }
                     }
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
                 }
-            } catch (IllegalArgumentException e) {
-              e.printStackTrace();
             }
         }
 
