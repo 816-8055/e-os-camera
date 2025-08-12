@@ -62,7 +62,7 @@
     <string name="white_balance">Balance de blancos</string>
     <string name="angle">Ángulo</string>
     <string name="direction">Dirección</string>
-    <string name="failed_to_open_camera_1">FALLO AL ABRIR CÁMARA.</string>
+    <string name="failed_to_open_camera_1">FALLO AL INICIAR CÁMARA.</string>
     <string name="failed_to_open_camera_2">LA CÁMARA PUEDE ESTAR EN USO</string>
     <string name="failed_to_open_camera_3">POR OTRA APLICACIÓN?</string>
     <string name="iso">ISO</string>
@@ -70,7 +70,7 @@
     <string name="free_memory">Libre</string>
     <string name="screen_lock_message_1">[BLOQUEADO:</string>
     <string name="screen_lock_message_2">Desliza para desbloquear]</string>
-    <string name="failed_to_stamp">No se pudo estampar la información en la foto</string>
+    <string name="failed_to_stamp">No se pudo estampar información en la foto</string>
     <string name="metres_abbreviation">m</string>
     <!-- symbol short for metres -->
     <string name="preference_category_camera_effects">Efectos de cámara</string>
