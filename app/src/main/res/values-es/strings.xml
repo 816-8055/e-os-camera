@@ -29,7 +29,7 @@
     <string name="focus_distance">Distancia focal</string>
     <string name="infinite">Infinito</string>
     <string name="front_camera">Cámara frontal</string>
-    <string name="back_camera">Cámara trasera</string>
+    <string name="back_camera">Cámara principal</string>
     <string name="photo">Foto</string>
     <string name="video">Video</string>
     <string name="exposure_locked">Exposición bloqueada</string>
@@ -39,21 +39,21 @@
     <string name="started_timer">Temporizador iniciado</string>
     <string name="failed_to_save_video">Error al guardar el video</string>
     <string name="failed_to_record_video">Error al grabar el video</string>
-    <string name="started_recording_video">Grabando</string>
-    <string name="sorry">Perdón</string>
+    <string name="started_recording_video">Comenzando grabación</string>
+    <string name="sorry">Disculpa</string>
     <string name="failed_to_save_photo">Error al guardar foto</string>
     <string name="failed_to_save_photo_raw">Error al guardar la foto RAW</string>
-    <string name="failed_to_auto_stabilise">Fallo en el autonivelado</string>
-    <string name="failed_to_start_camera_preview">Fallo al iniciar la vista previa de la cámara</string>
+    <string name="failed_to_auto_stabilise">Fallo en autonivelado</string>
+    <string name="failed_to_start_camera_preview">Fallo al iniciar vista previa de la cámara</string>
     <string name="taking_photo">Tomando foto</string>
     <string name="failed_to_take_picture">Error al tomar foto</string>
-    <string name="location_not_available">Ubicación GPS no está disponible</string>
+    <string name="location_not_available">Ubicación GPS no disponible</string>
     <string name="photo_deleted">Foto eliminada</string>
     <string name="no_gallery_app">No hay aplicación de galería disponible</string>
     <string name="screen_is_locked">La pantalla esta bloqueada
 \ndesliza para desbloquear</string>
     <string name="unlocked">Desbloqueado</string>
-    <string name="auto_stabilise_not_supported">Perdón, el nivelador automático no es compatible 
+    <string name="auto_stabilise_not_supported">Disculpa, el nivelador automático no es compatible
 \ncon este dispositivo</string>
     <string name="audio_disabled">Audio deshabilitado</string>
     <string name="max_duration">Duración máxima</string>
