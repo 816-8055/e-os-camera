@@ -11,9 +11,9 @@
     <string name="choose_save_location">Guardar en:</string>
     <string name="clear_folder_history">Borrar el historial de carpetas</string>
     <string name="clear_folder_history_question">Deseas borrar el historial de carpetas?</string>
-    <string name="choose_another_folder">Seleccione otra carpeta</string>
-    <string name="changed_save_location">Cambiar ruta de guardado a:</string>
-    <string name="stopped_recording_video">Se detuvo la grabación de vídeo</string>
+    <string name="choose_another_folder">Selecciona otra carpeta</string>
+    <string name="changed_save_location">Se cambió la ubicación de guardado a:</string>
+    <string name="stopped_recording_video">Grabación de vídeo detenida</string>
     <string name="repeats_to_go">repeticiones por hacer</string>
     <!--  intentionally starts lower case -->
     <string name="failed_to_reconnect_camera">Falla en la reconexión con la cámara</string>
