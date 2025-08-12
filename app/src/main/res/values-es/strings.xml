@@ -75,7 +75,7 @@
     <!-- symbol short for metres -->
     <string name="preference_category_camera_effects">Efectos de cámara</string>
     <string name="preference_auto_stabilise">Autonivelador</string>
-    <string name="preference_auto_stabilise_summary">Las imágenes se rotarán para que estén niveladas automáticamente (sólo fotos) (es más lento tomar fotos y puede fallar en dispositivos con poca memoria)</string>
+    <string name="preference_auto_stabilise_summary">Las imágenes se rotarán para que queden automáticamente niveladas (sólo fotos) (más lenta a la hora de hacer fotos, y puede fallar en dispositivos con poca memoria.)</string>
     <string name="preference_color_effect">Aplicar un efecto de color</string>
     <string name="preference_color_effect_summary">Aplica el efecto de color seleccionado a la foto</string>
     <string name="preference_scene_mode">Aplicar un modo de escena</string>
