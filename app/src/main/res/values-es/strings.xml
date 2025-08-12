@@ -16,13 +16,13 @@
     <string name="stopped_recording_video">Grabación de vídeo detenida</string>
     <string name="repeats_to_go">repeticiones por hacer</string>
     <!--  intentionally starts lower case -->
-    <string name="failed_to_reconnect_camera">Falla en la reconexión con la cámara</string>
+    <string name="failed_to_reconnect_camera">Falla al reconectar con la cámara</string>
     <string name="video_may_be_corrupted">Error, el archivo de vídeo puede estar dañado</string>
-    <string name="not_supported">no es soportado en tu dispositivo</string>
+    <string name="not_supported">no compatible con tu dispositivo</string>
     <!--  intentionally starts lower case -->
     <string name="video_error_unknown">Error desconocido, vídeo detenido</string>
     <string name="video_error_server_died">Servidor caído, video detenido</string>
-    <string name="video_max_duration">El video alcanzó la máxima duración</string>
+    <string name="video_max_duration">El video alcanzó la duración máxima</string>
     <string name="video_max_filesize">El video alcanzó el tamaño máximo</string>
     <string name="exposure_compensation">Compensación de exposición</string>
     <string name="fps">FPS</string>
