@@ -85,9 +85,9 @@
     <string name="preference_iso">Ajustar ISO</string>
     <string name="preference_iso_summary">Un valor más alto significa más sensibilidad a la luz (puede que no funcione en algunos dispositivos)</string>
     <string name="preference_exposure">Ajusta la compensación de la exposición</string>
-    <string name="preference_exposure_summary">Ajuste a 0 para la compensación de la exposición por defecto</string>
+    <string name="preference_exposure_summary">Ajusta a 0 para la compensación de la exposición por defecto</string>
     <string name="preference_lock_orientation">Bloquear la orientación de fotos y videos</string>
-    <string name="preference_lock_orientation_summary">Si se ajusta, la orientación del dispositivo será ignorada y la orientación de la foto/video será con respecto a la orientación especificada
+    <string name="preference_lock_orientation_summary">Si se ajusta, la orientación del dispositivo será ignorada y la orientación de la foto/video será de acuerdo a la orientación especificada
 \n%s</string>
     <string name="preference_face_detection">Detección de rostro</string>
     <string name="preference_face_detection_summary">Utilizar detección de rostro en lugar de áreas de enfoque</string>
