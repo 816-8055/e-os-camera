@@ -96,10 +96,10 @@
     <string name="preference_timer_beep">Sonido del temporizador</string>
     <string name="preference_timer_beep_summary">Sonar cuando el temporizador está en cuenta regresiva o para el retardo del modo de repetición</string>
     <string name="preference_timer_speak">Cuenta regresiva del temporizador por voz</string>
-    <string name="preference_timer_speak_summary">Activa con la voz la cuenta atrás para el temporizador o el retardo del modo de repetición (a partir de 60 segundos)</string>
+    <string name="preference_timer_speak_summary">Pronuncia la cuenta regresiva para el temporizador o el retardo del modo de repetición (a partir de 60 segundos)</string>
     <string name="preference_burst_mode">Repetir</string>
     <!-- also used in popup menu, so shouldn't be too long a string -->
-    <string name="preference_burst_interval">Intervalo de modo de repeticion</string>
+    <string name="preference_burst_interval">Intervalo del modo de repeticion</string>
     <string name="preference_screen_camera_controls_more">Más controles de cámara…</string>
     <string name="preference_touch_capture">Tocar para capturar</string>
     <string name="preference_touch_capture_summary">Toma una foto simplemente tocando una o dos veces en la pantalla</string>
