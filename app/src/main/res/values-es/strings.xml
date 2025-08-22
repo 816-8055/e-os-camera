@@ -102,12 +102,12 @@
     <string name="preference_burst_interval">Intervalo del modo de repeticion</string>
     <string name="preference_screen_camera_controls_more">Más controles de cámara…</string>
     <string name="preference_touch_capture">Tocar para capturar</string>
-    <string name="preference_touch_capture_summary">Toma una foto simplemente tocando una o dos veces en la pantalla</string>
+    <string name="preference_touch_capture_summary">Toma una foto o graba un video simplemente tocando una o dos veces en la pantalla</string>
     <string name="preference_pause_preview">Pausar después de tomar foto</string>
-    <string name="preference_pause_preview_summary">Pause la pantalla después de tomar una foto, con opción de compartir o eliminar la foto</string>
+    <string name="preference_pause_preview_summary">Pausa la pantalla después de tomar una foto, con opción de compartir o eliminar</string>
     <string name="preference_shutter_sound">Sonido del obturador</string>
     <string name="preference_shutter_sound_summary">Sonido al tomar una foto</string>
-    <string name="preference_volume_keys">Teclas de volumen</string>
+    <string name="preference_volume_keys">Botones de volumen</string>
     <string name="preference_audio_control">Opciones de control de audio</string>
     <string name="preference_audio_noise_control_sensitivity">Sensibilidad del control de audio</string>
     <string name="preference_audio_noise_control_sensitivity_summary">Sensibilidad del nivel de ruido para la opción de audio (ruido fuerte)</string>
