@@ -923,5 +923,5 @@
     <string name="failed_to_open_camera_two_1_disabled">DEBES ACTIVAR EL INTERRUPTOR DE PRIVACIDAD</string>
     <string name="failed_to_open_camera_two_2_disabled">YA QUE LA CÁMARA NO ESTÁ DISPONIBLE ;-)</string>
     <string name="failed_to_open_camera_two_1_enabled">POR FAVOR ESPERA 5 SEGUNDOS PARA TU CÁMARA</string>
-    <string name="failed_to_open_camera_two_2_enabled">PARA QUE SE CARGUE YA QUE ACABA DE SER HABILITADA</string>
+    <string name="failed_to_open_camera_two_2_enabled">PARA CARGAR YA QUE ACABA DE SER HABILITADO</string>
 </resources>
