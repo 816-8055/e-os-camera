@@ -20,7 +20,7 @@
     <string name="preference_exposure_summary">Zet op 0 voor de standaard belichtingscompensatie</string>
     <string name="preference_exposure">Belichtingscompensatie instellen</string>
     <string name="preference_iso_summary">Een hogere waarde betekend meer lichtgevoeligheid (werkt niet op sommige toestellen)</string>
-    <string name="preference_iso">ISO waarde instellen</string>
+    <string name="preference_iso">ISO instellen</string>
     <string name="preference_white_balance">Witbalans instellen</string>
     <string name="preference_scene_mode_summary">Optimaliseer de foto voor verschillende scènes</string>
     <string name="preference_scene_mode">Pas een scène modus toe</string>
@@ -35,7 +35,7 @@
     <string name="free_memory">Vrij</string>
     <string name="zoom">Zoom</string>
     <string name="iso">ISO</string>
-    <string name="failed_to_open_camera_3">DOOR EEN ANDERE APPLICATIE\?</string>
+    <string name="failed_to_open_camera_3">DOOR EEN ANDERE APPLICATIE?</string>
     <string name="failed_to_open_camera_2">CAMERA KAN IN GEBRUIK ZIJN</string>
     <string name="failed_to_open_camera_1">FOUT TIJDENS OPENEN CAMERA.</string>
     <string name="direction">Richting</string>
@@ -189,7 +189,7 @@
     <string name="preference_show_angle_line_summary">Toon horizontale level lijn</string>
     <string name="preference_show_angle_line">Toon hoek lijn</string>
     <string name="preference_free_memory">Toon vrij geheugen</string>
-    <string name="preference_show_zoom_summary">Toon het zoom niveau op het scherm (wanneer ingezoomd)</string>
+    <string name="preference_show_zoom_summary">Toon het huidige zoom niveau op het scherm (wanneer ingezoomd)</string>
     <string name="preference_show_zoom">Toon zoom</string>
     <string name="preference_preview_size">Voorbeeld grootte</string>
     <string name="preference_screen_gui">Gebruikersinterface…</string>
@@ -270,7 +270,7 @@
     <string name="preference_crop_guide_summary">Geeft een rechthoek weer om te zien hoe een andere beeldverhouding er uit kan zien - handig als je van plan bent om later de foto/video beeldverhouding aan te passen. Vereist WYSIWYG foto modus of video modus
 \n%s</string>
     <string name="preference_crop_guide">Toon hulplijnen voor bijsnijden</string>
-    <string name="preference_free_memory_summary">Toon de resterende opslag ruimte van het toestel op het scherm</string>
+    <string name="preference_free_memory_summary">Geeft de resterende opslag ruimte van het toestel weer op het scherm</string>
     <string name="preference_show_iso_summary">Geeft de huidige ISO waarde weer. (Vereist Camera2 API)</string>
     <string name="preference_show_zoom_slider_controls_summary">Toon de slider om de zoom te regelen</string>
     <string name="preference_show_zoom_slider_controls">Toon zoom slider</string>
