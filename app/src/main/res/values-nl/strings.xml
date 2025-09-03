@@ -365,7 +365,7 @@
     <string name="ble_not_supported">BLE wordt niet ondersteund</string>
     <string name="preference_remote_type">Type extern apparaat</string>
     <string name="preference_enable_remote_summary">Inschakelen van Bluetooth LE (BLE) besturingsapparaten</string>
-    <string name="preference_enable_remote">Inschakelen van Bluetooth LE afstandsbediening</string>
+    <string name="preference_enable_remote">Activeer Bluetooth LE afstandsbediening</string>
     <string name="preference_screen_remote_control">Bluetooth LE afstandsbediening…</string>
     <string name="photo_mode_panorama_full">Panorama</string>
     <string name="photo_mode_panorama">Pano</string>
@@ -872,4 +872,5 @@
     <string name="switch_to_qrcode">QR-code</string>
     <string name="qr_text">Tekst</string>
     <string name="qr_uri_title">URL openen</string>
+    <string name="switch_multi_camera_lens">LENS</string>
 </resources>
