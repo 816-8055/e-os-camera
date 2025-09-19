@@ -93,4 +93,20 @@
     <string name="preference_timer">Ajastin</string>
     <string name="preference_timer_beep_summary">Piippaus ajastimen laskiessa tai toistokuvauksen viiveen aikana</string>
     <string name="preference_burst_interval">Toistokuvauksen aikaväli</string>
+    <string name="preference_touch_capture_summary">Ota valokuva tai tallenna video koskettamalla tai kaksoisnapauttamalla esikatselua</string>
+    <string name="preference_pause_preview">Pysäytä otettu kuva</string>
+    <string name="preference_pause_preview_summary">Pysäyttää otetun valokuvan näytölle, ja tarjoaa kuvan jakamista tai poistoa</string>
+    <string name="preference_shutter_sound">Sulkimen ääni</string>
+    <string name="preference_shutter_sound_summary">Toistaa äänen kuvaa ottaessa</string>
+    <string name="preference_volume_keys">Äänenvoimakkuusnäppäimet</string>
+    <string name="preference_audio_control">Äänentallennusvalinnat</string>
+    <string name="preference_audio_noise_control_sensitivity">Melusuodattimen herkkyys</string>
+    <string name="preference_audio_noise_control_sensitivity_summary">Herkkyys melun voimakkuudelle (kova melu)</string>
+    <string name="preference_save_location">Tallennussijainti</string>
+    <string name="preference_save_location_summary">Kansio, johon tallennetaan valokuvat/videot</string>
+    <string name="preference_using_saf_summary">Käytetäänkö Storage Access Framework:iä valokuvien ja videoiden tallentamiseen. Tämä tarvitaan ulkoisille SD-korteille tallentamiseen. Android 10+ -käyttöjärjestelmissä tämä asetus tarvitaan DCIM-kansion ulkopuolelle tallentamiseen.</string>
+    <string name="preference_save_photo_prefix">Valokuvan nimen etuliite</string>
+    <string name="preference_save_photo_prefix_summary">Valokuvatiedoston nimen alkuun lisättävä liite</string>
+    <string name="preference_save_video_prefix">Videon nimen etuliite</string>
+    <string name="preference_save_video_prefix_summary">Videotiedoston nimen alkuun lisättävä liite</string>
 </resources>
