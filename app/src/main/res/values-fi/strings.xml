@@ -152,4 +152,10 @@
     <string name="preference_show_zoom_controls">Näytä zoom -/+ painikkeet</string>
     <string name="preference_show_iso_summary">Näyttää hetkellisen ISO-valoherkkyyden. (Vaatii Camera2 API:n.)</string>
     <string name="preference_show_toasts_summary">Näytetäänkö tilapäiset tiedotteet näytöllä</string>
+    <string name="preference_thumbnail_animation">Näytä pikkukuva-animaatio</string>
+    <string name="preference_thumbnail_animation_summary">Näytä liikkuva pikkukuva-animaatio valokuvan oton jälkeen</string>
+    <string name="preference_take_photo_border">Näytä reuna kuvan oton jälkeen</string>
+    <string name="preference_take_photo_border_summary">Korostaa kuvan reunan näytöllä kuvaa otettaessa</string>
+    <string name="preference_keep_display_on">Pidä näyttö päällä</string>
+    <string name="preference_keep_display_on_summary">Jos päällä, näyttö ei sammu, kun Kameran pääkäyttöliittymä on näytöllä</string>
 </resources>
