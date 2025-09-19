@@ -68,7 +68,7 @@
     <string name="failed_to_save_photo">Valokuva ei tallentunut</string>
     <string name="failed_to_save_photo_raw">RAW-valokuva ei tallentunut</string>
     <string name="photo_deleted">Valokuva poistettu</string>
-    <string name="hdr_info">HDR-tila on hyödyllinen kuvissa, joissa on suuria kirkkauseroja. Se toimii ottamalla useita kuvia eri valotuksilla ja yhdistämällä ne lopulliseksi kuvaksi.
+    <string name="hdr_info">HDR-tila on hyödyllinen, kun näkymässä on suuria kirkkauseroja. Se ottaa useita kuvia eri valotuksilla, ja yhdistää ne.
 \n
 \nHuomaa, että HDR ei sovellu nopeasti liikkuviin kohteisiin ja voi heikentää värien tarkkuutta.
 \n
@@ -280,4 +280,11 @@
 \nHuomaa, että jotkin galleria-sovellukset eivät tunnista DNG-tiedostoja. DNG-kuvia voidaan käyttää erityisillä kuvankäsittelyohjelmilla.
 \n
 \nHuomaa, että erilaiset käsittelyvaihtoehdot, kuten Leimaa valokuvat ja Automaattinen tasaus, eivät koske DNG-kuvia, vaan vain muita kuvia (JPEG/ym.).</string>
+    <string name="dont_show_again">Älä näytä uudelleen</string>
+    <string name="photo_mode">Valokuvaustila</string>
+    <string name="photo_mode_standard_full">Tavallinen</string>
+    <string name="photo_mode_noise_reduction_full">Kohinanpoisto</string>
+    <string name="preference_category_stamp">Valokuvaleima</string>
+    <string name="photo_mode_expo_bracketing_full">Valotuksen haarukointi</string>
+    <string name="photo_mode_fast_burst_full">Nopea sarja</string>
 </resources>
