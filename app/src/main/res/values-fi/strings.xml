@@ -3,4 +3,17 @@
     <string name="choose_save_location">Valitse tallennussijainti:</string>
     <string name="app_name">Kamera</string>
     <string name="action_settings">Asetukset</string>
+    <string name="intro_ok">OK (Tätä viestiä ei näytetä uudelleen)</string>
+    <string name="on">Päällä</string>
+    <string name="off">Pois</string>
+    <string name="choose_another_folder">Valitse toinen kansio</string>
+    <string name="changed_save_location">Vaihdettiin tallennussijainniksi:</string>
+    <string name="stopped_recording_video">Lopetettiin videon tallentaminen</string>
+    <string name="repeats_to_go">toistoa jäljellä</string>
+    <string name="video_may_be_corrupted">Virhe, videotiedosto saattaa olla vaurioitunut</string>
+    <string name="not_supported">ei tuettu laitteessasi</string>
+    <string name="video_error_unknown">Tuntematon virhe, video keskeytyi</string>
+    <string name="video_error_server_died">Palvelin kaatui, video keskeytyi</string>
+    <string name="video_max_filesize">Video saavutti enimmäistiedostokoon</string>
+    <string name="exposure_compensation">Valotuksen korjaus</string>
 </resources>
