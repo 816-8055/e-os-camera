@@ -158,4 +158,15 @@
     <string name="preference_take_photo_border_summary">Korostaa kuvan reunan näytöllä kuvaa otettaessa</string>
     <string name="preference_keep_display_on">Pidä näyttö päällä</string>
     <string name="preference_keep_display_on_summary">Jos päällä, näyttö ei sammu, kun Kameran pääkäyttöliittymä on näytöllä</string>
+    <string name="preference_max_brightness">Pakota enimmäiskirkkaus</string>
+    <string name="preference_max_brightness_summary">Pakota näytön kirkkaus täysille, ohittaen laitteen oletusasetuksen</string>
+    <string name="preference_category_camera_quality">Valokuvan ja videon asetukset</string>
+    <string name="preference_screen_photo_settings">Valokuvan asetukset…</string>
+    <string name="preference_screen_video_settings">Videon asetukset…</string>
+    <string name="preference_screen_location_settings">Sijainnin asetukset…</string>
+    <string name="preference_resolution">Kameran tarkkuus</string>
+    <string name="preference_quality">Kuvan laatu</string>
+    <string name="preference_location">Tallenna sijaintitieto (Geotagging)</string>
+    <string name="preference_quality_summary">Aseta tallennettujen JPEG- tai WebP-valokuvien kuvanlaatu (oletusarvo on 90 %%). Ei vaikuta PNG-kuvamuotoon.
+\n%s</string>
 </resources>
