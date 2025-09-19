@@ -598,4 +598,227 @@
     <string name="preference_restore_settings_summary">Palauttaa aiemmin tallennetut asetukset. Tämä korvaa kaikki nykyiset asetukset tallennetuilla asetuksilla!</string>
     <string name="preference_restore_settings_question">Tällä voit valita yhden aiemmin tallentamistasi asetustiedostoista. Huomaa, että valitsemasi tiedosto korvaa kaikki nykyiset asetukset!</string>
     <string name="preference_show_auto_level_summary">Näytetäänkö näppäin automaattisen tasauksen kytkemiseksi päälle ja pois. Kun se on päällä, valokuvat käännetään ja rajataan vaakasuoriksi.</string>
+    <string name="preference_show_textstamp">Näytä näppäin \"kuvaleiman teksti\"</string>
+    <string name="preference_show_textstamp_summary">Näytetäänkö näppäin kuvaan leimattavan tekstin määrittelyyn</string>
+    <string name="preference_show_white_balance_lock">Näytä näppäin valkotasapainon automaattisäädön lukitukseen</string>
+    <string name="preference_show_white_balance_lock_summary">Näytetäänkö lukitusnäppäin valkotasapainon automaattisäädölle</string>
+    <string name="white_balance_lock">Lukitse valkotasapaino</string>
+    <string name="white_balance_unlock">Avaa valkotasapainon lukitus</string>
+    <string name="white_balance_locked">Valkotasapaino lukittu</string>
+    <string name="white_balance_unlocked">Valkotasapainon lukitus avattu</string>
+    <string name="preference_show_exposure_lock">Näytä lukitusnäppäin automaattivalotukselle</string>
+    <string name="preference_show_exposure_lock_summary">Näytetäänkö näppäin valotuksen automaattisen säädön kytkemiseen päälle ja pois</string>
+    <string name="exposure_unlock">Avaa valotuksen lukitus</string>
+    <string name="preference_nr_mode_low_light_message">Hämärätila: pidä kameraa paikallaan</string>
+    <string name="preference_failed_focus_mode_message">Pidä kamera vakaana saadaksesi parempia kuvia.</string>
+    <string name="photo_mode_panorama_full">Panoraama</string>
+    <string name="preference_screen_remote_control">Bluetooth LE kaukosäädin…</string>
+    <string name="preference_enable_remote">Käytä Bluetooth LE kaukosäädintä</string>
+    <string name="preference_enable_remote_summary">Ota käyttöön Bluetooth LE (BLE) -kaukosäätölaitteet</string>
+    <string name="preference_remote_type">Kaukosäädinlaitteen tyyppi</string>
+    <string name="ble_not_supported">BLE ei tuettu</string>
+    <string name="scan_ble">BLE Laitehaku</string>
+    <string name="bluetooth_not_supported">Bluetooth ei tuettu.</string>
+    <string name="unknown_device">Tuntematon laite</string>
+    <string name="preference_remote_disconnect_screen_dim">Himmennä näyttö jos kaukosäätimen yhteys katkeaa</string>
+    <string name="preference_remote_disconnect_screen_dim_summary">Vinkki: aseta kirkkauden oletusarvo minimiin ennen kameran käynnistämistä.</string>
+    <string name="preference_water_type">Käytä suolavettä syvyyslaskelmiin</string>
+    <string name="preference_water_type_summary">Vedenalaisissa koteloissa tarkkuus paranee, jos valitaan oikea veden tyyppi.</string>
+    <string name="remote_connected">Kaukosäädin liitetty</string>
+    <string name="preference_stamp_geo_address">Käytä osoitteita</string>
+    <string name="preference_stamp_geo_address_both">Näyttää osoitteen, jos mahdollista, GPS-koordinaattien lisäksi</string>
+    <string name="preference_stamp_geo_address_no">Älä näytä osoitetta</string>
+    <string name="preference_show_store_location_summary">Näytetäänkö näppäin sijaintitietojen (geotagging) kytkemiseen päälle ja pois</string>
+    <string name="preference_location_enable">Tallenna sijaintitiedot</string>
+    <string name="preference_location_disable">Lopeta sijaintitiedon tallennus</string>
+    <string name="preference_histogram">Näytä histogrammi</string>
+    <string name="preference_histogram_off">Pois</string>
+    <string name="preference_zebra_stripes">Ylivalotuksen raidoitus</string>
+    <string name="preference_zebra_stripes_summary">Valinnan ollessa päällä, esikatselun ylivalottuneet osat korostetaan mustavalkoisin raidoin.
+\n%s</string>
+    <string name="preference_zebra_stripes_off">Pois</string>
+    <string name="preference_focus_peaking">Tarkennuksen korostus</string>
+    <string name="preference_focus_peaking_off">Pois</string>
+    <string name="preference_focus_peaking_on">Päällä</string>
+    <string name="preference_focus_peaking_color">Tarkennuskorostuksen väri</string>
+    <string name="preference_focus_peaking_color_summary">Millä värillä korostetaan tarkennetut reunat
+\n%s</string>
+    <string name="remaining">Jäljellä</string>
+    <string name="preference_preview">Kameran esikatselu…</string>
+    <string name="cycle_flash">Vaihda salamaa -näppäin</string>
+    <string name="preference_show_cycle_flash">Näytä salama-näppäin</string>
+    <string name="preference_raw_expo_bracketing">Salli RAW valotuksen haarukoinnissa</string>
+    <string name="preference_raw_focus_bracketing">Salli RAW tarkennuksen haarukoinnissa</string>
+    <string name="preference_raw_focus_bracketing_summary">Pitäisikö RAW-valinnan koskea myös tarkennuksen haarukointitilaa? Jos tämä valinta on pois käytöstä, tarkennuksen haarukointitilassa tallennetaan vain JPEG-tiedostoja.</string>
+    <string name="cycle_raw">Vaihda RAW-tiloja</string>
+    <string name="preference_show_cycle_raw">Näytä RAW-näppäin</string>
+    <string name="preference_show_cycle_raw_summary">Näytetäänkö näppäin RAW-tilojen vaihtamiseen</string>
+    <string name="bluetooth_current_remote">Nykyinen kaukosäädin:</string>
+    <string name="bluetooth_scan">Etsi</string>
+    <string name="preference_stamp_style_shadowed">Varjostettu teksti</string>
+    <string name="preference_stamp_style_plain">Pelkkä teksti</string>
+    <string name="preference_stamp_style_background">Teksti varjostetulla taustalla</string>
+    <string name="image_saving_notification">Tallennetaan kuvia…</string>
+    <string name="cancel_panorama">Peru panoraama</string>
+    <string name="panorama_cancelled">Panoraama peruttu</string>
+    <string name="failed_to_process_panorama">Panoraaman luonti epäonnistui</string>
+    <string name="preference_panorama_crop">Panoraaman automaattirajaus</string>
+    <string name="preference_panorama_save">Panoraaman alkuperäiskuvat</string>
+    <string name="preference_panorama_save_summary">Tallennetaanko alkuperäiset kuvat panoraamatilassa. Huomaa, että tämä hidastaa panoraamakuvien tallennusta. Mahdollistaa myös XML-tiedoston tallentamisen, mikä voi olla hyödyllistä panoraamakuvien ongelmien raportoinnissa.
+\n%s</string>
+    <string name="preference_panorama_save_no">Älä tallenna alkuperäiskuvia</string>
+    <string name="preference_panorama_save_all">Tallenna alkuperäiskuvat</string>
+    <string name="preference_panorama_save_all_plus_debug">Tallenna alkuperäiskuvat ja XML-tiedosto vianetsintään</string>
+    <string name="camera_id">Tunniste</string>
+    <string name="exposure_compensation_seekbar">Liukusäädin valotuksen korjauksen muuttamiseen</string>
+    <string name="preference_camera_api_summary">Valitse Camera2 API käyttääksesi lisäominaisuuksia, kuten käsisäätötiloja valotukselle, tarkennukselle ja valkotasapainolle, sekä RAW-tiedostoja (jos laite tukee niitä). API:n muuttaminen aiheuttaa uudelleenkäynnistyksen.
+\n%s</string>
+    <string name="preference_camera_api_old">Alkuperäinen Camera API</string>
+    <string name="preference_audio_control_summary">Ota valokuva/video, kun ääni havaitaan. Kun tämä toiminto on käytössä, voit aloittaa/lopettaa kuuntelun näytön mikrofoninäppäimellä.
+\n%s</string>
+    <string name="preference_select_remote">Valitse kaukosäädinlaite</string>
+    <string name="preference_video_profile_gamma">Videon gamma-arvo</string>
+    <string name="preference_video_profile_gamma_summary">Videossa käytettävä gamma-arvo, jos Videokuvaprofiili on asetettu Gamma:ksi
+\n%s</string>
+    <string name="preference_immersive_mode_off">Pois</string>
+    <string name="preference_immersive_mode_low_profile">Vain himmeät navigointinäppäimet näytöllä</string>
+    <string name="preference_immersive_mode_navigation">Piilota näytöltä navigointinäppäimet</string>
+    <string name="preference_immersive_mode_gui">Piilota käyttöliittymä</string>
+    <string name="preference_immersive_mode_everything">Piilota kaikki</string>
+    <string name="preference_ghost_image_alpha">Haamukuvan läpinäkyvyys</string>
+    <string name="preference_ghost_image_alpha_summary">Haamukuvissa käytettävä alfa-arvo. Pienempi arvo tarkoittaa läpinäkyvyyttä, suurempi peittävyyttä.
+\n%s</string>
+    <string name="preference_zebra_stripes_foreground_color">Ylivalotuksen raidoituksen etuväri</string>
+    <string name="preference_zebra_stripes_foreground_color_summary">Etualan raitojen väri ylivalotuksen raidoituksessa.
+\n%s</string>
+    <string name="preference_zebra_stripes_background_color">Ylivalotuksen raidoituksen taustaväri</string>
+    <string name="preference_zebra_stripes_background_color_summary">Raitojen taustan väri ylivalotuksen raidoituksessa.
+\n%s</string>
+    <string name="preference_zebra_stripes_color_black">Musta</string>
+    <string name="preference_zebra_stripes_color_red">Punainen</string>
+    <string name="preference_zebra_stripes_color_orange">Oranssi</string>
+    <string name="preference_zebra_stripes_color_transparent">Läpinäkyvä</string>
+    <string name="preference_zebra_stripes_color_white">Valkoinen</string>
+    <string name="external_camera">Ulkoinen kamera</string>
+    <string name="switch_to_unknown_camera">Vaihda kameraa</string>
+    <string name="switch_multi_camera">Vaihda kameroiden välillä</string>
+    <string name="preference_multi_cam_button">Monta kameraa -näppäin</string>
+    <string name="preference_show_camera_id">Näytä kameran tunniste</string>
+    <string name="preference_show_camera_id_summary">Näytä käytössä olevan kameran tunnistenumero näytöllä</string>
+    <string name="preference_allow_long_press">Salli pitkän painalluksen toiminnot</string>
+    <string name="aperture">Aukko</string>
+    <string name="error_features_bitrate">Bittinopeus</string>
+    <string name="error_features_frame_rate">Kuvataajuus</string>
+    <string name="error_features_slow_motion">Hidastus</string>
+    <string name="preference_comment_ypr">Tallenna kääntö, nyökkäys ja kallistus</string>
+    <string name="preference_comment_ypr_summary">Tallenna laitteen kääntö, nyökkäys ja kallistuskulmat valokuvan Exif-käyttäjäkommenttiin (kenttään UserComment) (vain JPEG-muodossa)</string>
+    <string name="array_seekbar_preference_seekbar">Liukusäädin tämänhetkisen asetusarvon muuttamiseen</string>
+    <string name="preference_audio_control_none">Ei mitään</string>
+    <string name="preference_audio_control_noise">Kova melu</string>
+    <string name="preference_audio_control_voice">Puhekomento: \"cheese\"</string>
+    <string name="preference_camera2_dummy_capture_hack">Käytä valekaappausta HDR/Expo korjauksena</string>
+    <string name="permission_rationale_bluetooth_scan_connect">Bluetooth etsintä-/yhteysluvat tarvitaan Bluetooth LE -kaukosäätimien löytämiseen ja yhdistämiseen.</string>
+    <string name="unknown_device_no_permission">Tuntematon laite (Bluetooth-yhteyslupaa ei saatavilla)</string>
+    <string name="photo_mode_x_auto_full">Laajennus: Auto</string>
+    <string name="photo_mode_x_hdr_full">Laajennus: HDR</string>
+    <string name="photo_mode_x_night">X-Yö</string>
+    <string name="photo_mode_x_night_full">Laajennus: Yö</string>
+    <string name="photo_mode_x_bokeh_full">Laajennus: Taustasumennus</string>
+    <string name="photo_mode_x_beauty_full">Laajennus: Kauneus / Kasvonparannus</string>
+    <string name="preference_hdr_tonemapping">HDR sävysovitus</string>
+    <string name="preference_hdr_tonemapping_summary">Sävysovitus-algoritmi HDR-kuvaustilassa
+\n%s</string>
+    <string name="preference_hdr_tonemapping_default">Oletus</string>
+    <string name="preference_remove_device_exif_off">Älä poista laitteen EXIF-metatietoja</string>
+    <string name="preference_remove_device_exif_on">Poista laitteen EXIF-metatiedot</string>
+    <string name="preference_remove_device_exif_keep_datetime">Poista, paitsi päiväys ja kellonaika</string>
+    <string name="choose_camera">Valitse kamera:</string>
+    <string name="preference_show_focus_peaking">Näytä tarkennuksen korostuksen näppäin</string>
+    <string name="focus_peaking_enable">Käytä tarkennuksen korostusta</string>
+    <string name="focus_peaking_disable">Älä käytä tarkennuksen korostusta</string>
+    <string name="preference_screen_licences">Avoimen lähdekoodin lisenssit</string>
+    <string name="preference_licence_open_camera">Kamera</string>
+    <string name="preference_licence_open_camera_text">Kamera © 2013–2023 Mark Harman, julkaistu GPL v3 -lisenssillä tai uudemmalla. Napauta tätä nähdäksesi lisenssin koko tekstin.</string>
+    <string name="preference_licence_google_icons">Googlen Material Design -kuvakkeet</string>
+    <string name="preferences_authors">Tekijät</string>
+    <string name="preferences_source_code">Lähdekoodi</string>
+    <string name="preferences_licence">Lisenssi</string>
+    <string name="preferences_service_terms">Käyttöehdot</string>
+    <string name="back_button_label">Takaisin</string>
+    <string name="next_button_label">Seuraava</string>
+    <string name="skip_button_label">Ohita</string>
+    <string name="switch_multi_camera_lens">LINSSI</string>
+    <string name="qr_copy_description">Kopioi leikepöydälle</string>
+    <string name="qr_icon_description">Kuvake</string>
+    <string name="qr_share_description">Jaa</string>
+    <string name="switch_to_qrcode">QR-koodi</string>
+    <string name="qr_address_title">Lisää yhteystieto</string>
+    <string name="qr_address_content_description">Lisää yhteystieto</string>
+    <string name="qr_calendar_title">Lisää tapahtuma kalenteriin</string>
+    <string name="qr_calendar_content_description">Lisää tämä tapahtuma kalenteriin</string>
+    <string name="qr_dpp_description">Määritä tämän laitteen asetukset</string>
+    <string name="qr_email_title">Lähetä uusi sähköpostiviesti</string>
+    <string name="qr_fido_title">Käytä avainkoodia</string>
+    <string name="qr_fido_content_description">Käsittele tämä FIDO QR-koodi</string>
+    <string name="qr_geo_title">Avaa tämä sijainti</string>
+    <string name="qr_geo_content_description">Avaa tämä sijainti</string>
+    <string name="qr_isbn_title">Hae tämä ISBN</string>
+    <string name="qr_isbn_content_description">Hae tätä ISBN-tunnusta osoitteesta isbnsearch.org</string>
+    <string name="qr_product_title">Hae tuote</string>
+    <string name="qr_sms_title">Lähetä uusi tekstiviesti</string>
+    <string name="qr_sms_content_description">Lähetä uusi tekstiviesti määritetyille vastaanottajille</string>
+    <string name="qr_tel_title">Soita puhelinnumeroon</string>
+    <string name="qr_tel_content_description">Soita tähän puhelinnumeroon</string>
+    <string name="qr_text">Teksti</string>
+    <string name="qr_upi_title">Valitse sovellus maksamiseen</string>
+    <string name="qr_upi_content_description">Avaa tämä UPI-linkki sopivalla sovelluksella, jos se on tuettu</string>
+    <string name="qr_uri_title">Avaa verkko-osoite</string>
+    <string name="qr_uri_content_description">Avaa tämä verkko-osoite (URL) sopivalla sovelluksella, jos tuettu</string>
+    <string name="qr_vin_title">Etsi ajoneuvotunniste (VIN)</string>
+    <string name="qr_vin_content_description">Etsi tämä ajoneuvon valmistenumero (VIN)</string>
+    <string name="qr_wifi_title">Yhdistä tähän Wi-Fi-verkkoon</string>
+    <string name="qr_wifi_content_description">Lisää tämä langaton verkko (Wi-Fi) tunnettujen verkkojen luetteloon ja yhdistä laite siihen</string>
+    <string name="abc_shareactionprovider_share_with">Jaa käyttäen</string>
+    <string name="failed_to_open_camera_two_1_disabled">YKSITYISYYSKYTKIN ON ILMEISESTI PÄÄLLÄ</string>
+    <string name="failed_to_open_camera_two_2_disabled">KOSKA KAMERA EI OLE KÄYTETTÄVISSÄ ;-)</string>
+    <string name="failed_to_open_camera_two_1_enabled">ODOTA 5 SEKUNTIA KAMERAN KÄYNNISTYMISTÄ</string>
+    <string name="failed_to_open_camera_two_2_enabled">KOSKA SE VASTA KYTKETTIIN PÄÄLLE</string>
+    <string name="preference_stamp_geo_address_prefer">Mieluummin osoite kuin GPS-koordinaatit</string>
+    <string name="ultrawide">Ultralaajakulma</string>
+    <string name="switch_to_external_camera">Vaihda ulkoiseen kameraan</string>
+    <string name="preference_licence_google_icons_text">Kamera käyttää Googlen Material Design -kuvakkeita (https://developer.android.com/design/downloads/index.html , https://design.google.com/icons/ , https://github.com/google/material-design-icons/ , https://google.github.io/material-design-icons/) Apache-lisenssin version 2.0 nojalla. Joitakin kuvakkeita on muokattu. Napauta tätä nähdäksesi lisenssin koko tekstin.</string>
+    <string name="preferences_app_info_title">Tietoja Kamerasta</string>
+    <string name="qr_email_content_description">Kirjoita uusi viesti määriteltyihin sähköpostiosoitteisiin</string>
+    <string name="preference_focus_peaking_summary">Valinnan ollessa päällä, korostukset näytetään tarkennetuissa reunoissa (ääriviivoissa). Erityisesti manuaalisessa tarkennuksessa on hyvä nähdä, mitkä kuvan alueet ovat tarkennettuina.
+\n%s</string>
+    <string name="preference_show_cycle_flash_summary">Näytetäänkö näppäin, jolla voi selata salamavaihtoehtoja, sen sijaan että salamavaihtoehdot näytetään ponnahdusvalikossa. Huomaa, että taskulamppu ei ole käytettävissä, jos näppäin näytetään.</string>
+    <string name="finish_panorama">Päätä panoraama</string>
+    <string name="preference_image_format_summary">Valitse valokuvien tallennuksessa käytettävä tiedostomuoto. Tämä vaikuttaa ”tavallisiin” (ei RAW-muotoisiin) valokuviin. Vain JPEG-muoto tukee Exif-metatietojen tallennusta. Huomaa, että PNG-muoto ei ole häviötön, koska se muunnetaan häviöllisestä JPEG-muodosta 100 %%:n laadulla.
+\n%s</string>
+    <string name="preference_remove_device_exif">Poista laitteen EXIF-metatiedot</string>
+    <string name="qr_product_content_description">Hae tämä tuotteen tunnistenumero-viivakoodi</string>
+    <string name="preference_show_store_location">Näytä sijainnin tallennuksen näppäin</string>
+    <string name="preference_raw_expo_bracketing_summary">Pitäisikö RAW-valinnan koskea myös valotuksen haarukointitilaa (tai HDR-tilaa, kun ”Tallenna kaikki kuvat HDR-tilasta” on käytössä)? Jos tämä valinta on pois käytöstä, vain JPEG-tiedostot tallennetaan näissä valokuvaustiloissa.</string>
+    <string name="preference_panorama_crop_summary">Poistetaanko aaltoilevat reunat panoraamasta
+\n%s</string>
+    <string name="intro_text">Kosketa tarkentaaksesi ja paina valkoista kamerapainiketta ottaaksesi valokuvia.
+\n
+\nVoit poistaa näytön enimmäiskirkkauden käytöstä valitsemalla Asetukset/Käyttöliittymä näytöllä…/”Pakota enimmäiskirkkaus”. Voit tallentaa SD-kortille Android 5:ssä ja uudemmissa valitsemalla Asetukset/Lisää kameran hallinnan asetuksia/”Storage Access Framework”. Saat lisäohjeita valitsemalla Asetukset-valikosta ”Apua verkossa”.</string>
+    <string name="preference_stamp_geo_address_summary">Jos mahdollista, hanki osoite GPS-sijainnista (valokuvien leimoja tai videon tekstityksiä varten). Huomaa, että jos tämä ominaisuus on käytössä, laitteesi lähettää sijaintitietoja internetin kautta kolmannelle osapuolelle GPS-koordinaattien muuntamiseksi osoitteeksi. Katso https://developer.android.com/reference/android/location/Geocoder . Tämä ominaisuus ei takaa saatavuutta tai tarkkuutta. Tulokset ovat parhaita arvioita, eikä niiden merkityksellisyyttä tai oikeellisuutta taata.
+\n%s</string>
+    <string name="preference_histogram_summary">Näytetäänkö näytöllä näkyvien värien histogrammi
+\n%s</string>
+    <string name="panorama_info">Ota panoraamakuva pitämällä laitetta pystyasennossa ja napsauttamalla laukaisinta panoraaman aloittamiseksi. Kierrä sitten laitetta vasemmalle tai oikealle siirtääksesi keskellä olevan valkoisen ympyrän sinisen pisteen päälle. Kun kukin uusi kuva on otettu, jatka kiertämistä, ja peitä kaikki uudet siniset pisteet.
+\n
+\nTallenna panoraama napsauttamalla rasti-kuvaketta tai peruuta risti-kuvakkeesta.
+\n
+\nHuomaa, että panoraamakuvien käsittely ja tallentaminen voi kestää jonkin aikaa.</string>
+    <string name="preference_multi_cam_button_summary">Jos päällä, voit vaihtaa etu- ja takakameran välillä sekä useiden etu- ja takakameroiden välillä erillisillä näppäimillä. Jos tämä toiminto ei ole käytössä, yksi Vaihda kameraa -näppäin vaihtelee kaikkien kameroiden välillä.</string>
+    <string name="preference_allow_long_press_summary">Sallitaanko pitkän painalluksen toiminnot (esim. pitkä painallus gallerian näppäintä tallennuspaikan muuttamiseksi).</string>
+    <string name="preference_camera2_dummy_capture_hack_summary">Kokeile ottaa tämä käyttöön, jos laitteellasi on ongelmia HDR- tai Expo-valokuvaustiloissa (jos expo-kuviin tulee sama valotus). Vaikuttaa vain jos alla oleva Nopea HDR/Expo -valinta on myös käytössä.</string>
+    <string name="preference_remove_device_exif_summary">Poistetaanko laitteen EXIF-metatiedot JPEG-valokuvista. Tämä ei poista muiden asetusten lisäämiä EXIF-tunnisteita (esim. sijainti/geotagging), jotka ovat riippumattomia ja ohittavat tämän asetuksen. RAW/DNG-tiedostot ja videot eivät muutu.
+\n%s</string>
+    <string name="preference_show_focus_peaking_summary">Näytetäänkö näppäin tarkennuksen korostuksen kytkemiseen päälle ja pois. Kun tarkennuksen korostus on käytössä, tarkennetut reunat (ääriviivat) korostetaan. Katso Asetukset/Kameran esikatselu/Tarkennuksen korostus.</string>
+    <string name="preferences_about_app">Kamera on haarautettu Open Camera:sta</string>
+    <string name="qr_no_app_available_for_action">Puuttuu sovellus tähän toimintoon</string>
 </resources>
