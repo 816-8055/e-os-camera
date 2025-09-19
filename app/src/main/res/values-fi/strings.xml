@@ -99,7 +99,7 @@
     <string name="preference_shutter_sound">Sulkimen ääni</string>
     <string name="preference_shutter_sound_summary">Toistaa äänen kuvaa ottaessa</string>
     <string name="preference_volume_keys">Äänenvoimakkuusnäppäimet</string>
-    <string name="preference_audio_control">Äänentallennusvalinnat</string>
+    <string name="preference_audio_control">Äänen hallinta</string>
     <string name="preference_audio_noise_control_sensitivity">Melusuodattimen herkkyys</string>
     <string name="preference_audio_noise_control_sensitivity_summary">Herkkyys melun voimakkuudelle (kova melu)</string>
     <string name="preference_save_location">Tallennussijainti</string>
@@ -284,7 +284,13 @@
     <string name="photo_mode">Valokuvaustila</string>
     <string name="photo_mode_standard_full">Tavallinen</string>
     <string name="photo_mode_noise_reduction_full">Kohinanpoisto</string>
-    <string name="preference_category_stamp">Valokuvaleima</string>
+    <string name="preference_category_stamp">Leimaa kuva</string>
     <string name="photo_mode_expo_bracketing_full">Valotuksen haarukointi</string>
     <string name="photo_mode_fast_burst_full">Nopea sarja</string>
+    <string name="preference_hdr_save_expo">Tallenna kaikki kuvat HDR-tilasta</string>
+    <string name="no_permission">KÄYTTÖLUPIA PUUTTUU</string>
+    <string name="permission_rationale_title">Lupa vaaditaan</string>
+    <string name="permission_rationale_camera">Käyttölupa kameraan tarvitaan kameran käyttämiseen</string>
+    <string name="permission_rationale_storage">Tallennustilan luku-/kirjoituslupa vaaditaan tuotettujen tiedostojen tallentamiseksi (kuten valokuvat tai videot)</string>
+    <string name="preference_hdr_save_expo_summary">Jos käytössä, HDR-valokuvaustilassa tallennetaan kolme eri valotusta ja lopullinen HDR-valokuva. Huomaa, että tämä hidastaa tallennusta, etenkin jos käytät myös valintoja kuten ”Leimaa valokuvat” tai \"Automaattinen tasaus\".</string>
 </resources>
