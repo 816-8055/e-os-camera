@@ -73,4 +73,10 @@
 \nHuomaa, että HDR ei sovellu nopeasti liikkuviin kohteisiin ja voi heikentää värien tarkkuutta.
 \n
 \nHDR-tilassa valokuvien ottaminen on hitaampaa.</string>
+    <string name="preference_scene_mode">Käytä kuvaustilaa</string>
+    <string name="preference_scene_mode_summary">Optimoi valokuva eri tilanteissa</string>
+    <string name="preference_iso_summary">Korkeampi arvo tarkoittaa suurempaa valoherkkyyttä (ei ehkä toimi kaikissa laitteissa)</string>
+    <string name="preference_exposure">Aseta valotuksen korjaus</string>
+    <string name="preference_exposure_summary">Arvo 0 on oletus valotuksen korjaukselle</string>
+    <string name="preference_lock_orientation">Lukitse valokuvan/videon asento</string>
 </resources>
