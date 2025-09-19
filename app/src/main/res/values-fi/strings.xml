@@ -169,4 +169,103 @@
     <string name="preference_location">Tallenna sijaintitieto (Geotagging)</string>
     <string name="preference_quality_summary">Aseta tallennettujen JPEG- tai WebP-valokuvien kuvanlaatu (oletusarvo on 90 %%). Ei vaikuta PNG-kuvamuotoon.
 \n%s</string>
+    <string name="preference_gps_direction">Tallenna kompassin ilmansuunta</string>
+    <string name="preference_gps_direction_summary">Tallenna GPS-kompassin suunta valokuviin (vain JPEG-muodossa)</string>
+    <string name="preference_require_location">Vaadi sijaintitieto</string>
+    <string name="preference_require_location_summary">Jos sijaintitiedon tallennus on päällä, ota valokuva/video vain, jos sijaintitieto saadaan</string>
+    <string name="preference_stamp">Leimaa valokuvat</string>
+    <string name="preference_stamp_summary">Leimaa valokuvat päiväyksellä ja kellonajalla sekä GPS-tiedoilla, jos sijainti-/suuntatiedot on otettu käyttöön.
+\n%s</string>
+    <string name="preference_stamp_dateformat">Päiväyksen muoto</string>
+    <string name="preference_stamp_timeformat">Aikaleiman muoto</string>
+    <string name="preference_stamp_gpsformat">GPS-leiman muoto</string>
+    <string name="preference_textstamp">Vapaavalintainen teksti</string>
+    <string name="preference_stamp_fontsize">Tekstin koko</string>
+    <string name="preference_stamp_fontsize_summary">Kirjasimen koko valokuvaan leimattavassa tekstissä
+\n%s</string>
+    <string name="preference_stamp_font_color">Tekstin väri</string>
+    <string name="preference_stamp_style">Tekstin tyyli</string>
+    <string name="preference_stamp_style_summary">Valokuvaan leimattavan tekstin tyyli
+\n%s</string>
+    <string name="preference_background_photo_saving">Käytä taustasäiettä</string>
+    <string name="preference_background_photo_saving_summary">Tallennetaanko valokuvat taustasäikeessä (nopeuttaa toimintaa)</string>
+    <string name="video_quality">Videon tarkkuus</string>
+    <string name="preference_force_video_4k">Pakota 4K UHD video (toimii vain joissakin laitteissa)</string>
+    <string name="preference_video_stabilization">Käytä digitaalista videon vakautusta</string>
+    <string name="preference_video_stabilization_summary">Videon vakautus vähentää kameran liikkeestä johtuvaa tärinää sekä esikatselussa että tallennetuissa videoissa. Tämä voi olla tarpeeton, jos laitteessasi on optinen kuvanvakain (OIS).</string>
+    <string name="preference_video_bitrate">Videon bittinopeus (noin)</string>
+    <string name="preference_video_fps">Videon kuvataajuus (noin)</string>
+    <string name="preference_video_max_duration">Videon pisin kesto</string>
+    <string name="preference_video_max_duration_summary">Videotallennus lopetetaan asetetun keston täyttyessä
+\n%s</string>
+    <string name="preference_video_max_filesize">Videon suurin tiedostokoko</string>
+    <string name="preference_video_restart_max_filesize">Aloita uudelleen suurimmassa tiedostokoossa</string>
+    <string name="preference_video_restart_max_filesize_summary">Aloitetaanko tallennus uudelleen, kun tiedoston enimmäiskoko on täyttynyt (laitekohtainen tai käyttäjän määrittämä enimmäiskoko)</string>
+    <string name="preference_record_audio">Tallenna ääntä</string>
+    <string name="preference_record_audio_summary">Äänitä kuvattaessa videota</string>
+    <string name="preference_record_audio_src">Äänen lähde</string>
+    <string name="preference_record_audio_src_summary">Äänen tallennukseen käytettävä mikrofoni. Huomaa, että valintojen tarkka toiminta riippuu siitä, miten valinta on toteutettu laitteessasi.
+\n%s</string>
+    <string name="preference_record_audio_channels">Äänikanavat</string>
+    <string name="preference_record_audio_channels_summary">Aseta äänen kanavamääräksi mono tai stereo (stereo-tilaääntä tuetaan vain joissakin laitteissa)</string>
+    <string name="preference_video_flash">Salaman vilkutus videota kuvattaessa</string>
+    <string name="preference_video_flash_summary">Jos käytössä, salama vilkkuu videon tallennuksen aikana (siitä näkee etäältä, että tallennus jatkuu)</string>
+    <string name="preference_category_online">Sekalaista</string>
+    <string name="preference_online_help">Apua verkossa</string>
+    <string name="preference_online_help_summary">Avaa Kameran verkkosivu selaimessa</string>
+    <string name="preference_donate">Lahjoita tukeaksesi kehitystä</string>
+    <string name="preference_use_camera2">Käytä Camera2 API</string>
+    <string name="preference_use_camera2_summary">Mahdollistaa lisäominaisuuksia, kuten manuaaliset tilat valotukselle, tarkennukselle, valkotasapainolle, sekä RAW-tiedostot (jos laite tukee niitä), mutta ei ehkä toimi oikein kaikilla laitteilla (aiheuttaa uudelleenkäynnistyksen)</string>
+    <string name="preference_about">Tietoja</string>
+    <string name="preference_about_summary">Sovellus- ja vianmääritystiedot</string>
+    <string name="preference_reset">Palauta asetukset</string>
+    <string name="preference_reset_summary">Nollaa Kameran kaikki asetukset oletuksiin</string>
+    <string name="preference_reset_question">Haluatko varmasti palauttaa Kameran kaikki asetukset oletuksiinsa?</string>
+    <string name="about_available">Käytettävissä</string>
+    <string name="about_not_available">Ei käytettävissä</string>
+    <string name="take_photo">Ota valokuva</string>
+    <string name="gallery">Galleria</string>
+    <string name="exposure">Valotus</string>
+    <string name="exposure_lock">Lukitse valotus</string>
+    <string name="focus_mode">Tarkennustila</string>
+    <string name="flash_mode">Salamatila</string>
+    <string name="switch_to_front_camera">Vaihda etukameraan</string>
+    <string name="switch_to_back_camera">Vaihda takakameraan</string>
+    <string name="switch_to_video">Vaihda videotilaan</string>
+    <string name="switch_to_photo">Vaihda valokuvaustilaan</string>
+    <string name="trash">Poista edellinen kuva</string>
+    <string name="share">Jaa valokuva</string>
+    <string name="parent_folder">Yläkansio</string>
+    <string name="new_folder">Uusi kansio</string>
+    <string name="cant_write_folder">Ei voi kirjoittaa tähän kansioon</string>
+    <string name="cant_access_folder">Ei pääsyä tähän kansioon</string>
+    <string name="enter_new_folder">Kirjoita nimi uudelle kansiolle</string>
+    <string name="failed_create_folder">Kansion luonti epäonnistui</string>
+    <string name="saf_select_save_location">Valitse tallennussijainti</string>
+    <string name="saf_cancelled">Storage Access Framework peruttu</string>
+    <string name="saf_permission_failed">Ei voi tallentaa tähän kansioon</string>
+    <string name="permission_location_not_available">Sijainnin lupa ei ole saatavilla</string>
+    <string name="start_video">Aloita videon tallennus</string>
+    <string name="stop_video">Lopeta videon tallennus</string>
+    <string name="max_filesize">Suurin tiedostokoko</string>
+    <string name="mb_abbreviation">Mt</string>
+    <string name="gb_abbreviation">Gt</string>
+    <string name="preference_textstamp_summary">Leimaa valokuvat omalla tekstillä</string>
+    <string name="preference_video_restart_summary">Jos video on päättynyt saavutettuaan enimmäiskeston (jos se on asetettu), tämä valinta käynnistää videon uudelleen enintään määritetyn määrän kertoja.
+\n%s</string>
+    <string name="preference_video_bitrate_summary">Aseta videoiden likimääräinen bittinopeus (korkeampi tarkoittaa parempaa laatua, mutta vie enemmän levytilaa; voi aiheuttaa videotallennuksen epäonnistumisen, jos bittinopeutta ei tueta)
+\n%s</string>
+    <string name="preference_video_restart">Aloita video alusta keston täytyttyä</string>
+    <string name="preference_location_summary">Tallenna GPS-sijaintitiedot valokuviin/videoihin (valokuvien sijaintitiedot voidaan tallentaa vain JPEG- ja DNG-muodoissa)</string>
+    <string name="preference_stamp_font_color_summary">Kirjasimen väri valokuvaan leimattavassa tekstissä
+\n%s</string>
+    <string name="preference_force_video_4k_summary">Käytä 3840x2160-tarkkuutta takakameran videokuvauksessa – tämä valinta on viritelmä, joka saattaa mahdollistaa 4K-laitteiden käytön 4K-kameroissa, jotka eivät tarjoa tätä vaihtoehtoa kolmansien osapuolten kamerasovelluksille. Toimivuutta ei taata, joten testaa ennen käyttöä.</string>
+    <string name="preference_video_fps_summary">Aseta videoiden kuvataajuus (FPS) (voi olla arvioitu, ei taattu, ja voi aiheuttaa videotallennuksen epäonnistumisen, jos kuvataajuutta ei tueta). Tarkista tallennetuista videoista toteutunut kuvataajuus. Huomaa, että tämä asetus ohitetaan hidastetuissa videoissa.
+\n%s</string>
+    <string name="preference_video_max_filesize_summary">Videotallennus päättyy ja/tai käynnistyy uudelleen (katso valinta alla), kun tiedoston enimmäiskoko (noin) on täyttynyt. Huomaa, että monissa Android-laitteissa on videotiedostojen enimmäiskoko (yleensä noin 2 Gt tai 4 Gt), mutta tällä valinnalla voit asettaa tietyn arvon. Huomaa, että tämä valinta ei pysty kasvattamaan laitekohtaista enimmäiskokoa.
+\n%s</string>
+    <string name="permission_record_audio_not_available">Mikrofonin lupa ei ole saatavilla</string>
+    <string name="preference_donate_summary">Jos pidät tästä sovelluksesta, harkitse lahjoittamista tukeaksesi kehitystä. Voit tehdä sen ostamalla lahjoitussovellukseni – napsauta tätä vaihtoehtoa avataksesi lahjoitussovellukseni sivun. Kiitos!</string>
+    <string name="folder_exists">Kansio on jo olemassa</string>
+    <string name="about_copy_to_clipboard">Kopioi leikepöydälle</string>
 </resources>
