@@ -270,4 +270,6 @@
     <string name="about_copy_to_clipboard">Kopioi leikepöydälle</string>
     <string name="audio_control_start">Aloita äänen kuuntelu</string>
     <string name="audio_control_stop">Lopeta äänen kuuntelu</string>
+    <string name="speech_recognizer_started">Sano \"cheese\"</string>
+    <string name="audio_listener_started">Tee kova ääni</string>
 </resources>
