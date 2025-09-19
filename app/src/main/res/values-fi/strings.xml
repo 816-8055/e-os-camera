@@ -268,4 +268,6 @@
     <string name="preference_donate_summary">Jos pidät tästä sovelluksesta, harkitse lahjoittamista tukeaksesi kehitystä. Voit tehdä sen ostamalla lahjoitussovellukseni – napsauta tätä vaihtoehtoa avataksesi lahjoitussovellukseni sivun. Kiitos!</string>
     <string name="folder_exists">Kansio on jo olemassa</string>
     <string name="about_copy_to_clipboard">Kopioi leikepöydälle</string>
+    <string name="audio_control_start">Aloita äänen kuuntelu</string>
+    <string name="audio_control_stop">Lopeta äänen kuuntelu</string>
 </resources>
