@@ -40,4 +40,26 @@
 \npyyhkäise näyttöä avataksesi</string>
     <string name="auto_stabilise_not_supported">Anteeksi, automaattinen tasaus
 \nei ole tuettu tällä laitteella</string>
+    <string name="audio_disabled">Ääni pois päältä</string>
+    <string name="max_duration">Kesto enintään</string>
+    <string name="color_effect">Väritehoste</string>
+    <string name="white_balance">Valkotasapaino</string>
+    <string name="direction">Suunta</string>
+    <string name="failed_to_open_camera_1">KAMERAN AVAUS EPÄONNISTUI.</string>
+    <string name="failed_to_open_camera_2">KAMERA VOI OLLA KÄYTÖSSÄ</string>
+    <string name="free_memory">Vapaana</string>
+    <string name="screen_lock_message_1">[LUKITTU:</string>
+    <string name="screen_lock_message_2">Pyyhkäise avataksesi]</string>
+    <string name="failed_to_stamp">Kuvan tietoleimaus epäonnistui</string>
+    <string name="metres_abbreviation">m</string>
+    <string name="preference_category_camera_effects">Kameran tehosteet</string>
+    <string name="preference_auto_stabilise">Automaattinen tasaus</string>
+    <string name="preference_color_effect">Lisää väritehoste</string>
+    <string name="preference_color_effect_summary">Lisää valitun väritehosteen valokuvaan</string>
+    <string name="preference_white_balance">Aseta valkotasapaino</string>
+    <string name="preference_white_balance_summary">Valitse asetus valkotasapainon säätöön</string>
+    <string name="preference_iso">Aseta ISO-valoherkkyys</string>
+    <string name="scene_mode">Kuvaustila</string>
+    <string name="failed_to_open_camera_3">TOISESSA SOVELLUKSESSA?</string>
+    <string name="preference_auto_stabilise_summary">Kuvat oikaistaan vaakasuoraan automaattisesti (vain valokuvat) (valokuvien ottaminen hidastuu, ja toiminto saattaa epäonnistua, jos laitteen muisti on vähissä)</string>
 </resources>
