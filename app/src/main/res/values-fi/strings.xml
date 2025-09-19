@@ -62,4 +62,15 @@
     <string name="scene_mode">Kuvaustila</string>
     <string name="failed_to_open_camera_3">TOISESSA SOVELLUKSESSA?</string>
     <string name="preference_auto_stabilise_summary">Kuvat oikaistaan vaakasuoraan automaattisesti (vain valokuvat) (valokuvien ottaminen hidastuu, ja toiminto saattaa epäonnistua, jos laitteen muisti on vähissä)</string>
+    <string name="video_max_duration">Video saavutti enimmäispituuden</string>
+    <string name="failed_to_save_video">Videotiedosto ei tallentunut</string>
+    <string name="failed_to_record_video">Videon tallennus epäonnistui</string>
+    <string name="failed_to_save_photo">Valokuva ei tallentunut</string>
+    <string name="failed_to_save_photo_raw">RAW-valokuva ei tallentunut</string>
+    <string name="photo_deleted">Valokuva poistettu</string>
+    <string name="hdr_info">HDR-tila on hyödyllinen kuvissa, joissa on suuria kirkkauseroja. Se toimii ottamalla useita kuvia eri valotuksilla ja yhdistämällä ne lopulliseksi kuvaksi.
+\n
+\nHuomaa, että HDR ei sovellu nopeasti liikkuviin kohteisiin ja voi heikentää värien tarkkuutta.
+\n
+\nHDR-tilassa valokuvien ottaminen on hitaampaa.</string>
 </resources>
