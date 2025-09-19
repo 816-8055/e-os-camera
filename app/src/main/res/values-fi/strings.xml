@@ -25,4 +25,19 @@
     <string name="exposure_locked">Valotus lukittu</string>
     <string name="exposure_unlocked">Valotus ei lukittu</string>
     <string name="cancelled_timer">Peruttiin ajastus</string>
+    <string name="cancelled_repeat_mode">Peruttiin ajastettu toistokuvaus</string>
+    <string name="started_timer">Ajastin käynnistetty</string>
+    <string name="started_recording_video">Videon tallennus alkoi</string>
+    <string name="sorry">Anteeksi</string>
+    <string name="failed_to_auto_stabilise">Automaattinen tasaus epäonnistui</string>
+    <string name="failed_to_start_camera_preview">Kameran esikatselu ei käynnistynyt</string>
+    <string name="taking_photo">Otetaan kuvaa</string>
+    <string name="failed_to_take_picture">Kuvan otto epäonnistui</string>
+    <string name="location_not_available">GPS-sijainti ei saatavilla</string>
+    <string name="no_gallery_app">Galleriasovellus puuttuu</string>
+    <string name="unlocked">Lukitus avattu</string>
+    <string name="screen_is_locked">Näyttö on lukittu
+\npyyhkäise näyttöä avataksesi</string>
+    <string name="auto_stabilise_not_supported">Anteeksi, automaattinen tasaus
+\nei ole tuettu tällä laitteella</string>
 </resources>
