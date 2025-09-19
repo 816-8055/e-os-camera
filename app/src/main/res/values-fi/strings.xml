@@ -113,4 +113,12 @@
     <string name="preference_show_when_locked">Näytä kamera lukittuna</string>
     <string name="preference_show_when_locked_summary">Jos tämä on käytössä, kamera näkyy edelleen lukitusnäytön päällä (lukitus on kuitenkin avattava päästäksesi asetuksiin, galleriaan jne.)</string>
     <string name="preference_startup_focus">Tee automaattinen tarkennus käynnistettäessä</string>
+    <string name="preference_startup_focus_summary">Tehdäänkö automaattitarkennus kameran käynnistyksessä. Jos sinulla on ongelmia salaman syttymisen kanssa käynnistyksen yhteydessä, poista tämä käytöstä</string>
+    <string name="preference_lock_video">Lukitse näyttö videota kuvattaessa</string>
+    <string name="preference_lock_video_summary">Videota kuvattaessa graafinen käyttöliittymä lukitaan, jotta tallennus ei pääsisi vahingossa keskeytymään. Avaa lukitus pyyhkäisemällä näyttöä. Huomaa, että videokuvaus keskeytyy aina, jos sovellus siirtyy taustalle tai näyttö pimenee.</string>
+    <string name="preference_rotate_preview">Käännä esikatselu</string>
+    <string name="preference_rotate_preview_summary">Kääntää esikatselun (ei käännä tallennettua valokuvaa/videota)
+\n%s</string>
+    <string name="preference_screen_gui">Käyttöliittymä näytöllä…</string>
+    <string name="preference_preview_size">Esikatselun koko</string>
 </resources>
