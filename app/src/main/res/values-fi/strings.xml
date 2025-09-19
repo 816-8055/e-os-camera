@@ -79,4 +79,18 @@
     <string name="preference_exposure">Aseta valotuksen korjaus</string>
     <string name="preference_exposure_summary">Arvo 0 on oletus valotuksen korjaukselle</string>
     <string name="preference_lock_orientation">Lukitse valokuvan/videon asento</string>
+    <string name="preference_lock_orientation_summary">Jos valittuna, laitteen asentoa ei oteta huomioon, ja valokuvan/videon suunta määräytyy määritetyn suunnan mukaan:
+\n%s</string>
+    <string name="preference_face_detection">Kasvojen tunnistus</string>
+    <string name="preference_face_detection_summary">Käytä kasvontunnistusta tarkennusalueiden sijaan</string>
+    <string name="preference_category_camera_controls">Kameran hallinta</string>
+    <string name="preference_timer_beep">Ajastimen piippaus</string>
+    <string name="preference_timer_speak">Ääni ajastimen lähtölaskennassa</string>
+    <string name="preference_timer_speak_summary">Puhu lähtölaskenta ajastuksessa tai toistokuvauksen viiveessä (alkaen 60 sekunnista)</string>
+    <string name="preference_burst_mode">Ajastettu toistokuvaus</string>
+    <string name="preference_screen_camera_controls_more">Lisää kameran hallinnan asetuksia…</string>
+    <string name="preference_touch_capture">Kosketa ottaaksesi kuvan</string>
+    <string name="preference_timer">Ajastin</string>
+    <string name="preference_timer_beep_summary">Piippaus ajastimen laskiessa tai toistokuvauksen viiveen aikana</string>
+    <string name="preference_burst_interval">Toistokuvauksen aikaväli</string>
 </resources>
