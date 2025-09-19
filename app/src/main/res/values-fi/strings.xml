@@ -109,4 +109,8 @@
     <string name="preference_save_photo_prefix_summary">Valokuvatiedoston nimen alkuun lisättävä liite</string>
     <string name="preference_save_video_prefix">Videon nimen etuliite</string>
     <string name="preference_save_video_prefix_summary">Videotiedoston nimen alkuun lisättävä liite</string>
+    <string name="preference_save_zulu_time">Ajan muoto tiedoston nimessä</string>
+    <string name="preference_show_when_locked">Näytä kamera lukittuna</string>
+    <string name="preference_show_when_locked_summary">Jos tämä on käytössä, kamera näkyy edelleen lukitusnäytön päällä (lukitus on kuitenkin avattava päästäksesi asetuksiin, galleriaan jne.)</string>
+    <string name="preference_startup_focus">Tee automaattinen tarkennus käynnistettäessä</string>
 </resources>
