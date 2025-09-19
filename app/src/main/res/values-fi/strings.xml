@@ -16,4 +16,13 @@
     <string name="video_error_server_died">Palvelin kaatui, video keskeytyi</string>
     <string name="video_max_filesize">Video saavutti enimmäistiedostokoon</string>
     <string name="exposure_compensation">Valotuksen korjaus</string>
+    <string name="focus_distance">Tarkennusetäisyys</string>
+    <string name="infinite">Ääretön</string>
+    <string name="front_camera">Etukamera</string>
+    <string name="back_camera">Takakamera</string>
+    <string name="photo">Valokuva</string>
+    <string name="video">Video</string>
+    <string name="exposure_locked">Valotus lukittu</string>
+    <string name="exposure_unlocked">Valotus ei lukittu</string>
+    <string name="cancelled_timer">Peruttiin ajastus</string>
 </resources>
