@@ -151,4 +151,5 @@
     <string name="preference_show_zoom">Näytä zoom</string>
     <string name="preference_show_zoom_controls">Näytä zoom -/+ painikkeet</string>
     <string name="preference_show_iso_summary">Näyttää hetkellisen ISO-valoherkkyyden. (Vaatii Camera2 API:n.)</string>
+    <string name="preference_show_toasts_summary">Näytetäänkö tilapäiset tiedotteet näytöllä</string>
 </resources>
