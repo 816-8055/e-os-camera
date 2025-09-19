@@ -272,4 +272,12 @@
     <string name="audio_control_stop">Lopeta äänen kuuntelu</string>
     <string name="speech_recognizer_started">Sano \"cheese\"</string>
     <string name="audio_listener_started">Tee kova ääni</string>
+    <string name="auto_stabilise_info">Automaattinen tasaus kääntää valokuvat vaakasuoraan.
+\n
+\nHuomaa: Tarkkuus heikkenee ja ala kutistuu (kiertämisen ja rajaamisen vuoksi).</string>
+    <string name="raw_info">DNG-tiedostot sisältävät kameran tallentamat tiedot täysin pakkaamattomina ja käsittelemättöminä.
+\n
+\nHuomaa, että jotkin galleria-sovellukset eivät tunnista DNG-tiedostoja. DNG-kuvia voidaan käyttää erityisillä kuvankäsittelyohjelmilla.
+\n
+\nHuomaa, että erilaiset käsittelyvaihtoehdot, kuten Leimaa valokuvat ja Automaattinen tasaus, eivät koske DNG-kuvia, vaan vain muita kuvia (JPEG/ym.).</string>
 </resources>
