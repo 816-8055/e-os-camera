@@ -121,4 +121,34 @@
 \n%s</string>
     <string name="preference_screen_gui">Käyttöliittymä näytöllä…</string>
     <string name="preference_preview_size">Esikatselun koko</string>
+    <string name="preference_ui_placement">Käyttöliittymän sijainti</string>
+    <string name="preference_immersive_mode">Uppoutumistila</string>
+    <string name="preference_show_zoom_summary">Näytä kameran lähennyskerroin näytöllä (kun lähennettynä)</string>
+    <string name="preference_show_zoom_controls_summary">Näytä -/+ painikkeet loitonnukseen/lähennykseen</string>
+    <string name="preference_show_zoom_slider_controls">Näytä zoom liukusäädin</string>
+    <string name="preference_show_zoom_slider_controls_summary">Näytä liukusäädin lähennykseen/loitonnukseen</string>
+    <string name="preference_show_iso">Näytä ISO</string>
+    <string name="preference_free_memory">Näytä vapaa muisti</string>
+    <string name="preference_free_memory_summary">Näyttää laitteessa jäljellä olevan tallennustilan näytöllä</string>
+    <string name="preference_show_angle">Näytä kaltevuus</string>
+    <string name="preference_show_angle_summary">Näyttää laitteen kaltevuuskulman asteina näytöllä</string>
+    <string name="preference_show_angle_line">Näytä kaltevuusviiva</string>
+    <string name="preference_show_angle_line_summary">Näyttää vaakasuoran viivan</string>
+    <string name="preference_angle_highlight_color">Asennon suoruuden korostusväri</string>
+    <string name="preference_show_geo_direction">Näytä ilmansuunta (kompassi)</string>
+    <string name="preference_show_geo_direction_summary">Näytä kameran osoittama ilmansuunta näytöllä</string>
+    <string name="preference_show_time">Näytä aika</string>
+    <string name="preference_show_time_summary">Näyttää kellonajan näytöllä</string>
+    <string name="preference_show_battery">Näytä akku</string>
+    <string name="preference_grid">Näytä ruudukko</string>
+    <string name="grid">Ruudukko</string>
+    <string name="preference_crop_guide">Näytä apuruutu rajaukseen</string>
+    <string name="preference_show_toasts">Näytä viestit näytöllä</string>
+    <string name="preference_show_battery_summary">Näyttää akun varaustilan näytöllä</string>
+    <string name="preference_crop_guide_summary">Rajaus-apuruutu näyttää suorakulmion määritetyssä kuvasuhteessa - se auttaa, jos aiot myöhemmin rajata valokuvan tai videon eri kuvasuhteeseen. Edellyttää WYSIWYG-valokuvaustilaa, tai videokuvaustilaa.
+\n%s</string>
+    <string name="preference_angle_highlight_color_summary">Korostusväri kameran ollessa noin vaakasuorassa</string>
+    <string name="preference_show_zoom">Näytä zoom</string>
+    <string name="preference_show_zoom_controls">Näytä zoom -/+ painikkeet</string>
+    <string name="preference_show_iso_summary">Näyttää hetkellisen ISO-valoherkkyyden. (Vaatii Camera2 API:n.)</string>
 </resources>
