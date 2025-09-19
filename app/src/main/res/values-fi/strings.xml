@@ -293,4 +293,31 @@
     <string name="permission_rationale_camera">Käyttölupa kameraan tarvitaan kameran käyttämiseen</string>
     <string name="permission_rationale_storage">Tallennustilan luku-/kirjoituslupa vaaditaan tuotettujen tiedostojen tallentamiseksi (kuten valokuvat tai videot)</string>
     <string name="preference_hdr_save_expo_summary">Jos käytössä, HDR-valokuvaustilassa tallennetaan kolme eri valotusta ja lopullinen HDR-valokuva. Huomaa, että tämä hidastaa tallennusta, etenkin jos käytät myös valintoja kuten ”Leimaa valokuvat” tai \"Automaattinen tasaus\".</string>
+    <string name="permission_rationale_record_audio">Mikrofonin käyttölupa tarvitaan äänellisten videoiden tallentamiseen sekä ”Äänen hallinta”-toimintojen käyttämiseen</string>
+    <string name="permission_rationale_location">Sijainnin käyttölupa tarvitaan geotaggaamiseen (sijaintitiedon tallentamiseen valokuviin, videoihin ja niiden leimauksiin ja tekstityksiin). Sijaintilupa vaaditaan myös (ainakin Android 11:ssä ja sitä vanhemmissa versioissa) Bluetooth LE -kaukosäätimien liittämiseen.</string>
+    <string name="preference_category_photo_debugging">Vianetsintävalinnat</string>
+    <string name="preference_category_video_debugging">Vianetsintävalinnat</string>
+    <string name="preference_camera2_fake_flash">Käytä vaihtoehtoista salamamenetelmää</string>
+    <string name="preference_camera2_fake_flash_summary">Ota käyttöön, jos laitteesi salama oikkuilee käytettäessä Camera2 API:ta</string>
+    <string name="preference_expo_bracketing_n_images">Valotuksen haarukointi</string>
+    <string name="preference_expo_bracketing_n_images_summary">Kuvien määrä valotuksen haarukointitilassa
+\n%s</string>
+    <string name="preference_expo_bracketing_stops">Valotushaarukoinnin askeleet</string>
+    <string name="preference_nr_save">Kohinanpoiston alkuperäiskuvat</string>
+    <string name="preference_nr_save_summary">Tallennetaanko alkuperäiset kuvat kohinanpoistotilassa? Tämä voi hidastaa kuvien tallennusta paljon.
+\n%s</string>
+    <string name="preference_nr_save_no">Älä tallenna alkuperäisiä kuvia</string>
+    <string name="preference_nr_save_single">Tallenna yksi alkuperäinen kuva</string>
+    <string name="preference_nr_save_all">Tallenna kaikki alkuperäiset kuvat (hidas)</string>
+    <string name="seconds_abbreviation">s</string>
+    <string name="video_no_free_space">Tallennustila ei riitä videon kuvaamiseen</string>
+    <string name="video_power_critical">Video pysähtyi
+\nAkku loppuu pian</string>
+    <string name="preference_video_low_power_check">Akun loppumisen ennakointi</string>
+    <string name="dark">Hämärä</string>
+    <string name="bright">Kirkas</string>
+    <string name="exposure_shutter_speed">Suljinaika</string>
+    <string name="camera_error">Vakava kameran virhe</string>
+    <string name="preference_camera2_fast_burst">Käytä nopeaa HDR/Expo-sarjakuvausta</string>
+    <string name="preference_video_low_power_check_summary">Lopeta videon tallennus, jos akun varaus on loppumassa. Tämä vähentää videon vioittumisen riskiä, jos laite sammuu virran loppuessa.</string>
 </resources>
