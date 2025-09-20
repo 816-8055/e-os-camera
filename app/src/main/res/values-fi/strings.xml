@@ -821,4 +821,7 @@
     <string name="preference_show_focus_peaking_summary">Näytetäänkö näppäin tarkennuksen korostuksen kytkemiseen päälle ja pois. Kun tarkennuksen korostus on käytössä, tarkennetut reunat (ääriviivat) korostetaan. Katso Asetukset/Kameran esikatselu/Tarkennuksen korostus.</string>
     <string name="preferences_about_app">Kamera on haarautettu Open Camera:sta</string>
     <string name="qr_no_app_available_for_action">Puuttuu sovellus tähän toimintoon</string>
+    <string name="clear_folder_history">Tyhjennä kansiohistoria</string>
+    <string name="clear_folder_history_question">Tyhjennetäänkö kansiohistoria?</string>
+    <string name="failed_to_reconnect_camera">Yhteyden palauttaminen kameraan epäonnistui</string>
 </resources>
