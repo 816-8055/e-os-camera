@@ -824,4 +824,5 @@
     <string name="clear_folder_history">Tyhjennä kansiohistoria</string>
     <string name="clear_folder_history_question">Tyhjennetäänkö kansiohistoria?</string>
     <string name="failed_to_reconnect_camera">Yhteyden palauttaminen kameraan epäonnistui</string>
+    <string name="zoom">Lähennys</string>
 </resources>
