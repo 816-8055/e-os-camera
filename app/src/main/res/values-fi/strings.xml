@@ -787,7 +787,7 @@
     <string name="ultrawide">Ultralaajakulma</string>
     <string name="switch_to_external_camera">Vaihda ulkoiseen kameraan</string>
     <string name="preference_licence_google_icons_text">Kamera käyttää Googlen Material Design -kuvakkeita (https://developer.android.com/design/downloads/index.html , https://design.google.com/icons/ , https://github.com/google/material-design-icons/ , https://google.github.io/material-design-icons/) Apache-lisenssin version 2.0 nojalla. Joitakin kuvakkeita on muokattu. Napauta tätä nähdäksesi lisenssin koko tekstin.</string>
-    <string name="preferences_app_info_title">Tietoja Kamerasta</string>
+    <string name="preferences_app_info_title">Kamera - tietoja sovelluksesta</string>
     <string name="qr_email_content_description">Kirjoita uusi viesti määriteltyihin sähköpostiosoitteisiin</string>
     <string name="preference_focus_peaking_summary">Valinnan ollessa päällä, korostukset näytetään tarkennetuissa reunoissa (ääriviivoissa). Erityisesti manuaalisessa tarkennuksessa on hyvä nähdä, mitkä kuvan alueet ovat tarkennettuina.
 \n%s</string>
