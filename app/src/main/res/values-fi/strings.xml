@@ -70,9 +70,9 @@
     <string name="photo_deleted">Valokuva poistettu</string>
     <string name="hdr_info">HDR-tila on hyödyllinen, kun näkymässä on suuria kirkkauseroja. Se ottaa useita kuvia eri valotuksilla, ja yhdistää ne.
 \n
-\nHuomaa, että HDR ei sovellu nopeasti liikkuviin kohteisiin ja voi heikentää värien tarkkuutta.
+\nHDR ei sovellu nopeasti liikkuviin kohteisiin, koska valokuvien ottaminen on hitaampaa.
 \n
-\nHDR-tilassa valokuvien ottaminen on hitaampaa.</string>
+\nHDR voi heikentää värien tarkkuutta.</string>
     <string name="preference_scene_mode">Käytä kuvaustilaa</string>
     <string name="preference_scene_mode_summary">Optimoi valokuva eri tilanteissa</string>
     <string name="preference_iso_summary">Korkeampi arvo tarkoittaa suurempaa valoherkkyyttä (ei ehkä toimi kaikissa laitteissa)</string>
@@ -292,7 +292,7 @@
     <string name="permission_rationale_title">Lupa vaaditaan</string>
     <string name="permission_rationale_camera">Käyttölupa kameraan tarvitaan kameran käyttämiseen</string>
     <string name="permission_rationale_storage">Tallennustilan luku-/kirjoituslupa vaaditaan tuotettujen tiedostojen tallentamiseksi (kuten valokuvat tai videot)</string>
-    <string name="preference_hdr_save_expo_summary">Jos käytössä, HDR-valokuvaustilassa tallennetaan kolme eri valotusta ja lopullinen HDR-valokuva. Huomaa, että tämä hidastaa tallennusta, etenkin jos käytät myös valintoja kuten ”Leimaa valokuvat” tai \"Automaattinen tasaus\".</string>
+    <string name="preference_hdr_save_expo_summary">Jos käytössä, HDR-valokuvaustilassa tallennetaan kolme eri valotusta ja lopullinen HDR-valokuva. Tämä hidastaa tallennusta, etenkin jos käytät muuta kuvankäsittelyä, kuten ”Leimaa valokuvat” tai \"Automaattinen tasaus\".</string>
     <string name="permission_rationale_record_audio">Mikrofonin käyttölupa tarvitaan äänellisten videoiden tallentamiseen sekä ”Äänen hallinta”-toimintojen käyttämiseen</string>
     <string name="permission_rationale_location">Sijainnin käyttölupa tarvitaan geotaggaamiseen (sijaintitiedon tallentamiseen valokuviin, videoihin ja niiden leimauksiin ja tekstityksiin). Sijaintilupa vaaditaan myös (ainakin Android 11:ssä ja sitä vanhemmissa versioissa) Bluetooth LE -kaukosäätimien liittämiseen.</string>
     <string name="preference_category_photo_debugging">Vianetsintävalinnat</string>
@@ -589,7 +589,8 @@
 \n%s</string>
     <string name="preference_burst_interval_no_delay">Viiveetön</string>
     <string name="preference_hdr_contrast_enhancement">HDR-kontrastinparannus</string>
-    <string name="preference_hdr_contrast_enhancement_summary">Milloin käytetään HDR-kontrastinparannusta. HDR (High Dynamic Range) parantaa suuren kirkkauseron kuvaa estäen vaalean ja tumman \"puhki palamisen\". Kirkkauden ääripäiden valotusasteet tiivistetään yhteen kuvaan, joka saa HDR-tyylin.
+    <string name="preference_hdr_contrast_enhancement_summary">HDR (High Dynamic Range) parantaa suuren kirkkauseron kuvaa estäen vaalean ja tumman \"puhki palamisen\". Kirkkauden ääripäiden valotusasteet tiivistetään yhteen kuvaan, joka saa HDR-tyylin.
+\nMilloin käytetään HDR-kontrastinparannusta:
 \n%s</string>
     <string name="preference_video_bitrate_90000000">90 Mb/s</string>
     <string name="preference_video_max_filesize_default">Laitteen oletus</string>
