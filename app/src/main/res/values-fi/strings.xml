@@ -26,7 +26,7 @@
     <string name="exposure_unlocked">Valotus ei lukittu</string>
     <string name="cancelled_timer">Peruttiin ajastus</string>
     <string name="cancelled_repeat_mode">Peruttiin ajastettu toistokuvaus</string>
-    <string name="started_timer">Ajastin käynnistetty</string>
+    <string name="started_timer">Ajastin käynnistyi</string>
     <string name="started_recording_video">Videon tallennus alkoi</string>
     <string name="sorry">Anteeksi</string>
     <string name="failed_to_auto_stabilise">Automaattinen tasaus epäonnistui</string>
@@ -61,7 +61,7 @@
     <string name="preference_iso">Aseta ISO-valoherkkyys</string>
     <string name="scene_mode">Kuvaustila</string>
     <string name="failed_to_open_camera_3">TOISESSA SOVELLUKSESSA?</string>
-    <string name="preference_auto_stabilise_summary">Kuvat oikaistaan vaakasuoraan automaattisesti (vain valokuvat) (valokuvien ottaminen hidastuu, ja toiminto saattaa epäonnistua, jos laitteen muisti on vähissä)</string>
+    <string name="preference_auto_stabilise_summary">Kuvat oikaistaan vaakasuoraan automaattisesti (vain valokuvat) (kuvien ottaminen hidastuu, ja toiminto saattaa epäonnistua, jos laitteen muisti on vähissä)</string>
     <string name="video_max_duration">Video saavutti enimmäispituuden</string>
     <string name="failed_to_save_video">Videotiedosto ei tallentunut</string>
     <string name="failed_to_record_video">Videon tallennus epäonnistui</string>
@@ -87,7 +87,7 @@
     <string name="preference_timer_beep">Ajastimen piippaus</string>
     <string name="preference_timer_speak">Ääni ajastimen lähtölaskennassa</string>
     <string name="preference_timer_speak_summary">Puhu lähtölaskenta ajastuksessa tai toistokuvauksen viiveessä (alkaen 60 sekunnista)</string>
-    <string name="preference_burst_mode">Ajastettu toistokuvaus</string>
+    <string name="preference_burst_mode">Toistokuvaus</string>
     <string name="preference_screen_camera_controls_more">Lisää kameran hallinnan asetuksia…</string>
     <string name="preference_touch_capture">Kosketa ottaaksesi kuvan</string>
     <string name="preference_timer">Ajastin</string>
@@ -826,4 +826,7 @@
     <string name="clear_folder_history_question">Tyhjennetäänkö kansiohistoria?</string>
     <string name="failed_to_reconnect_camera">Yhteyden palauttaminen kameraan epäonnistui</string>
     <string name="zoom">Lähennys</string>
+    <string name="iso">ISO</string>
+    <string name="angle">Kaltevuuskulma</string>
+    <string name="preference_raw">RAW</string>
 </resources>
