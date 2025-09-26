@@ -215,7 +215,7 @@
     <string name="preference_online_help_summary">Avaa Kameran verkkosivu selaimessa</string>
     <string name="preference_donate">Lahjoita tukeaksesi kehitystä</string>
     <string name="preference_use_camera2">Käytä Camera2 API</string>
-    <string name="preference_use_camera2_summary">Mahdollistaa lisäominaisuuksia, kuten manuaaliset tilat valotukselle, tarkennukselle, valkotasapainolle, sekä RAW-tiedostot (jos laite tukee niitä), mutta ei ehkä toimi oikein kaikilla laitteilla (aiheuttaa uudelleenkäynnistyksen)</string>
+    <string name="preference_use_camera2_summary">Mahdollistaa lisäominaisuuksia, kuten käsisäätötilat valotukselle, tarkennukselle, valkotasapainolle, sekä RAW-tiedostot (jos laite tukee niitä), mutta ei ehkä toimi oikein kaikilla laitteilla (aiheuttaa uudelleenkäynnistyksen)</string>
     <string name="preference_about">Tietoja</string>
     <string name="preference_about_summary">Sovellus- ja vianmääritystiedot</string>
     <string name="preference_reset">Palauta asetukset</string>
@@ -500,7 +500,7 @@
     <string name="magnetic_accuracy_title">Kompassin ilmansuunta</string>
     <string name="accuracy_unreliable">Epäluotettava</string>
     <string name="accuracy_low">Vähäinen</string>
-    <string name="accuracy_medium">Keskinkertainen</string>
+    <string name="accuracy_medium">Kohtalainen</string>
     <string name="accuracy_high">Suuri</string>
     <string name="preference_units_distance">Etäisyyden yksikkö</string>
     <string name="accuracy_unknown">Ei tiedossa</string>
@@ -518,7 +518,7 @@
     <string name="noise_reduction_mode_fast">Nopea</string>
     <string name="noise_reduction_mode_high_quality">Laadukas</string>
     <string name="preference_focus_assist">Tarkennusavustin</string>
-    <string name="preference_focus_assist_summary">Zoomataanko manuaalisen tarkennuksen etäisyyttä säädettäessä
+    <string name="preference_focus_assist_summary">Lähennetäänkö tarkennuksen etäisyyttä käsin säädettäessä
 \n%s</string>
     <string name="preference_focus_assist_off">Pois</string>
     <string name="exposure_compensation_zoom">Lisää tai vähennä valotuksen korjausta</string>
@@ -562,7 +562,7 @@
     <string name="auto_level_enable">Käytä automaattista tasausta</string>
     <string name="auto_level_disable">Tasaus pois päältä</string>
     <string name="preference_show_stamp">Näytä leimaa kuva -näppäin</string>
-    <string name="preference_show_stamp_summary">Näytetäänkö näppäin kuvan leimauksen kytkemiseen päälle ja pois</string>
+    <string name="preference_show_stamp_summary">Näytetäänkö näppäin kuvan leimauksen päälle ja pois kytkemiseen</string>
     <string name="stamp_enable">Valokuvaleimaus päälle</string>
     <string name="stamp_enabled">Valokuvaleimaus otettu käyttöön</string>
     <string name="stamp_disabled">Valokuvaleimaus poistettu käytöstä</string>
@@ -598,7 +598,7 @@
     <string name="preference_screen_settings_manager">Asetusten hallinta</string>
     <string name="preference_restore_settings_summary">Palauttaa aiemmin tallennetut asetukset. Tämä korvaa kaikki nykyiset asetukset tallennetuilla asetuksilla!</string>
     <string name="preference_restore_settings_question">Tällä voit valita yhden aiemmin tallentamistasi asetustiedostoista. Huomaa, että valitsemasi tiedosto korvaa kaikki nykyiset asetukset!</string>
-    <string name="preference_show_auto_level_summary">Näytetäänkö näppäin automaattisen tasauksen kytkemiseksi päälle ja pois. Kun se on päällä, valokuvat käännetään ja rajataan vaakasuoriksi.</string>
+    <string name="preference_show_auto_level_summary">Näytetäänkö näppäin automaattisen tasauksen päälle ja pois kytkemiseen. Kun se on päällä, valokuvat käännetään ja rajataan vaakasuoriksi.</string>
     <string name="preference_show_textstamp">Näytä näppäin \"kuvaleiman teksti\"</string>
     <string name="preference_show_textstamp_summary">Näytetäänkö näppäin kuvaan leimattavan tekstin määrittelyyn</string>
     <string name="preference_show_white_balance_lock">Näytä näppäin valkotasapainon automaattisäädön lukitukseen</string>
@@ -608,7 +608,7 @@
     <string name="white_balance_locked">Valkotasapaino lukittu</string>
     <string name="white_balance_unlocked">Valkotasapainon lukitus avattu</string>
     <string name="preference_show_exposure_lock">Näytä lukitusnäppäin automaattivalotukselle</string>
-    <string name="preference_show_exposure_lock_summary">Näytetäänkö näppäin valotuksen automaattisen säädön kytkemiseen päälle ja pois</string>
+    <string name="preference_show_exposure_lock_summary">Näytetäänkö näppäin valotuksen automaattisen säädön päälle ja pois kytkemiseen</string>
     <string name="exposure_unlock">Avaa valotuksen lukitus</string>
     <string name="preference_nr_mode_low_light_message">Hämärätila: pidä kameraa paikallaan</string>
     <string name="preference_failed_focus_mode_message">Pidä kamera vakaana saadaksesi parempia kuvia.</string>
@@ -621,7 +621,7 @@
     <string name="scan_ble">BLE Laitehaku</string>
     <string name="bluetooth_not_supported">Bluetooth ei tuettu.</string>
     <string name="unknown_device">Tuntematon laite</string>
-    <string name="preference_remote_disconnect_screen_dim">Himmennä näyttö jos kaukosäätimen yhteys katkeaa</string>
+    <string name="preference_remote_disconnect_screen_dim">Himmennä näyttö, jos kaukosäätimen yhteys katkeaa</string>
     <string name="preference_remote_disconnect_screen_dim_summary">Vinkki: aseta kirkkauden oletusarvo minimiin ennen kameran käynnistämistä.</string>
     <string name="preference_water_type">Käytä suolavettä syvyyslaskelmiin</string>
     <string name="preference_water_type_summary">Vedenalaisissa koteloissa tarkkuus paranee, jos valitaan oikea veden tyyppi.</string>
@@ -629,7 +629,7 @@
     <string name="preference_stamp_geo_address">Käytä osoitteita</string>
     <string name="preference_stamp_geo_address_both">Näyttää osoitteen, jos mahdollista, GPS-koordinaattien lisäksi</string>
     <string name="preference_stamp_geo_address_no">Älä näytä osoitetta</string>
-    <string name="preference_show_store_location_summary">Näytetäänkö näppäin sijaintitietojen (geotagging) kytkemiseen päälle ja pois</string>
+    <string name="preference_show_store_location_summary">Näytetäänkö näppäin sijaintitietojen (geotagging) päälle ja pois kytkemiseen</string>
     <string name="preference_location_enable">Tallenna sijaintitiedot</string>
     <string name="preference_location_disable">Lopeta sijaintitiedon tallennus</string>
     <string name="preference_histogram">Näytä histogrammi</string>
@@ -712,7 +712,7 @@
     <string name="error_features_frame_rate">Kuvataajuus</string>
     <string name="error_features_slow_motion">Hidastus</string>
     <string name="preference_comment_ypr">Tallenna kääntö, nyökkäys ja kallistus</string>
-    <string name="preference_comment_ypr_summary">Tallenna laitteen kääntö, nyökkäys ja kallistuskulmat valokuvan Exif-käyttäjäkommenttiin (kenttään UserComment) (vain JPEG-muodossa)</string>
+    <string name="preference_comment_ypr_summary">Tallenna laitteen kääntö-, nyökkäys- ja kallistuskulmat valokuvan Exif-käyttäjäkommenttiin (kenttään UserComment) (vain JPEG-muodossa)</string>
     <string name="array_seekbar_preference_seekbar">Liukusäädin tämänhetkisen asetusarvon muuttamiseen</string>
     <string name="preference_audio_control_none">Ei mitään</string>
     <string name="preference_audio_control_noise">Kova melu</string>
@@ -780,7 +780,7 @@
     <string name="qr_wifi_title">Yhdistä tähän Wi-Fi-verkkoon</string>
     <string name="qr_wifi_content_description">Lisää tämä langaton verkko (Wi-Fi) tunnettujen verkkojen luetteloon ja yhdistä laite siihen</string>
     <string name="abc_shareactionprovider_share_with">Jaa käyttäen</string>
-    <string name="failed_to_open_camera_two_1_disabled">YKSITYISYYSKYTKIN ON ILMEISESTI PÄÄLLÄ</string>
+    <string name="failed_to_open_camera_two_1_disabled">YKSITYISYYSKATKAISIN ON ILMEISESTI PÄÄLLÄ</string>
     <string name="failed_to_open_camera_two_2_disabled">KOSKA KAMERA EI OLE KÄYTETTÄVISSÄ ;-)</string>
     <string name="failed_to_open_camera_two_1_enabled">ODOTA 5 SEKUNTIA KAMERAN KÄYNNISTYMISTÄ</string>
     <string name="failed_to_open_camera_two_2_enabled">KOSKA SE VASTA KYTKETTIIN PÄÄLLE</string>
@@ -790,9 +790,9 @@
     <string name="preference_licence_google_icons_text">Kamera käyttää Googlen Material Design -kuvakkeita (https://developer.android.com/design/downloads/index.html , https://design.google.com/icons/ , https://github.com/google/material-design-icons/ , https://google.github.io/material-design-icons/) Apache-lisenssin version 2.0 nojalla. Joitakin kuvakkeita on muokattu. Napauta tätä nähdäksesi lisenssin koko tekstin.</string>
     <string name="preferences_app_info_title">Kamera - tietoja sovelluksesta</string>
     <string name="qr_email_content_description">Kirjoita uusi viesti määriteltyihin sähköpostiosoitteisiin</string>
-    <string name="preference_focus_peaking_summary">Valinnan ollessa päällä, korostukset näytetään tarkennetuissa reunoissa (ääriviivoissa). Erityisesti manuaalisessa tarkennuksessa on hyvä nähdä, mitkä kuvan alueet ovat tarkennettuina.
+    <string name="preference_focus_peaking_summary">Valinnan ollessa päällä, korostukset näytetään tarkennetuissa reunoissa (ääriviivoissa). Varsinkin käsin tarkentaminen helpottuu, kun näkee, mitkä kuvan alueet ovat tarkennettuina.
 \n%s</string>
-    <string name="preference_show_cycle_flash_summary">Näytetäänkö näppäin, jolla voi selata salamavaihtoehtoja, sen sijaan että salamavaihtoehdot näytetään ponnahdusvalikossa. Huomaa, että taskulamppu ei ole käytettävissä, jos näppäin näytetään.</string>
+    <string name="preference_show_cycle_flash_summary">Näytetäänkö näppäin, jolla voi selata salamavaihtoehtoja, sen sijaan että salamavaihtoehdot näytetään ponnahdusvalikossa. Huomaa, että lamppu ei ole käytettävissä näppäimen näkyessä.</string>
     <string name="finish_panorama">Päätä panoraama</string>
     <string name="preference_image_format_summary">Valitse valokuvien tallennuksessa käytettävä tiedostomuoto. Tämä vaikuttaa ”tavallisiin” (ei RAW-muotoisiin) valokuviin. Vain JPEG-muoto tukee Exif-metatietojen tallennusta. Huomaa, että PNG-muoto ei ole häviötön, koska se muunnetaan häviöllisestä JPEG-muodosta 100 %%:n laadulla.
 \n%s</string>
@@ -802,7 +802,7 @@
     <string name="preference_raw_expo_bracketing_summary">Pitäisikö RAW-valinnan koskea myös valotuksen haarukointitilaa (tai HDR-tilaa, kun ”Tallenna kaikki kuvat HDR-tilasta” on käytössä)? Jos tämä valinta on pois käytöstä, vain JPEG-tiedostot tallennetaan näissä valokuvaustiloissa.</string>
     <string name="preference_panorama_crop_summary">Poistetaanko aaltoilevat reunat panoraamasta
 \n%s</string>
-    <string name="intro_text">Kosketa tarkentaaksesi ja paina valkoista kamerapainiketta ottaaksesi valokuvia.
+    <string name="intro_text">Kosketa tarkentaaksesi ja paina valkoista kameranappia ottaaksesi valokuvia.
 \n
 \nVoit poistaa näytön enimmäiskirkkauden käytöstä valitsemalla Asetukset/Käyttöliittymä näytöllä…/”Pakota enimmäiskirkkaus”. Voit tallentaa SD-kortille Android 5:ssä ja uudemmissa valitsemalla Asetukset/Lisää kameran hallinnan asetuksia/”Storage Access Framework”. Saat lisäohjeita valitsemalla Asetukset-valikosta ”Apua verkossa”.</string>
     <string name="preference_stamp_geo_address_summary">Jos mahdollista, hanki osoite GPS-sijainnista (valokuvien leimoja tai videon tekstityksiä varten). Huomaa, että jos tämä ominaisuus on käytössä, laitteesi lähettää sijaintitietoja internetin kautta kolmannelle osapuolelle GPS-koordinaattien muuntamiseksi osoitteeksi. Katso https://developer.android.com/reference/android/location/Geocoder . Tämä ominaisuus ei takaa saatavuutta tai tarkkuutta. Tulokset ovat parhaita arvioita, eikä niiden merkityksellisyyttä tai oikeellisuutta taata.
@@ -819,7 +819,7 @@
     <string name="preference_camera2_dummy_capture_hack_summary">Kokeile ottaa tämä käyttöön, jos laitteellasi on ongelmia HDR- tai Expo-valokuvaustiloissa (jos expo-kuviin tulee sama valotus). Vaikuttaa vain jos alla oleva Nopea HDR/Expo -valinta on myös käytössä.</string>
     <string name="preference_remove_device_exif_summary">Poistetaanko laitteen EXIF-metatiedot JPEG-valokuvista. Tämä ei poista muiden asetusten lisäämiä EXIF-tunnisteita (esim. sijainti/geotagging), jotka ovat riippumattomia ja ohittavat tämän asetuksen. RAW/DNG-tiedostot ja videot eivät muutu.
 \n%s</string>
-    <string name="preference_show_focus_peaking_summary">Näytetäänkö näppäin tarkennuksen korostuksen kytkemiseen päälle ja pois. Kun tarkennuksen korostus on käytössä, tarkennetut reunat (ääriviivat) korostetaan. Katso Asetukset/Kameran esikatselu/Tarkennuksen korostus.</string>
+    <string name="preference_show_focus_peaking_summary">Näytetäänkö näppäin tarkennuksen korostuksen päälle ja pois kytkemiseen. Kun tarkennuksen korostus on käytössä, tarkennetut reunat (ääriviivat) korostetaan esikatselussa. Katso Asetukset/Kameran esikatselu/Tarkennuksen korostus.</string>
     <string name="preferences_about_app">Kamera on haarautettu Camera:sta</string>
     <string name="qr_no_app_available_for_action">Puuttuu sovellus tähän toimintoon</string>
     <string name="clear_folder_history">Tyhjennä kansiohistoria</string>
@@ -829,4 +829,28 @@
     <string name="iso">ISO</string>
     <string name="angle">Kaltevuuskulma</string>
     <string name="preference_raw">RAW</string>
+    <string name="preference_expo_bracketing_stops_summary">Montako valotusaskelta vähennetään/lisätään tummimmalle/kirkkaimmalle kuvalle
+\n%s</string>
+    <string name="preference_video_log_summary">Aseta videotilalle Tavallinen tai Lattea (Flat) kuvaprofiili.
+\n%s</string>
+    <string name="preference_video_log_fine">Log (Hieno)</string>
+    <string name="preference_video_log_low">Log (Vähäinen)</string>
+    <string name="preference_video_log_medium">Log (Kohtalainen)</string>
+    <string name="preference_video_log_strong">Log (Vahva)</string>
+    <string name="preference_video_log_extra_strong">Log (Erittäin vahva)</string>
+    <string name="video_log">Log profiili</string>
+    <string name="preference_video_max_filesize_100mb">100 Mt</string>
+    <string name="preference_video_max_filesize_200mb">200 Mt</string>
+    <string name="preference_video_max_filesize_300mb">300 Mt</string>
+    <string name="preference_video_max_filesize_500mb">500 Mt</string>
+    <string name="preference_video_max_filesize_1gb">1 Gt</string>
+    <string name="preference_video_max_filesize_2gb">2 Gt</string>
+    <string name="preference_video_max_filesize_5gb">5 Gt</string>
+    <string name="preference_video_max_filesize_9gb">9 Gt</string>
+    <string name="preference_histogram_rgb">RGB-värit</string>
+    <string name="preference_histogram_luminance">Luminanssi</string>
+    <string name="preference_histogram_value">Arvo (maksimi)</string>
+    <string name="preference_histogram_intensity">Valovoima (keskimääräinen)</string>
+    <string name="preference_histogram_lightness">Vaaleus (minimi-maksimin keskiarvo)</string>
+    <string name="preferences_build_version">Sovelluksen versio</string>
 </resources>
