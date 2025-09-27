@@ -759,7 +759,7 @@
     <string name="qr_calendar_content_description">Lisää tämä tapahtuma kalenteriin</string>
     <string name="qr_dpp_description">Määritä tämän laitteen asetukset</string>
     <string name="qr_email_title">Lähetä uusi sähköpostiviesti</string>
-    <string name="qr_fido_title">Käytä avainkoodia</string>
+    <string name="qr_fido_title">Käytä kulkuavainta</string>
     <string name="qr_fido_content_description">Käsittele tämä FIDO QR-koodi</string>
     <string name="qr_geo_title">Avaa tämä sijainti</string>
     <string name="qr_geo_content_description">Avaa tämä sijainti</string>
