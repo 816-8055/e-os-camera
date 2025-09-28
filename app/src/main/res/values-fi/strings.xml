@@ -518,7 +518,7 @@
     <string name="noise_reduction_mode_fast">Nopea</string>
     <string name="noise_reduction_mode_high_quality">Laadukas</string>
     <string name="preference_focus_assist">Tarkennusavustin</string>
-    <string name="preference_focus_assist_summary">Lähennetäänkö tarkennuksen etäisyyttä käsin säädettäessä
+    <string name="preference_focus_assist_summary">Lähennetäänkö/loitonnetaanko säädettäessä tarkennuksen etäisyyttä käsin
 \n%s</string>
     <string name="preference_focus_assist_off">Pois</string>
     <string name="exposure_compensation_zoom">Lisää tai vähennä valotuksen korjausta</string>
@@ -689,7 +689,7 @@
     <string name="preference_ghost_image_alpha">Haamukuvan läpinäkyvyys</string>
     <string name="preference_ghost_image_alpha_summary">Haamukuvissa käytettävä alfa-arvo. Pienempi arvo tarkoittaa läpinäkyvyyttä, suurempi peittävyyttä.
 \n%s</string>
-    <string name="preference_zebra_stripes_foreground_color">Ylivalotuksen raidoituksen etuväri</string>
+    <string name="preference_zebra_stripes_foreground_color">Ylivalotuksen raidoituksen edustaväri</string>
     <string name="preference_zebra_stripes_foreground_color_summary">Etualan raitojen väri ylivalotuksen raidoituksessa.
 \n%s</string>
     <string name="preference_zebra_stripes_background_color">Ylivalotuksen raidoituksen taustaväri</string>
@@ -802,7 +802,7 @@
     <string name="preference_raw_expo_bracketing_summary">Pitäisikö RAW-valinnan koskea myös valotuksen haarukointitilaa (tai HDR-tilaa, kun ”Tallenna kaikki kuvat HDR-tilasta” on käytössä)? Jos tämä valinta on pois käytöstä, vain JPEG-tiedostot tallennetaan näissä valokuvaustiloissa.</string>
     <string name="preference_panorama_crop_summary">Poistetaanko aaltoilevat reunat panoraamasta
 \n%s</string>
-    <string name="intro_text">Kosketa tarkentaaksesi ja paina valkoista kameranappia ottaaksesi valokuvia.
+    <string name="intro_text">Kosketa tarkentaaksesi ja paina valkoista laukaisunappia ottaaksesi valokuvia.
 \n
 \nVoit poistaa näytön enimmäiskirkkauden käytöstä valitsemalla Asetukset/Käyttöliittymä näytöllä…/”Pakota enimmäiskirkkaus”. Voit tallentaa SD-kortille Android 5:ssä ja uudemmissa valitsemalla Asetukset/Lisää kameran hallinnan asetuksia/”Storage Access Framework”. Saat lisäohjeita valitsemalla Asetukset-valikosta ”Apua verkossa”.</string>
     <string name="preference_stamp_geo_address_summary">Jos mahdollista, hanki osoite GPS-sijainnista (valokuvien leimoja tai videon tekstityksiä varten). Huomaa, että jos tämä ominaisuus on käytössä, laitteesi lähettää sijaintitietoja internetin kautta kolmannelle osapuolelle GPS-koordinaattien muuntamiseksi osoitteeksi. Katso https://developer.android.com/reference/android/location/Geocoder . Tämä ominaisuus ei takaa saatavuutta tai tarkkuutta. Tulokset ovat parhaita arvioita, eikä niiden merkityksellisyyttä tai oikeellisuutta taata.
