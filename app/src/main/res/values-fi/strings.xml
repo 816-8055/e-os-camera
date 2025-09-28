@@ -443,10 +443,10 @@
     <string name="flash_off">Salama poissa</string>
     <string name="flash_auto">Salama automaattinen</string>
     <string name="flash_on">Salama päällä</string>
-    <string name="flash_torch">Lamppu</string>
+    <string name="flash_torch">Salama lamppuna</string>
     <string name="flash_red_eye">Punasilmäisyys</string>
     <string name="flash_frontscreen_on">Näyttösalama päällä</string>
-    <string name="flash_frontscreen_torch">Näyttö lamppuna</string>
+    <string name="flash_frontscreen_torch">Näyttö valona</string>
     <string name="preference_antibanding">Juovanesto</string>
     <string name="preference_antibanding_summary">Valon värinään auttavat algoritmit.
 \n%s</string>
@@ -792,7 +792,7 @@
     <string name="qr_email_content_description">Kirjoita uusi viesti määriteltyihin sähköpostiosoitteisiin</string>
     <string name="preference_focus_peaking_summary">Valinnan ollessa päällä, korostukset näytetään tarkennetuissa reunoissa (ääriviivoissa). Varsinkin käsin tarkentaminen helpottuu, kun näkee, mitkä kuvan alueet ovat tarkennettuina.
 \n%s</string>
-    <string name="preference_show_cycle_flash_summary">Näytetäänkö näppäin, jolla voi selata salamavaihtoehtoja, sen sijaan että salamavaihtoehdot näytetään ponnahdusvalikossa. Huomaa, että lamppu ei ole käytettävissä näppäimen näkyessä.</string>
+    <string name="preference_show_cycle_flash_summary">Näytetäänkö näppäin, jolla voi selata salamavaihtoehtoja, sen sijaan että salamavaihtoehdot näytetään ponnahdusvalikossa. Huomaa, että taskulamppu ei ole käytettävissä näppäimen näkyessä.</string>
     <string name="finish_panorama">Päätä panoraama</string>
     <string name="preference_image_format_summary">Valitse valokuvien tallennuksessa käytettävä tiedostomuoto. Tämä vaikuttaa ”tavallisiin” (ei RAW-muotoisiin) valokuviin. Vain JPEG-muoto tukee Exif-metatietojen tallennusta. Huomaa, että PNG-muoto ei ole häviötön, koska se muunnetaan häviöllisestä JPEG-muodosta 100 %%:n laadulla.
 \n%s</string>
