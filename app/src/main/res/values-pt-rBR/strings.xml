@@ -600,4 +600,6 @@
     <string name="switch_to_qrcode">Código QR</string>
     <string name="failed_to_open_camera_two_1_enabled">AGUARDE 5 SEGUNDOS PARA A SUA CÂMERA</string>
     <string name="failed_to_open_camera_two_2_enabled">CARREGAR, POIS ACABOU DE SER ATIVADA</string>
+    <string name="preference_raw">RAW</string>
+    <string name="permission_rationale_record_audio">É necessária permissão para usar o microfone para gravar vídeos com áudio, bem como para usar as opções de \"Controle de áudio\"</string>
 </resources>
