@@ -665,8 +665,7 @@
     <string name="capturing">Tek upp…</string>
     <string name="preference_raw_expo_bracketing">Leyfa RAW í mislýstum myndaröðum</string>
     <string name="preference_expo_bracketing_stops">Mislýst myndaröð stöðvast</string>
-    <string name="preference_expo_bracketing_stops_summary">Hve mörg ljósop á að draga frá eða bæta við dekkstu/ljósustu mynd
-\n%s</string>
+    <string name="preference_expo_bracketing_stops_summary">Hve mörg ljósop á að draga frá eða bæta við dekkstu/ljósustu mynd\n%s</string>
     <string name="preference_nr_save_no">Ekki vista upprunalegar myndir</string>
     <string name="preference_nr_save_single">Vista staka upprunalega mynd</string>
     <string name="preference_nr_save_all">Vista allar upprunalegar myndir (hægvirkt)</string>
