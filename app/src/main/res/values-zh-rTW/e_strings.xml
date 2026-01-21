@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="preferences_build_version">建置版本</string>
+    <string name="preferences_about_app">Camera 源自 OpenCamera</string>
+    <string name="preferences_authors">作者</string>
+    <string name="preferences_source_code">原始碼</string>
+    <string name="preferences_licence">授權</string>
+    <string name="preferences_app_info_title">相機資訊</string>
+    <string name="preferences_app_info" translatable="false">
+        - Option to auto-stabilise\n
+        - Support for scene modes, color effects, white balance, ISO etc.\n
+        - Timer (with optional voice countdown), auto-repeat mode\n
+        - Configurable volume keys and user interface\n
+        - Support for Camera2 API\n
+        - Panorama, including for front camera.</string>
+    <string name="preferences_service_terms">服務條款</string>
+</resources>

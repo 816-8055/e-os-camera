@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="preferences_build_version">Različica gradnje</string>
+    <string name="preferences_about_app">Camera je fork aplikacije OpenCamera</string>
+    <string name="preferences_authors">Avtorji</string>
+    <string name="preferences_source_code">Izvorna koda</string>
+    <string name="preferences_licence">Licenca</string>
+    <string name="preferences_app_info_title">Informacije o kameri</string>
+    <string name="preferences_app_info" translatable="false">
+        - Option to auto-stabilise\n
+        - Support for scene modes, color effects, white balance, ISO etc.\n
+        - Timer (with optional voice countdown), auto-repeat mode\n
+        - Configurable volume keys and user interface\n
+        - Support for Camera2 API\n
+        - Panorama, including for front camera.</string>
+    <string name="preferences_service_terms">Pogoji uporabe</string>
+</resources>

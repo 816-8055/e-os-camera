@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="preferences_build_version">Derleme sürümü</string>
+    <string name="preferences_about_app">Camera, OpenCamera\'dan çatallanmıştır</string>
+    <string name="preferences_authors">Yazarlar</string>
+    <string name="preferences_source_code">Kaynak kod</string>
+    <string name="preferences_licence">Lisans</string>
+    <string name="preferences_app_info_title">Kamera bilgileri</string>
+    <string name="preferences_app_info" translatable="false">
+        - Option to auto-stabilise\n
+        - Support for scene modes, color effects, white balance, ISO etc.\n
+        - Timer (with optional voice countdown), auto-repeat mode\n
+        - Configurable volume keys and user interface\n
+        - Support for Camera2 API\n
+        - Panorama, including for front camera.</string>
+    <string name="preferences_service_terms">Hizmet şartları</string>
+</resources>

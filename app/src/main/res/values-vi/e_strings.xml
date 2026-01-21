@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="preferences_build_version">Phiên bản bản dựng</string>
+    <string name="preferences_about_app">Camera được phát triển từ OpenCamera</string>
+    <string name="preferences_authors">Tác giả</string>
+    <string name="preferences_source_code">Mã nguồn</string>
+    <string name="preferences_licence">Giấy phép</string>
+    <string name="preferences_app_info_title">Thông tin Camera</string>
+    <string name="preferences_app_info" translatable="false">
+        - Option to auto-stabilise\n
+        - Support for scene modes, color effects, white balance, ISO etc.\n
+        - Timer (with optional voice countdown), auto-repeat mode\n
+        - Configurable volume keys and user interface\n
+        - Support for Camera2 API\n
+        - Panorama, including for front camera.</string>
+    <string name="preferences_service_terms">Điều khoản dịch vụ</string>
+</resources>
