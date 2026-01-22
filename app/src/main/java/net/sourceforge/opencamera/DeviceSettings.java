@@ -40,8 +40,8 @@ public class DeviceSettings {
         return isMurena && isOne;
     }
 
-    public static boolean isMurenaTwo() {
-        return Build.DEVICE.toLowerCase(Locale.US).contains("two");
+    public static boolean isHwKillSwitch() {
+        return Build.DEVICE.toLowerCase(Locale.US).contains("two") || Build.DEVICE.toLowerCase(Locale.US).contains("android");
     }
 
     public static boolean isTablet(Context context) {
