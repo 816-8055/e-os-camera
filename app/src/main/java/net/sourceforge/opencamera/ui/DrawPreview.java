@@ -2121,7 +2121,7 @@ public class DrawPreview {
             int pixels_offset = (int) (20 * scale_font + 0.5f); // convert dps to pixels
             if( preview.hasPermissions() ) {
                 String cameraState = Utils.getProperty("persist.sys.hwswitch.state", null);
-                if (cameraState != null && DeviceSettings.isMurenaTwo() && preview.openCameraFailed()) {
+                if (cameraState != null && DeviceSettings.isHwKillSwitch() && preview.openCameraFailed()) {
                     boolean enabled = Objects.equals(cameraState, "1");
                     int text1 = enabled ? R.string.failed_to_open_camera_two_1_disabled : R.string.failed_to_open_camera_two_1_enabled;
                     int text2 = enabled ? R.string.failed_to_open_camera_two_2_disabled : R.string.failed_to_open_camera_two_2_enabled;
@@ -2129,7 +2129,7 @@ public class DrawPreview {
                     canvas.drawText(getContext().getResources().getString(text2), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f + pixels_offset, p);
                 }
 
-                if ( !DeviceSettings.isMurenaTwo() && preview.openCameraFailed() ) {
+                if ( !DeviceSettings.isHwKillSwitch() && preview.openCameraFailed() ) {
                     canvas.drawText(getContext().getResources().getString(R.string.failed_to_open_camera_1), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f, p);
                     canvas.drawText(getContext().getResources().getString(R.string.failed_to_open_camera_2), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f + pixels_offset, p);
                     canvas.drawText(getContext().getResources().getString(R.string.failed_to_open_camera_3), canvas.getWidth() / 2.0f, canvas.getHeight() / 2.0f + 2 * pixels_offset, p);

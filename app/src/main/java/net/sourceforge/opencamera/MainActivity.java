@@ -1639,7 +1639,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             mainUI.onKeyUp(keyCode, event);
         }
 
-        if (!camera_in_background && keyCode == 131 && DeviceSettings.isMurenaTwo()) {
+        if (!camera_in_background && (keyCode == 131 || keyCode == 61) && DeviceSettings.isHwKillSwitch()) {
             String cameraState = Utils.getProperty("persist.sys.hwswitch.state", null);
             if (cameraState == null) return super.onKeyUp(keyCode, event);
 
