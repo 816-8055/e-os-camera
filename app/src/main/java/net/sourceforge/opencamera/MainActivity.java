@@ -126,6 +126,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
 
     private boolean app_is_paused = true;
 
+    String[] ignoredCameraIDs = new String[0];
+
     private SensorManager mSensorManager;
     private Sensor mSensorAccelerometer;
 
@@ -442,6 +444,11 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             getWindow().setAttributes(layout);
         }
 
+        ignoredCameraIDs = getResources().getStringArray(R.array.config_ignoredCameraIds);
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "ignoredCameraIDs: " + Arrays.toString(ignoredCameraIDs));
+        }
+
         // Setup multi-camera buttons (must be done after creating preview so we know which Camera API is being used,
         // and before initialising on-screen visibility).
         // We only allow the separate icon for switching cameras if:
@@ -457,6 +464,12 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             this.front_camera_ids = new ArrayList<>();
             this.other_camera_ids = new ArrayList<>();
             for(int i=0;i<n_cameras;i++) {
+                String currentCameraID = String.valueOf(i);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                        Arrays.stream(ignoredCameraIDs).anyMatch(id -> id.equals(currentCameraID))) {
+                    continue;
+                }
+
                 switch( preview.getCameraControllerManager().getFacing(i) ) {
                     case FACING_BACK:
                         back_camera_ids.add(i);
@@ -2587,6 +2600,11 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         List<Integer> logical_camera_ids = new ArrayList<>();
         CameraController.Facing this_facing = preview.getCameraControllerManager().getFacing(camera_id);
         for(int i=0;i<preview.getCameraControllerManager().getNumberOfCameras();i++) {
+            String currentCameraID = String.valueOf(i);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                    Arrays.stream(ignoredCameraIDs).anyMatch(id -> id.equals(currentCameraID))) {
+                continue;
+            }
             if( preview.getCameraControllerManager().getFacing(i) != this_facing ) {
                 // only show cameras with same facing
                 continue;
