@@ -13,10 +13,20 @@ cache:
   paths:
     - .gradle/
 
-build:
+build-debug:
+  stage: build
+  rules:
+    - when: manual
+  script:
+    - ./gradlew assembleDebug
+  artifacts:
+    paths:
+      - app/build/outputs/apk
+
+build-release:
   stage: build
   script:
-    - ./gradlew build -x test
+    - ./gradlew assembleRelease
   artifacts:
     paths:
       - app/build/outputs/apk
