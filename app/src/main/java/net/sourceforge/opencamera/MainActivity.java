@@ -2584,7 +2584,10 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 String.valueOf(cameraId)
         );
 
-        String text = getString(R.string.switch_multi_camera_lens) + " " + displayId;
+        String text = getString(R.string.switch_multi_camera_lens);
+        if (cameraIdSPhysical == null) {
+            text += " " + displayId;
+        }
         switchMultiCameraButton.setText(text);
     }
 
