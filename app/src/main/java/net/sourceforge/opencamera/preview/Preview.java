@@ -1176,7 +1176,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
         boolean previewBitmapWasEnabled = isPreviewBitmapEnabled();
         if (!previewBitmapWasEnabled) {
-            enablePreviewBitmap(false, true);
+            enablePreviewBitmap(true, false);
         }
 
         TextureView textureView = (TextureView) this.cameraSurface;
