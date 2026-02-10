@@ -73,7 +73,7 @@ dependencies {
 
     implementation 'androidx.camera:camera-core:1.2.3'
     implementation 'com.google.zxing:core:3.5.3'
-    implementation 'io.github.zxing-cpp:android:2.2.0'
+    implementation 'io.github.zxing-cpp:android:2.3.0'
 
     testImplementation 'junit:junit:4.13.2'
 
