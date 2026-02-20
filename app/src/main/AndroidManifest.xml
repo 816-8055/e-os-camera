@@ -93,7 +93,7 @@
         <activity
             android:name="TakePhoto"
             android:label="@string/take_photo"
-            android:icon="@drawable/ic_launcher_take_photo"
+            android:icon="@mipmap/ic_launcher"
             android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize|keyboardHidden"
             android:taskAffinity=""
             android:excludeFromRecents="true"
@@ -114,7 +114,7 @@
 
         <!-- should not change the android:name, including moving to a subpackage - see http://android-developers.blogspot.co.uk/2011/06/things-that-cannot-change.html -->
         <receiver
-            android:icon="@drawable/ic_launcher_take_photo"
+            android:icon="@mipmap/ic_launcher"
             android:label="@string/take_photo"
             android:name="MyWidgetProviderTakePhoto"
             android:exported="true">
@@ -128,7 +128,7 @@
         <!-- should not change the android:name, including moving to a subpackage - see http://android-developers.blogspot.co.uk/2011/06/things-that-cannot-change.html -->
         <service
             android:name="net.sourceforge.opencamera.MyTileService"
-            android:icon="@drawable/ic_photo_camera_white_48dp"
+            android:icon="@drawable/ic_switch_camera"
             android:label="@string/camera"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:exported="true"
@@ -140,7 +140,7 @@
         <!-- should not change the android:name, including moving to a subpackage - see http://android-developers.blogspot.co.uk/2011/06/things-that-cannot-change.html -->
         <service
             android:name="net.sourceforge.opencamera.MyTileServiceVideo"
-            android:icon="@drawable/ic_videocam_white_48dp"
+            android:icon="@drawable/ic_switch_video"
             android:label="@string/record_video"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:exported="true"
@@ -152,7 +152,7 @@
         <!-- should not change the android:name, including moving to a subpackage - see http://android-developers.blogspot.co.uk/2011/06/things-that-cannot-change.html -->
         <service
             android:name="net.sourceforge.opencamera.MyTileServiceFrontCamera"
-            android:icon="@drawable/ic_face_white_48dp"
+            android:icon="@drawable/ic_face"
             android:label="@string/selfie"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:exported="true"

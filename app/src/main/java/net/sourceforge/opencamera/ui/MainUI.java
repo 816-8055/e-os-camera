@@ -2,6 +2,7 @@ package net.sourceforge.opencamera.ui;
 
 import net.sourceforge.opencamera.DeviceSettings;
 import net.sourceforge.opencamera.MyApplicationInterface;
+import net.sourceforge.opencamera.ScaleUtils;
 import net.sourceforge.opencamera.cameracontroller.CameraController;
 import net.sourceforge.opencamera.MainActivity;
 import net.sourceforge.opencamera.MyDebug;
@@ -41,6 +42,11 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
+
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -445,17 +451,6 @@ public class MainUI {
             if( ui_placement == UIPlacement.UIPLACEMENT_TOP ) {
                 // not part of the icon panel in TOP mode
                 view = main_activity.findViewById(R.id.gallery);
-                layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
-                layoutParams.addRule(align_parent_left, 0);
-                layoutParams.addRule(align_parent_right, RelativeLayout.TRUE);
-                layoutParams.addRule(align_parent_top, RelativeLayout.TRUE);
-                layoutParams.addRule(align_parent_bottom, 0);
-                layoutParams.addRule(above, 0);
-                layoutParams.addRule(below, 0);
-                layoutParams.addRule(left_of, 0);
-                layoutParams.addRule(right_of, 0);
-                setMarginsForSystemUI(layoutParams, 0, gallery_top_gap, gallery_navigation_gap, 0);
-                view.setLayoutParams(layoutParams);
                 setViewRotation(view, ui_rotation);
             }
             else {
@@ -533,6 +528,7 @@ public class MainUI {
 					}*/
                     int total_button_size = count*button_size;
                     int margin = 0;
+                    int topMargin = (int) ScaleUtils.convertDpToPx(main_activity, 8.0f);
                     if( total_button_size > display_height ) {
                         if( MyDebug.LOG )
                             Log.d(TAG, "need to reduce button size");
@@ -542,7 +538,7 @@ public class MainUI {
                         if( MyDebug.LOG )
                             Log.d(TAG, "need to increase margin");
                         if( count > 1 )
-                            margin = (display_height - total_button_size) / (count-1);
+                            margin = (display_height - total_button_size - (2 * topMargin)) / (count - 1);
                     }
                     if( MyDebug.LOG ) {
                         Log.d(TAG, "button_size: " + button_size);
@@ -577,7 +573,8 @@ public class MainUI {
                             this_view.setLayoutParams(layoutParams);
                         }
                     }
-                    top_icon = first_visible_view;
+
+                    top_icon = setUpTopBarHolderUI(system_orientation_portrait, system_orientation_reversed_landscape, button_size);
                 }
             }
             else {
@@ -602,143 +599,38 @@ public class MainUI {
 
             // end icon panel
 
+            int navigationBarSideMargin = (int) ScaleUtils.convertDpToPx(main_activity, 23.0f);
+            navigationBarSideMargin += navigation_gap;
+
+            setUpBottomBarHolderUI(system_orientation_portrait, system_orientation_reversed_landscape, navigationBarSideMargin);
+
             view = main_activity.findViewById(R.id.take_photo);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(align_parent_left, 0);
-            layoutParams.addRule(align_parent_right, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_top, 0);
-            layoutParams.addRule(align_parent_bottom, 0);
-            layoutParams.addRule(center_vertical, RelativeLayout.TRUE);
-            layoutParams.addRule(center_horizontal, 0);
-            setMarginsForSystemUI(layoutParams, 0, 0, navigation_gap, 0);
-            view.setLayoutParams(layoutParams);
             setViewRotation(view, ui_rotation);
 
             view = main_activity.findViewById(R.id.switch_camera);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(align_parent_left, 0);
-            layoutParams.addRule(align_parent_right, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_top, 0);
-            layoutParams.addRule(align_parent_bottom, 0);
-            layoutParams.addRule(ui_independent_above, R.id.take_photo);
-            layoutParams.addRule(ui_independent_below, 0);
-            layoutParams.addRule(ui_independent_left_of, 0);
-            layoutParams.addRule(ui_independent_right_of, 0);
-            setMarginsForSystemUI(layoutParams, 0, 0, navigation_gap, 0);
-            view.setLayoutParams(layoutParams);
             setViewRotation(view, ui_rotation);
 
-            view = main_activity.findViewById(R.id.switch_multi_camera);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(ui_independent_above, 0);
-            layoutParams.addRule(ui_independent_below, 0);
-            layoutParams.addRule(ui_independent_left_of, R.id.switch_camera);
-            layoutParams.addRule(ui_independent_right_of, 0);
-            layoutParams.addRule(align_top, R.id.switch_camera);
-            layoutParams.addRule(align_bottom, R.id.switch_camera);
-            layoutParams.addRule(align_left, 0);
-            layoutParams.addRule(align_right, 0);
-            {
-                int margin = (int) (5 * scale + 0.5f); // convert dps to pixels
-                setMarginsForSystemUI(layoutParams, 0, 0, margin, 0);
-            }
-            view.setLayoutParams(layoutParams);
-            setViewRotation(view, ui_rotation);
+            setupMultiCameraUI(ui_rotation, system_orientation_portrait, system_orientation_reversed_landscape);
 
             view = main_activity.findViewById(R.id.pause_video);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(align_parent_left, 0);
-            layoutParams.addRule(align_parent_right, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_top, 0);
-            layoutParams.addRule(align_parent_bottom, 0);
-            layoutParams.addRule(ui_independent_above, R.id.take_photo);
-            layoutParams.addRule(ui_independent_below, 0);
-            layoutParams.addRule(ui_independent_left_of, 0);
-            layoutParams.addRule(ui_independent_right_of, 0);
-            setMarginsForSystemUI(layoutParams, 0, 0, navigation_gap, 0);
-            view.setLayoutParams(layoutParams);
             setViewRotation(view, ui_rotation);
 
             view = main_activity.findViewById(R.id.cancel_panorama);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(align_parent_left, 0);
-            layoutParams.addRule(align_parent_right, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_top, 0);
-            layoutParams.addRule(align_parent_bottom, 0);
-            layoutParams.addRule(above, R.id.take_photo);
-            layoutParams.addRule(below, 0);
-            layoutParams.addRule(left_of, 0);
-            layoutParams.addRule(right_of, 0);
-            setMarginsForSystemUI(layoutParams, 0, 0, navigation_gap, 0);
-            view.setLayoutParams(layoutParams);
+            setViewRotation(view, ui_rotation);
+
+            view = main_activity.findViewById(R.id.finish_panorama);
             setViewRotation(view, ui_rotation);
 
             view = main_activity.findViewById(R.id.switch_video);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(align_parent_left, 0);
-            layoutParams.addRule(align_parent_right, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_top, 0);
-            layoutParams.addRule(align_parent_bottom, 0);
-            layoutParams.addRule(ui_independent_above, 0);
-            layoutParams.addRule(ui_independent_below, R.id.take_photo);
-            layoutParams.addRule(ui_independent_left_of, 0);
-            layoutParams.addRule(ui_independent_right_of, 0);
-            setMarginsForSystemUI(layoutParams, 0, 0, navigation_gap, 0);
-            view.setLayoutParams(layoutParams);
             setViewRotation(view, ui_rotation);
 
             view = main_activity.findViewById(R.id.take_photo_when_video_recording);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(align_parent_left, 0);
-            layoutParams.addRule(align_parent_right, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_top, 0);
-            layoutParams.addRule(align_parent_bottom, 0);
-            layoutParams.addRule(ui_independent_above, 0);
-            layoutParams.addRule(ui_independent_below, R.id.take_photo);
-            layoutParams.addRule(ui_independent_left_of, 0);
-            layoutParams.addRule(ui_independent_right_of, 0);
-            setMarginsForSystemUI(layoutParams, 0, 0, navigation_gap, 0);
-            view.setLayoutParams(layoutParams);
             setViewRotation(view, ui_rotation);
 
-            view = main_activity.findViewById(R.id.zoom_seekbar);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            // align close to the edge of screen
-            layoutParams.addRule(align_parent_left, 0);
-            layoutParams.addRule(align_parent_right, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_top, 0);
-            layoutParams.addRule(align_parent_bottom, RelativeLayout.TRUE);
-            // margins set below in setFixedRotation()
-            // need to clear the others, in case we turn zoom controls on/off
-            layoutParams.addRule(above, 0);
-            layoutParams.addRule(below, 0);
-            layoutParams.addRule(left_of, 0);
-            layoutParams.addRule(right_of, 0);
-            view.setLayoutParams(layoutParams);
-            int margin = (int) (20 * scale + 0.5f); // convert dps to pixels
-            setFixedRotation(main_activity.findViewById(R.id.zoom_seekbar), 0, navigation_gap_reverse_landscape_align_parent_bottom, margin+navigation_gap, navigation_gap_landscape_align_parent_bottom);
+            view = main_activity.findViewById(R.id.zoom_seekbar_holder);
+            setViewRotation(view, ui_rotation);
 
-            view = main_activity.findViewById(R.id.focus_seekbar);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(left_of, R.id.zoom_seekbar);
-            layoutParams.addRule(right_of, 0);
-            layoutParams.addRule(above, 0);
-            layoutParams.addRule(below, 0);
-            layoutParams.addRule(align_parent_top, 0);
-            layoutParams.addRule(align_parent_bottom, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_left, 0);
-            layoutParams.addRule(align_parent_right, 0);
-            view.setLayoutParams(layoutParams);
-
-            view = main_activity.findViewById(R.id.focus_bracketing_target_seekbar);
-            layoutParams = (RelativeLayout.LayoutParams)view.getLayoutParams();
-            layoutParams.addRule(left_of, R.id.zoom_seekbar);
-            layoutParams.addRule(right_of, 0);
-            layoutParams.addRule(above, R.id.focus_seekbar);
-            layoutParams.addRule(below, 0);
-            view.setLayoutParams(layoutParams);
-
-            setFocusSeekbarsRotation();
+            setupFocusSeekBarUI(ui_rotation, system_orientation_portrait, system_orientation_reversed_landscape);
         }
 
         if( !popup_container_only )
@@ -876,19 +768,19 @@ public class MainUI {
                 layoutParams.addRule(above, 0);
                 layoutParams.addRule(below, 0);
                 layoutParams.addRule(left_of, 0);
-                layoutParams.addRule(right_of, R.id.popup);
+                layoutParams.addRule(right_of, R.id.top_bg);
                 layoutParams.addRule(align_parent_top, system_orientation_portrait ? 0 : RelativeLayout.TRUE);
                 layoutParams.addRule(align_parent_bottom, system_orientation_portrait ? 0 : RelativeLayout.TRUE);
                 layoutParams.addRule(align_parent_left, 0);
                 layoutParams.addRule(align_parent_right, 0);
             }
             else {
-                layoutParams.addRule(align_right, R.id.popup);
+                layoutParams.addRule(align_right, R.id.top_bg);
                 layoutParams.addRule(align_bottom, 0);
                 layoutParams.addRule(align_left, 0);
                 layoutParams.addRule(align_top, 0);
                 layoutParams.addRule(above, 0);
-                layoutParams.addRule(below, R.id.popup);
+                layoutParams.addRule(below, R.id.top_bg);
                 layoutParams.addRule(left_of, 0);
                 layoutParams.addRule(right_of, 0);
                 layoutParams.addRule(align_parent_top, 0);
@@ -932,6 +824,274 @@ public class MainUI {
         if( MyDebug.LOG ) {
             Log.d(TAG, "layoutUI: total time: " + (System.currentTimeMillis() - debug_time));
         }
+    }
+
+    private void setupMultiCameraUI(int ui_rotation, boolean orientationPortrait, boolean orientationReverseLandscape) {
+        View multiCamera = main_activity.findViewById(R.id.switch_multi_camera);
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(multiCamera.getLayoutParams().width, multiCamera.getLayoutParams().height);
+
+        int size21dp = (int) ScaleUtils.convertDpToPx(main_activity, 21.0f);
+        int size20dp = (int) ScaleUtils.convertDpToPx(main_activity, 20.0f);
+
+        if (orientationPortrait) {
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_END, RelativeLayout.TRUE);
+            layoutParams.addRule(RelativeLayout.ABOVE, R.id.bottom_buttons_holder);
+            layoutParams.setMargins(0, 0, size21dp, size20dp);
+        } else if (orientationReverseLandscape) {
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            layoutParams.addRule(RelativeLayout.END_OF, R.id.bottom_buttons_holder);
+            layoutParams.setMargins(size20dp, 0, 0, size21dp);
+        } else {
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+            layoutParams.addRule(RelativeLayout.START_OF, R.id.bottom_buttons_holder);
+            layoutParams.setMargins(0, size21dp, size20dp, 0);
+        }
+
+        multiCamera.setLayoutParams(layoutParams);
+        setViewRotation(multiCamera, ui_rotation);
+    }
+
+    private void setupFocusSeekBarUI(int rotation, boolean orientationPortrait, boolean orientationReverseLandscape) {
+        View focusSeekBarHolder = main_activity.findViewById(R.id.focus_seekbar_holder);
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        if (orientationPortrait) {
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_START, RelativeLayout.TRUE);
+            layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
+        } else if (orientationReverseLandscape) {
+            layoutParams.addRule(RelativeLayout.END_OF, R.id.bottom_buttons_holder);
+            layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
+        } else {
+            layoutParams.addRule(RelativeLayout.START_OF, R.id.bottom_buttons_holder);
+            layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);
+        }
+
+        focusSeekBarHolder.setLayoutParams(layoutParams);
+        setViewRotation(focusSeekBarHolder, rotation + 90);
+    }
+
+    private View setUpTopBarHolderUI(boolean orientationPortrait, boolean orientationReverseLandscape, int topButtonSize) {
+        int width = orientationPortrait ? ViewGroup.LayoutParams.MATCH_PARENT : topButtonSize;
+        int height = orientationPortrait ? topButtonSize : ViewGroup.LayoutParams.MATCH_PARENT;
+        int topBarAlignment = orientationPortrait ? RelativeLayout.ALIGN_PARENT_TOP : (orientationReverseLandscape ? RelativeLayout.ALIGN_PARENT_END : RelativeLayout.ALIGN_PARENT_START);
+
+        View topBar = main_activity.findViewById(R.id.top_bg);
+        RelativeLayout.LayoutParams topBarLayoutParams = new RelativeLayout.LayoutParams(width, height);
+        topBarLayoutParams.addRule(topBarAlignment, RelativeLayout.TRUE);
+        topBar.setLayoutParams(topBarLayoutParams);
+        return topBar;
+    }
+
+    private void setUpBottomBarHolderUI(boolean orientationPortrait, boolean orientationReverseLandscape, int navigationBarSideMargin) {
+        ConstraintLayout bottomBar = main_activity.findViewById(R.id.bottom_buttons_holder);
+        // set up layoutParam
+        int bottomBarWidth = orientationPortrait ? ViewGroup.LayoutParams.MATCH_PARENT : ViewGroup.LayoutParams.WRAP_CONTENT;
+        int bottomBarHeight = orientationPortrait ? ViewGroup.LayoutParams.WRAP_CONTENT : ViewGroup.LayoutParams.MATCH_PARENT;
+        int bottomBarAlignment = orientationPortrait ? RelativeLayout.ALIGN_PARENT_BOTTOM : (orientationReverseLandscape ? RelativeLayout.ALIGN_PARENT_START : RelativeLayout.ALIGN_PARENT_END);
+        RelativeLayout.LayoutParams bottomBarLayoutParams = new RelativeLayout.LayoutParams(bottomBarWidth, bottomBarHeight);
+        bottomBarLayoutParams.addRule(bottomBarAlignment, RelativeLayout.TRUE);
+        bottomBar.setLayoutParams(bottomBarLayoutParams);
+
+        // set up padding
+        int size20dp = (int) ScaleUtils.convertDpToPx(main_activity, 20.0f);
+        int size23dp = (int) ScaleUtils.convertDpToPx(main_activity, 23.0f);
+
+        int bottomBarLeftPadding = orientationPortrait ? size20dp : (orientationReverseLandscape ? navigationBarSideMargin : size23dp);
+        int bottomBarRightPadding = orientationPortrait ? size20dp : (orientationReverseLandscape ? size23dp : navigationBarSideMargin);
+        int bottomBarTopPadding = orientationPortrait ? size23dp : size20dp;
+        int bottomBarBottomPadding = orientationPortrait ? navigationBarSideMargin : size20dp;
+        bottomBar.setPadding(bottomBarLeftPadding, bottomBarTopPadding, bottomBarRightPadding, bottomBarBottomPadding);
+
+        setUpBottomItemsUI(bottomBar, orientationPortrait, orientationReverseLandscape);
+    }
+
+    private void setUpBottomItemsUI(ConstraintLayout bottomHolder, boolean orientationPortrait, boolean orientationReverseLandscape) {
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(bottomHolder);
+
+        clearAllDynamicBottomBarItemConstraint(constraintSet);
+
+        if (orientationPortrait) {
+            connectPortraitConstraintForBottomItems(constraintSet);
+        } else if (orientationReverseLandscape) {
+            connectReverseLandscapeConstraintForBottomItems(constraintSet);
+        } else {
+            connectLandscapeConstraintForBottomItems(constraintSet);
+        }
+
+        constraintSet.applyTo(bottomHolder);
+    }
+
+    private void clearAllDynamicBottomBarItemConstraint(@NonNull ConstraintSet constraintSet) {
+        clearAllConstraint(constraintSet, R.id.place_holder_view);
+        clearAllConstraint(constraintSet, R.id.gallery);
+        clearAllConstraint(constraintSet, R.id.switch_camera);
+        clearAllConstraint(constraintSet, R.id.pause_video);
+        clearAllConstraint(constraintSet, R.id.switch_video);
+        clearAllConstraint(constraintSet, R.id.take_photo_when_video_recording);
+        clearAllConstraint(constraintSet, R.id.cancel_panorama);
+        clearAllConstraint(constraintSet, R.id.finish_panorama);
+    }
+
+    private void clearAllConstraint(@NonNull ConstraintSet constraintSet, @IdRes int id) {
+        constraintSet.clear(id, ConstraintSet.TOP);
+        constraintSet.clear(id, ConstraintSet.BOTTOM);
+        constraintSet.clear(id, ConstraintSet.START);
+        constraintSet.clear(id, ConstraintSet.END);
+    }
+
+    private void connectConstraintParentTopBottom(@NonNull ConstraintSet constraintSet, @IdRes int id) {
+        constraintSet.connect(id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+    }
+
+    private void connectConstraintParentStartEnd(@NonNull ConstraintSet constraintSet, @IdRes int id) {
+        constraintSet.connect(id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START);
+        constraintSet.connect(id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
+    }
+
+    private void connectPortraitConstraintForBottomItems(@NonNull ConstraintSet constraintSet) {
+        int id;
+
+        //placeHolderView
+        id = R.id.place_holder_view;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START);
+
+        //gallery
+        id = R.id.gallery;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END);
+
+        //switchCamera
+        id = R.id.switch_camera;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, R.id.gallery, ConstraintSet.START);
+        constraintSet.connect(id, ConstraintSet.START, R.id.take_photo, ConstraintSet.END);
+
+        //pauseVideo
+        id = R.id.pause_video;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, R.id.gallery, ConstraintSet.START);
+        constraintSet.connect(id, ConstraintSet.START, R.id.take_photo, ConstraintSet.END);
+
+        //switchVideo
+        id = R.id.switch_video;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, R.id.take_photo, ConstraintSet.START);
+        constraintSet.connect(id, ConstraintSet.START, R.id.place_holder_view, ConstraintSet.END);
+
+        //takePhotoOnVideo
+        id = R.id.take_photo_when_video_recording;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, R.id.take_photo, ConstraintSet.START);
+        constraintSet.connect(id, ConstraintSet.START, R.id.place_holder_view, ConstraintSet.END);
+
+        //cancelPanorama
+        id = R.id.cancel_panorama;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.START, R.id.place_holder_center_view, ConstraintSet.END);
+
+        //finishPanorama
+        id = R.id.finish_panorama;
+        connectConstraintParentTopBottom(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.END, R.id.place_holder_center_view, ConstraintSet.START);
+    }
+
+    private void connectReverseLandscapeConstraintForBottomItems(@NonNull ConstraintSet constraintSet) {
+        int id;
+
+        //placeHolderView
+        id = R.id.place_holder_view;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
+
+        //gallery
+        id = R.id.gallery;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+
+        //switchCamera
+        id = R.id.switch_camera;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.gallery, ConstraintSet.TOP);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.take_photo, ConstraintSet.BOTTOM);
+
+        //pauseVideo
+        id = R.id.pause_video;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.gallery, ConstraintSet.TOP);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.take_photo, ConstraintSet.BOTTOM);
+
+        //switchVideo
+        id = R.id.switch_video;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.take_photo, ConstraintSet.TOP);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.place_holder_view, ConstraintSet.BOTTOM);
+
+        //takePhotoOnVideo
+        id = R.id.take_photo_when_video_recording;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.take_photo, ConstraintSet.TOP);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.place_holder_view, ConstraintSet.BOTTOM);
+
+        //cancelPanorama
+        id = R.id.cancel_panorama;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.place_holder_center_view, ConstraintSet.BOTTOM);
+
+        //finishPanorama
+        id = R.id.finish_panorama;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.place_holder_center_view, ConstraintSet.TOP);
+    }
+
+    private void connectLandscapeConstraintForBottomItems(@NonNull ConstraintSet constraintSet) {
+        int id;
+
+        //placeHolderView
+        id = R.id.place_holder_view;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+
+        //gallery
+        id = R.id.gallery;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
+
+        //switchCamera
+        id = R.id.switch_camera;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.gallery, ConstraintSet.BOTTOM);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.take_photo, ConstraintSet.TOP);
+
+        //pauseVideo
+        id = R.id.pause_video;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.gallery, ConstraintSet.BOTTOM);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.take_photo, ConstraintSet.TOP);
+
+        //switchVideo
+        id = R.id.switch_video;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.take_photo, ConstraintSet.BOTTOM);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.place_holder_view, ConstraintSet.TOP);
+
+        //takePhotoOnVideo
+        id = R.id.take_photo_when_video_recording;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.take_photo, ConstraintSet.BOTTOM);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.place_holder_view, ConstraintSet.TOP);
+
+        //cancelPanorama
+        id = R.id.cancel_panorama;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.BOTTOM, R.id.place_holder_center_view, ConstraintSet.TOP);
+
+        //finishPanorama
+        id = R.id.finish_panorama;
+        connectConstraintParentStartEnd(constraintSet, id);
+        constraintSet.connect(id, ConstraintSet.TOP, R.id.place_holder_center_view, ConstraintSet.BOTTOM);
     }
 
     /** Wrapper for layoutParams.setMargins, but where the margins are supplied for landscape orientation,
@@ -1082,7 +1242,7 @@ public class MainUI {
             if( main_activity.getPreview().isVideo() ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "set icon to video");
-                resource = video_recording ? R.drawable.take_video_recording : R.drawable.take_video_selector;
+                resource = video_recording ? R.drawable.ic_camera_video_recording : R.drawable.ic_camera_video;
                 content_description = video_recording ?  R.string.stop_video : R.string.start_video;
                 switch_video_content_description = R.string.switch_to_qrcode;
             } else if (isQrMode) {
@@ -1091,14 +1251,7 @@ public class MainUI {
                 resource = R.drawable.empty;
                 content_description = 0;
                 switch_video_content_description = R.string.switch_to_photo;
-            } else if( panorama_recording ) {
-                if( MyDebug.LOG )
-                    Log.d(TAG, "set icon to recording panorama");
-                resource = R.drawable.baseline_check_white_48;
-                content_description = R.string.finish_panorama;
-                switch_video_content_description = R.string.switch_to_video;
-            }
-            else { // Camera case
+            } else { // Camera case
                 if( MyDebug.LOG )
                     Log.d(TAG, "set icon to photo");
                 resource = R.drawable.take_photo_selector;
@@ -1124,9 +1277,9 @@ public class MainUI {
             if (main_activity.getPreview().isVideo()) {
                 resource = R.drawable.ic_switch_qrcode;
             } else if (isQrMode) {
-                resource = R.drawable.ic_photo_camera_white_48dp;
+                resource = R.drawable.ic_switch_camera;
             } else { // camera
-                resource = R.drawable.ic_videocam_white_48dp;
+                resource = R.drawable.ic_switch_video;
             }
             view.setImageResource(resource);
             view.setTag(resource); // for testing
@@ -1138,6 +1291,32 @@ public class MainUI {
                     showGallery ? View.INVISIBLE : View.VISIBLE);
             main_activity.findViewById(R.id.switch_camera).setVisibility(
                     showSwitch ? View.INVISIBLE : View.VISIBLE);
+            }
+        }
+	 /**
+     * Show/hide photoShutter, panorama cancel & finish buttons on photoMode.
+     * If user save not to show photoShutter button, don't show photoShutter & panorama finish buttons.
+     * If user wants to view the shutter button, update the shutterButton's icon to the appropriate one.
+     */
+    public void handlePanoromaModeButtonsVisibility() {
+        boolean isPanoramaRunning = (main_activity.getApplicationInterface().getPhotoMode() == MyApplicationInterface.PhotoMode.Panorama &&
+                main_activity.getApplicationInterface().getGyroSensor().isRecording());
+
+        View view = main_activity.findViewById(R.id.cancel_panorama);
+        view.setVisibility(isPanoramaRunning ? View.VISIBLE : View.GONE);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(main_activity);
+        if (!sharedPreferences.getBoolean(PreferenceKeys.ShowTakePhotoPreferenceKey, true)) {
+            return;
+        }
+
+        view = main_activity.findViewById(R.id.finish_panorama);
+        view.setVisibility(isPanoramaRunning ? View.VISIBLE : View.GONE);
+
+        view = main_activity.findViewById(R.id.take_photo);
+        view.setVisibility(isPanoramaRunning ? View.INVISIBLE : View.VISIBLE);
+        if (!isPanoramaRunning) {
+            setTakePhotoIcon();
         }
     }
 
@@ -1179,11 +1358,11 @@ public class MainUI {
         int content_description;
         if( main_activity.getPreview().isVideoRecordingPaused() ) {
             content_description = R.string.resume_video;
-            pauseVideoButton.setImageResource(R.drawable.ic_play_circle_outline_white_48dp);
+            pauseVideoButton.setImageResource(R.drawable.ic_play);
         }
         else {
             content_description = R.string.pause_video;
-            pauseVideoButton.setImageResource(R.drawable.ic_pause_circle_outline_white_48dp);
+            pauseVideoButton.setImageResource(R.drawable.ic_pause);
         }
         if( MyDebug.LOG )
             Log.d(TAG, "content_description: " + main_activity.getResources().getString(content_description));
@@ -1376,6 +1555,7 @@ public class MainUI {
                 View galleryButton = main_activity.findViewById(R.id.gallery);
                 View settingsButton = main_activity.findViewById(R.id.settings);
                 View zoomSeekBar = main_activity.findViewById(R.id.zoom_seekbar);
+                View zoomSeekbarIcon = main_activity.findViewById(R.id.zoom_seekbar_icon);
                 View focusSeekBar = main_activity.findViewById(R.id.focus_seekbar);
                 View focusBracketingTargetSeekBar = main_activity.findViewById(R.id.focus_bracketing_target_seekbar);
                 if( main_activity.getPreview().getCameraControllerManager().getNumberOfCameras() > 1 )
@@ -1415,6 +1595,7 @@ public class MainUI {
                 }
                 if( main_activity.getPreview().supportsZoom() && sharedPreferences.getBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, false) ) {
                     zoomSeekBar.setVisibility(visibility);
+                    zoomSeekbarIcon.setVisibility(visibility);
                 }
                 if( main_activity.showManualFocusSeekbar(false) )
                     focusSeekBar.setVisibility(visibility);
@@ -1437,6 +1618,12 @@ public class MainUI {
                     if( main_activity.getApplicationInterface().getGyroSensor().isRecording() ) {
                         View cancelPanoramaButton = main_activity.findViewById(R.id.cancel_panorama);
                         cancelPanoramaButton.setVisibility(visibility);
+
+                                                if (sharedPreferences.getBoolean(PreferenceKeys.ShowTakePhotoPreferenceKey, true)) {
+                            View finishPanoramaButton = main_activity.findViewById(R.id.finish_panorama);
+                            finishPanoramaButton.setVisibility(visibility);
+                        }
+
                     }
                 }
                 if( !immersive_mode ) {
@@ -1553,14 +1740,15 @@ public class MainUI {
     public void updateExposureLockIcon() {
         ImageButton view = main_activity.findViewById(R.id.exposure_lock);
         boolean enabled = main_activity.getPreview().isExposureLocked();
-        view.setImageResource(enabled ? R.drawable.exposure_locked : R.drawable.exposure_unlocked);
+        view.setImageResource(enabled ? R.drawable.ic_camera_exposure_locked : R.drawable.ic_camera_exposure_unlocked);
         view.setContentDescription( main_activity.getResources().getString(enabled ? R.string.exposure_unlock : R.string.exposure_lock) );
     }
 
     public void updateWhiteBalanceLockIcon() {
         ImageButton view = main_activity.findViewById(R.id.white_balance_lock);
         boolean enabled = main_activity.getPreview().isWhiteBalanceLocked();
-        view.setImageResource(enabled ? R.drawable.white_balance_locked : R.drawable.white_balance_unlocked);
+        view.setImageResource(R.drawable.ic_white_balance_unlocked);
+        view.setImageTintList(ColorStateList.valueOf(main_activity.getResources().getColor(enabled ? R.color.color_default_accent : R.color.white)));
         view.setContentDescription( main_activity.getResources().getString(enabled ? R.string.white_balance_unlock : R.string.white_balance_lock) );
     }
 
@@ -1573,7 +1761,7 @@ public class MainUI {
                 view.setImageResource(R.drawable.raw_only_icon);
             }
             else {
-                view.setImageResource(R.drawable.raw_icon);
+                view.setImageResource(R.drawable.ic_raw);
             }
         }
         else {
@@ -1584,34 +1772,39 @@ public class MainUI {
     public void updateStoreLocationIcon() {
         ImageButton view = main_activity.findViewById(R.id.store_location);
         boolean enabled = main_activity.getApplicationInterface().getGeotaggingPref();
-        view.setImageResource(enabled ? R.drawable.ic_gps_fixed_red_48dp : R.drawable.ic_gps_fixed_white_48dp);
+        view.setImageResource(R.drawable.ic_gps_fixed_white_48dp);
+        view.setImageTintList(ColorStateList.valueOf(main_activity.getResources().getColor(enabled ? R.color.color_default_accent : R.color.white)));
         view.setContentDescription( main_activity.getResources().getString(enabled ? R.string.preference_location_disable : R.string.preference_location_enable) );
     }
 
     public void updateTextStampIcon() {
         ImageButton view = main_activity.findViewById(R.id.text_stamp);
         boolean enabled = !main_activity.getApplicationInterface().getTextStampPref().isEmpty();
-        view.setImageResource(enabled ? R.drawable.baseline_text_fields_red_48 : R.drawable.baseline_text_fields_white_48);
+        view.setImageResource(R.drawable.ic_text_stamp);
+        view.setImageTintList(ColorStateList.valueOf(main_activity.getResources().getColor(enabled ? R.color.color_default_accent : R.color.white)));
     }
 
     public void updateStampIcon() {
         ImageButton view = main_activity.findViewById(R.id.stamp);
         boolean enabled = main_activity.getApplicationInterface().getStampPref().equals("preference_stamp_yes");
-        view.setImageResource(enabled ? R.drawable.ic_text_format_red_48dp : R.drawable.ic_text_format_white_48dp);
+        view.setImageResource(R.drawable.ic_preference_text_format);
+        view.setImageTintList(ColorStateList.valueOf(main_activity.getResources().getColor(enabled ? R.color.color_default_accent : R.color.white)));
         view.setContentDescription( main_activity.getResources().getString(enabled ? R.string.stamp_disable : R.string.stamp_enable) );
     }
 
     public void updateFocusPeakingIcon() {
         ImageButton view = main_activity.findViewById(R.id.focus_peaking);
         boolean enabled = main_activity.getApplicationInterface().getFocusPeakingPref();
-        view.setImageResource(enabled ? R.drawable.key_visualizer_red : R.drawable.key_visualizer);
+        view.setImageResource(R.drawable.ic_preference_focus_peaking);
+        view.setImageTintList(ColorStateList.valueOf(main_activity.getResources().getColor(enabled ? R.color.color_default_accent : R.color.white)));
         view.setContentDescription( main_activity.getResources().getString(enabled ? R.string.focus_peaking_disable : R.string.focus_peaking_enable) );
     }
 
     public void updateAutoLevelIcon() {
         ImageButton view = main_activity.findViewById(R.id.auto_level);
         boolean enabled = main_activity.getApplicationInterface().getAutoStabilisePref();
-        view.setImageResource(enabled ? R.drawable.auto_stabilise_icon_red : R.drawable.auto_stabilise_icon);
+        view.setImageResource(R.drawable.ic_preference_auto_stabilise);
+        view.setImageTintList(ColorStateList.valueOf(main_activity.getResources().getColor(enabled ? R.color.color_default_accent : R.color.white)));
         view.setContentDescription( main_activity.getResources().getString(enabled ? R.string.auto_level_disable : R.string.auto_level_enable) );
     }
 
@@ -1623,40 +1816,41 @@ public class MainUI {
             ImageButton view = main_activity.findViewById(R.id.cycle_flash);
             switch( flash_value ) {
                 case "flash_off":
-                    view.setImageResource(R.drawable.flash_off);
+                    view.setImageResource(R.drawable.ic_camera_flash_off);
                     break;
                 case "flash_auto":
                 case "flash_frontscreen_auto":
-                    view.setImageResource(R.drawable.flash_auto);
+                    view.setImageResource(R.drawable.ic_camera_flash_auto);
                     break;
                 case "flash_on":
                 case "flash_frontscreen_on":
-                    view.setImageResource(R.drawable.flash_on);
+                    view.setImageResource(R.drawable.ic_camera_flash_on);
                     break;
                 case "flash_torch":
                 case "flash_frontscreen_torch":
-                    view.setImageResource(R.drawable.baseline_highlight_white_48);
+                    view.setImageResource(R.drawable.ic_camera_highlight);
                     break;
                 case "flash_red_eye":
-                    view.setImageResource(R.drawable.baseline_remove_red_eye_white_48);
+                    view.setImageResource(R.drawable.ic_camera_remove_red_eye);
                     break;
                 default:
                     // just in case??
                     Log.e(TAG, "unknown flash value " + flash_value);
-                    view.setImageResource(R.drawable.flash_off);
+                    view.setImageResource(R.drawable.ic_camera_flash_off);
                     break;
             }
         }
         else {
             ImageButton view = main_activity.findViewById(R.id.cycle_flash);
-            view.setImageResource(R.drawable.flash_off);
+            view.setImageResource(R.drawable.ic_camera_flash_off);
         }
     }
 
     public void updateFaceDetectionIcon() {
         ImageButton view = main_activity.findViewById(R.id.face_detection);
         boolean enabled = main_activity.getApplicationInterface().getFaceDetectionPref();
-        view.setImageResource(enabled ? R.drawable.ic_face_red_48dp : R.drawable.ic_face_white_48dp);
+        view.setImageResource(R.drawable.ic_face);
+        view.setImageTintList(ColorStateList.valueOf(main_activity.getResources().getColor(enabled ? R.color.color_default_accent : R.color.white)));
         view.setContentDescription( main_activity.getResources().getString(enabled ? R.string.face_detection_disable : R.string.face_detection_enable) );
     }
 
@@ -1677,13 +1871,15 @@ public class MainUI {
 
     public void audioControlStarted() {
         ImageButton view = main_activity.findViewById(R.id.audio_control);
-        view.setImageResource(R.drawable.ic_mic_red_48dp);
+        view.setImageResource(R.drawable.ic_mic);
+        view.setImageTintList(ColorStateList.valueOf(main_activity.getResources().getColor(R.color.color_default_accent)));
         view.setContentDescription( main_activity.getResources().getString(R.string.audio_control_stop) );
     }
 
     public void audioControlStopped() {
         ImageButton view = main_activity.findViewById(R.id.audio_control);
-        view.setImageResource(R.drawable.ic_mic_white_48dp);
+        view.setImageResource(R.drawable.ic_mic);
+        view.setImageTintList(ColorStateList.valueOf(main_activity.getResources().getColor(R.color.white)));
         view.setContentDescription( main_activity.getResources().getString(R.string.audio_control_start) );
     }
 
@@ -2099,7 +2295,8 @@ public class MainUI {
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(main_activity);
         final Preview preview = main_activity.getPreview();
         ImageButton view = main_activity.findViewById(R.id.exposure);
-        view.setImageResource(R.drawable.ic_exposure_red_48dp);
+        view.setImageResource(R.drawable.ic_camera_exposure);
+        view.setImageTintList(ColorStateList.valueOf(main_activity.getResources().getColor(R.color.color_default_accent)));
         View sliders_container = main_activity.findViewById(R.id.sliders_container);
         sliders_container.setVisibility(View.VISIBLE);
         Animation animation = AnimationUtils.loadAnimation(main_activity, R.anim.fade_in);
@@ -2360,7 +2557,7 @@ public class MainUI {
         SeekBar zoomSeekBar = main_activity.findViewById(R.id.zoom_seekbar);
         if( MyDebug.LOG )
             Log.d(TAG, "progress was: " + zoomSeekBar.getProgress());
-        zoomSeekBar.setProgress(main_activity.getPreview().getMaxZoom()-new_zoom);
+        zoomSeekBar.setProgress(new_zoom);
         if( MyDebug.LOG )
             Log.d(TAG, "progress is now: " + zoomSeekBar.getProgress());
     }
@@ -2389,8 +2586,8 @@ public class MainUI {
      */
     public void closeExposureUI() {
         ImageButton image_button = main_activity.findViewById(R.id.exposure);
-        image_button.setImageResource(R.drawable.ic_exposure_white_48dp);
-
+        image_button.setImageResource(R.drawable.ic_camera_exposure);
+        image_button.setImageTintList(ColorStateList.valueOf(Color.WHITE));
         clearRemoteControlForExposureUI(); // must be called before we actually close the exposure panel
         View view = main_activity.findViewById(R.id.sliders_container);
         view.setVisibility(View.GONE);
@@ -2412,25 +2609,25 @@ public class MainUI {
         if( MyDebug.LOG )
             Log.d(TAG, "flash_value: " + flash_value);
         if( main_activity.getMainUI().showCycleFlashIcon() ) {
-            popup.setImageResource(R.drawable.popup);
+            popup.setImageResource(R.drawable.ic_more);
         }
         else if( flash_value != null && flash_value.equals("flash_off") ) {
-            popup.setImageResource(R.drawable.popup_flash_off);
+            popup.setImageResource(R.drawable.popup_camera_flash_off);
         }
         else if( flash_value != null && ( flash_value.equals("flash_torch") || flash_value.equals("flash_frontscreen_torch") ) ) {
-            popup.setImageResource(R.drawable.popup_flash_torch);
+            popup.setImageResource(R.drawable.popup_camera_flash_torch);
         }
         else if( flash_value != null && ( flash_value.equals("flash_auto") || flash_value.equals("flash_frontscreen_auto") ) ) {
-            popup.setImageResource(R.drawable.popup_flash_auto);
+            popup.setImageResource(R.drawable.popup_camera_flash_auto);
         }
         else if( flash_value != null && ( flash_value.equals("flash_on") || flash_value.equals("flash_frontscreen_on") ) ) {
-            popup.setImageResource(R.drawable.popup_flash_on);
+            popup.setImageResource(R.drawable.popup_camera_flash_on);
         }
         else if( flash_value != null && flash_value.equals("flash_red_eye") ) {
-            popup.setImageResource(R.drawable.popup_flash_red_eye);
+            popup.setImageResource(R.drawable.popup_camera_flash_red_eye);
         }
         else {
-            popup.setImageResource(R.drawable.popup);
+            popup.setImageResource(R.drawable.ic_more);
         }
     }
 
