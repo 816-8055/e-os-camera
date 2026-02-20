@@ -4114,17 +4114,17 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     }
 
     public int getNavigationGap() {
-        if (isFullScreen()) return 0;
+        if (!edge_to_edge_mode && isFullScreen()) return 0;
         return (want_no_limits || edge_to_edge_mode) ? navigation_gap : 0;
     }
 
     public int getNavigationGapLandscape() {
-        if (isFullScreen()) return 0;
+        if (!edge_to_edge_mode && isFullScreen()) return 0;
         return edge_to_edge_mode ? navigation_gap_landscape : 0;
     }
 
     public int getNavigationGapReverseLandscape() {
-        if (isFullScreen()) return 0;
+        if (!edge_to_edge_mode && isFullScreen()) return 0;
         return edge_to_edge_mode ? navigation_gap_reverse_landscape : 0;
     }
 
