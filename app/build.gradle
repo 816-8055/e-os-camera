@@ -7,7 +7,7 @@ android {
 
     signingConfigs {
         // These are public keys provided by AOSP, Use different passcode protected keys for production
-        debug {
+        platform {
             storeFile file('keys/platform.jks')
             storePassword 'platform'
             keyAlias 'platform'
@@ -39,10 +39,11 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.platform
         }
 
         debug {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.platform
         }
     }
 
