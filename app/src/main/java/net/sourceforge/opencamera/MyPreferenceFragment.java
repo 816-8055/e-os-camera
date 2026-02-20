@@ -375,7 +375,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
 
         {
             final Preference pref = findPreference("preference_about");
-            pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            if( pref != null ) pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference arg0) {
                     if( pref.getKey().equals("preference_about") ) {

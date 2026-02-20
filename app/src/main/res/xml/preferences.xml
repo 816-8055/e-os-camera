@@ -189,7 +189,7 @@
 
         <PreferenceScreen
             android:icon="@drawable/ic_preference_info"
-            android:key="preference_about"
+            android:key="preference_about_e"
             android:persistent="false"
             android:title="@string/preference_about">
 
