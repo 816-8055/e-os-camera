@@ -254,21 +254,6 @@
             </PreferenceCategory>
         </PreferenceScreen>
 
-        <Preference
-            android:key="preference_privacy_policy"
-            android:title="@string/preference_privacy_policy"
-            android:summary="@string/preference_privacy_policy_summary"
-            android:icon="@drawable/ic_preference_info"
-            />
-
-        <PreferenceScreen
-            android:key="preference_screen_licences"
-            android:title="@string/preference_screen_licences"
-            android:icon="@drawable/ic_preference_info"
-            android:persistent="false"
-            android:fragment="net.sourceforge.opencamera.PreferenceSubLicences"
-            />
-
         <PreferenceScreen
             android:key="preference_screen_settings_manager"
             android:title="@string/preference_screen_settings_manager"
