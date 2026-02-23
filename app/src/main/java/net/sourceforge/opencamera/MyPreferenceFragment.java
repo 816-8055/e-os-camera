@@ -359,7 +359,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
 
         {
             final Preference pref = findPreference("preference_privacy_policy");
-            pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            if (pref != null) pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference arg0) {
                     if( pref.getKey().equals("preference_privacy_policy") ) {
