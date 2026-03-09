@@ -8,10 +8,10 @@
     <color name="shutter_icon_video_recording">#F44336</color>
 
     <!-- QRCode -->
-    <color name="qrcodeColorOnSurface">#FFFFFF</color>
-    <color name="qrcodeSelectableItemBackground">#E5000000</color>
-    <color name="qrcodeColorSurfaceContainerHighest">#8BC34A</color>
-    <color name="qrcodeColorOnSurfaceVariant">#3F51B5</color>
+    <color name="qrcodeColorOnSurface">@color/white</color>
+    <color name="qrcodeSelectableItemBackground">@color/color_popup_bg</color>
+    <color name="qrcodeColorSurfaceContainerHighest">@color/color_popup_title_bg</color>
+    <color name="qrcodeColorOnSurfaceVariant">@color/white</color>
     <color name="qrcodeSelectableItemBackgroundBorderless">#CB000000</color>
 
     <color name="white">@android:color/white</color>

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.sourceforge.opencamera.ext
+package net.sourceforge.opencamera.qr.ext
 
 import android.app.ActivityOptions
 import android.app.PendingIntent

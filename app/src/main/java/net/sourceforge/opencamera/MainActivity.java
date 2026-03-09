@@ -5,7 +5,7 @@ import net.sourceforge.opencamera.cameracontroller.CameraControllerManager;
 import net.sourceforge.opencamera.cameracontroller.CameraControllerManager2;
 import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
-import net.sourceforge.opencamera.qr.QrImageAnalyzer;
+import net.sourceforge.opencamera.qr.QrBottomSheetDialog;
 import net.sourceforge.opencamera.remotecontrol.BluetoothRemoteControl;
 import net.sourceforge.opencamera.ui.CircleImageView;
 import net.sourceforge.opencamera.ui.DrawPreview;
@@ -262,9 +262,9 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
     public static final boolean lock_to_landscape = false;
 
     // QRCode
-    public QrImageAnalyzer qrImageAnalyzer;
+    public QrBottomSheetDialog qrBottomSheetDialog;
     private Job job;
-    private CoroutineScope coroutineScope;
+    public CoroutineScope coroutineScope;
 
     // handling for lock_to_landscape==false:
 
@@ -305,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         //QRCode
         job = JobKt.Job(null);
         coroutineScope = () -> Dispatchers.getMain().plus(job);
-        qrImageAnalyzer = new QrImageAnalyzer(this, coroutineScope);
+        qrBottomSheetDialog = new QrBottomSheetDialog(this);
 
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false); // initialise any unset preferences to their default values

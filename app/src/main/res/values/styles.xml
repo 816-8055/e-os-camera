@@ -23,6 +23,15 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
+    <style name="QrBottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/QrBottomSheetStyle</item>
+        <item name="android:windowAnimationStyle">@style/DialogAnimation</item>
+    </style>
+
+    <style name="QrBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@color/qrcodeSelectableItemBackground</item>
+    </style>
+
     <style name="DialogAnimation">
         <item name="android:windowEnterAnimation">@anim/slide_in_bottom</item>
         <item name="android:windowExitAnimation">@anim/slide_out_bottom</item>

@@ -456,6 +456,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
     private static final long EXECUTION_DELAY_IN_MS = 500; // Execution delay
     private long lastExecutionTime = 0; // Track the last execution time
+    private QrImageAnalyzer qrImageAnalyzer;
 
     public Preview(ApplicationInterface applicationInterface, ViewGroup parent) {
         if( MyDebug.LOG ) {
@@ -1163,8 +1164,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
         if (!isQRCode()) return;
 
-        MainActivity mainActivity = (MainActivity) this.getContext();
-        QrImageAnalyzer qrImageAnalyzer = mainActivity.qrImageAnalyzer;
+        QrImageAnalyzer qrImageAnalyzer = getQrImageAnalyzer();
 
         // Check if the function is being called too quickly
         if (qrImageAnalyzer.isQrDialogShowing()
@@ -1189,6 +1189,25 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if (!previewBitmapWasEnabled) {
             disablePreviewBitmap();
         }
+    }
+
+    private QrImageAnalyzer getQrImageAnalyzer() {
+        if (qrImageAnalyzer == null) {
+            final MainActivity mainActivity = (MainActivity) this.getContext();
+            qrImageAnalyzer = new QrImageAnalyzer(this.getContext(), mainActivity.coroutineScope);
+            qrImageAnalyzer.setQrResultListener(qrResult -> mainActivity.runOnUiThread(() -> {
+                if (!isQRCode() || app_is_paused) {
+                    return;
+                }
+                mainActivity.qrBottomSheetDialog.setOnDismissListener(dialog -> {
+                    if (qrImageAnalyzer != null) {
+                        qrImageAnalyzer.dismissResult();
+                    }
+                });
+                mainActivity.qrBottomSheetDialog.setQrResult(qrResult);
+            }));
+        }
+        return qrImageAnalyzer;
     }
 
     private void configureTransform() {
@@ -8072,6 +8091,11 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         this.is_paused = true;
         if( activity_is_pausing )
             this.app_is_paused = true; // note, if activity_is_paused==false, we don't change app_is_paused, in case app was paused indicated via a separate call to onPause
+        MainActivity mainActivity = (MainActivity) this.getContext();
+        mainActivity.qrBottomSheetDialog.dismiss();
+        if (qrImageAnalyzer != null) {
+            qrImageAnalyzer.dismissResult();
+        }
         if( camera_open_state == CameraOpenState.CAMERAOPENSTATE_OPENING ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "cancel open_camera_task");
@@ -9136,16 +9160,24 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             int qrcodeCamId = 0;
             if (mainActivity.isMultiCamEnabled()) {
                 int betterQrcodeCamId = mainActivity.getBetterQRCodeCameraID();
-                if (qrcodeCamId >= 0) {
+                if (betterQrcodeCamId >= 0) {
                     qrcodeCamId = betterQrcodeCamId;
                 }
             }
             applicationInterface.setCameraIdPref(qrcodeCamId, null);
+            getQrImageAnalyzer();
             if (MyDebug.LOG) {
                 Log.d(TAG, "Using qrcodeCamId: " + qrcodeCamId);
             }
-        } else if (overlayQRCodeView.getParent() != null) {
-            rootLayout.removeView(overlayQRCodeView);
+        } else {
+            MainActivity mainActivity = (MainActivity) this.getContext();
+            mainActivity.qrBottomSheetDialog.dismiss();
+            if (qrImageAnalyzer != null) {
+                qrImageAnalyzer.dismissResult();
+            }
+            if (overlayQRCodeView.getParent() != null) {
+                rootLayout.removeView(overlayQRCodeView);
+            }
         }
     }
 

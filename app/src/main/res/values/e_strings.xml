@@ -56,6 +56,7 @@
     <string name="qr_vin_content_description">Lookup this Vehicle Identification Number (VIN)</string>
     <string name="qr_wifi_title">Connect to this Wi-Fi network</string>
     <string name="qr_wifi_content_description">Add this Wi-Fi network to the list of known networks and connect the device to it</string>
+    <string name="qr_share_with_action">Share with</string>
 
     <string name="abc_shareactionprovider_share_with">Share with</string>
 

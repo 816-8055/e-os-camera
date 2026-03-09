@@ -17,7 +17,7 @@ android {
 
     defaultConfig {
         applicationId "foundation.e.camera"
-        minSdkVersion 21
+        minSdkVersion 26
         targetSdkVersion 35
         //compileSdkVersion 31 // needed to support appcompat:1.4.0 (which we need for emoji policy support, and not yet ready to target SDK 30)
 

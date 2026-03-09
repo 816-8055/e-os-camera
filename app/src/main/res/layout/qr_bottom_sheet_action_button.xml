@@ -3,18 +3,18 @@
      SPDX-FileCopyrightText: 2022 The LineageOS Project
      SPDX-License-Identifier: Apache-2.0
 -->
-<com.google.android.material.button.MaterialButton xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+<androidx.appcompat.widget.AppCompatButton xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:background="@drawable/qr_bottom_sheet_action_button_background"
+    android:drawablePadding="8dp"
     android:letterSpacing="0.0"
+    android:minHeight="0dp"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="8dp"
     android:textAlignment="center"
     android:textAllCaps="false"
-    android:textColor="@color/e_primary_text_color"
+    android:textColor="@color/qrcodeColorOnSurface"
     android:textSize="15sp"
     android:textStyle="normal"
-    android:typeface="normal"
-    app:cornerRadius="8dp"
-    app:strokeColor="@color/e_accent"
-    app:strokeWidth="1dp" />
+    android:typeface="normal" />
