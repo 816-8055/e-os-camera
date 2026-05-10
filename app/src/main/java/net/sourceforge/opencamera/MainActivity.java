@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -506,7 +505,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             this.other_camera_ids = new ArrayList<>();
             for(int i=0;i<n_cameras;i++) {
                 String currentCameraID = String.valueOf(i);
-                if (Arrays.asList(ignoredCameraIDs).contains(currentCameraID)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                        Arrays.stream(ignoredCameraIDs).anyMatch(id -> id.equals(currentCameraID))) {
                     continue;
                 }
 
@@ -2679,11 +2679,12 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         CameraController.Facing this_facing = preview.getCameraControllerManager().getFacing(camera_id);
         for(int i=0;i<preview.getCameraControllerManager().getNumberOfCameras();i++) {
             String currentCameraID = String.valueOf(i);
-            if( preview.getCameraControllerManager().getFacing(i) != this_facing ) {
-                // only show cameras with same facing
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                    Arrays.stream(ignoredCameraIDs).anyMatch(id -> id.equals(currentCameraID))) {
                 continue;
             }
-            if (Arrays.asList(ignoredCameraIDs).contains(currentCameraID)) {
+            if( preview.getCameraControllerManager().getFacing(i) != this_facing ) {
+                // only show cameras with same facing
                 continue;
             }
             logical_camera_ids.add(i);
