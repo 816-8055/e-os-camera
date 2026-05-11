@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -506,7 +506,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
             this.other_camera_ids = new ArrayList<>();
             for(int i=0;i<n_cameras;i++) {
                 String currentCameraID = String.valueOf(i);
-                if (Arrays.asList(ignoredCameraIDs).contains(currentCameraID)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                        Arrays.stream(ignoredCameraIDs).anyMatch(id -> id.equals(currentCameraID))) {
                     continue;
                 }
 
@@ -2476,6 +2477,25 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         }
     }
 
+    private int getValidCameraIds() {
+        int numberOfCameras = preview.getCameraControllerManager().getNumberOfCameras();
+        Set<String> ignoredIds = new HashSet<>(Arrays.asList(
+                getResources().getStringArray(R.array.config_ignoredCameraIds)
+        ));
+        if (ignoredIds.isEmpty()) {
+            return numberOfCameras;
+        }
+        List<String> validCameraIds = new ArrayList<>();
+        for (int i = 0; i < numberOfCameras; i++) {
+            String id = String.valueOf(i);
+
+            if (!ignoredIds.contains(id)) {
+                validCameraIds.add(id);
+            }
+        }
+        return validCameraIds.size();
+    }
+
     /* Returns the cameraId that the "Switch camera" button will switch to.
      * Note that this may not necessarily be the next camera ID, on multi camera devices (if
      * isMultiCamEnabled() returns true).
@@ -2511,8 +2531,8 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
                 }
             }
             else {
-                int n_cameras = preview.getCameraControllerManager().getNumberOfCameras();
-                cameraId = (cameraId+1) % n_cameras;
+                int n_cameras = getValidCameraIds();
+                cameraId = (cameraId + 1) % n_cameras;
             }
         }
         if( MyDebug.LOG )
@@ -2679,11 +2699,12 @@ public class MainActivity extends AppCompatActivity implements PreferenceFragmen
         CameraController.Facing this_facing = preview.getCameraControllerManager().getFacing(camera_id);
         for(int i=0;i<preview.getCameraControllerManager().getNumberOfCameras();i++) {
             String currentCameraID = String.valueOf(i);
-            if( preview.getCameraControllerManager().getFacing(i) != this_facing ) {
-                // only show cameras with same facing
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                    Arrays.stream(ignoredCameraIDs).anyMatch(id -> id.equals(currentCameraID))) {
                 continue;
             }
-            if (Arrays.asList(ignoredCameraIDs).contains(currentCameraID)) {
+            if( preview.getCameraControllerManager().getFacing(i) != this_facing ) {
+                // only show cameras with same facing
                 continue;
             }
             logical_camera_ids.add(i);
