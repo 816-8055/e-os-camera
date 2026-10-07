@@ -100,6 +100,13 @@ public class CameraController2 extends CameraController {
     // cached characteristics (use this for values that need to be frequently accessed, e.g., per frame, to improve performance);
     private int characteristics_sensor_orientation;
     private Facing characteristics_facing;
+    // MediaTek vendor tag for multi-frame noise reduction (MFNR/AIS); null if not supported by the camera HAL
+    private CaptureRequest.Key<int []> mtk_mfb_mode_key;
+    private int mtk_mfb_mode; // value to request for mtk_mfb_mode_key
+    private static final int MTK_MFB_MODE_MFLL = 1; // always apply MFNR
+    private static final int MTK_MFB_MODE_AUTO = 255; // HAL decides whether to apply MFNR, based on its ISO threshold
+    private static final String MTK_KEY_MFB_MODE = "com.mediatek.mfnrfeature.mfbmode";
+    private static final String MTK_KEY_AVAILABLE_MFB_MODES = "com.mediatek.mfnrfeature.availablemfbmodes";
 
     // camera features that we save (either to avoid repeatedly accessing, or we do our own modification)
     private List<Integer> zoom_ratios;
@@ -2176,6 +2183,8 @@ public class CameraController2 extends CameraController {
                             Log.d(TAG, "characteristics_sensor_orientation: " + characteristics_sensor_orientation);
                             Log.d(TAG, "characteristics_facing: " + characteristics_facing);
                         }
+
+                        initMtkVendorKeys();
 
                         if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && cameraIdSPhysical == null ) {
                             // n.b., getCameraExtensionCharacteristics is documented as saying this must be the standalone cameraID that can be directly opened with openCamera()
@@ -4919,6 +4928,59 @@ public class CameraController2 extends CameraController {
         this.burst_requested_n_images = burst_requested_n_images;
     }
 
+    /** Looks up MediaTek vendor tags from the camera characteristics. Vendor tags are only
+     *  available by enumerating the keys, so we match them by name.
+     */
+    @SuppressWarnings("unchecked")
+    private void initMtkVendorKeys() {
+        mtk_mfb_mode_key = null;
+        mtk_mfb_mode = MTK_MFB_MODE_AUTO;
+        try {
+            for(CaptureRequest.Key<?> key : characteristics.getAvailableCaptureRequestKeys()) {
+                if( MTK_KEY_MFB_MODE.equals(key.getName()) ) {
+                    mtk_mfb_mode_key = (CaptureRequest.Key<int []>)key;
+                    break;
+                }
+            }
+            if( mtk_mfb_mode_key != null ) {
+                // if the HAL advertises the available modes, prefer auto mode, else fall back to always-on MFLL
+                for(CameraCharacteristics.Key<?> key : characteristics.getKeys()) {
+                    if( MTK_KEY_AVAILABLE_MFB_MODES.equals(key.getName()) ) {
+                        int [] modes = (int [])characteristics.get(key);
+                        boolean supports_auto = false;
+                        boolean supports_mfll = false;
+                        if( modes != null ) {
+                            for(int mode : modes) {
+                                if( mode == MTK_MFB_MODE_AUTO )
+                                    supports_auto = true;
+                                else if( mode == MTK_MFB_MODE_MFLL )
+                                    supports_mfll = true;
+                            }
+                        }
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "mtk availablemfbmodes: " + Arrays.toString(modes));
+                        if( supports_auto ) {
+                            mtk_mfb_mode = MTK_MFB_MODE_AUTO;
+                        }
+                        else if( supports_mfll ) {
+                            mtk_mfb_mode = MTK_MFB_MODE_MFLL;
+                        }
+                        else {
+                            mtk_mfb_mode_key = null;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        catch(IllegalArgumentException | ClassCastException e) {
+            MyDebug.logStackTrace(TAG, "failed to read mtk vendor keys", e);
+            mtk_mfb_mode_key = null;
+        }
+        if( MyDebug.LOG )
+            Log.d(TAG, "mtk_mfb_mode_key: " + mtk_mfb_mode_key + " mtk_mfb_mode: " + mtk_mfb_mode);
+    }
+
     @Override
     public void setBurstForNoiseReduction(boolean burst_for_noise_reduction, boolean noise_reduction_low_light) {
         if( MyDebug.LOG ) {
@@ -7171,6 +7233,12 @@ public class CameraController2 extends CameraController {
                 stillBuilder = camera.createCaptureRequest(previewIsVideoMode ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : camera_settings.has_iso ? CameraDevice.TEMPLATE_MANUAL : CameraDevice.TEMPLATE_STILL_CAPTURE);
                 stillBuilder.setTag(new RequestTagObject(RequestTagType.CAPTURE));
                 camera_settings.setupBuilder(stillBuilder, true);
+                if( mtk_mfb_mode_key != null && !previewIsVideoMode && !camera_settings.has_iso && sessionType != SessionType.SESSIONTYPE_EXTENSION ) {
+                    // let the MediaTek HAL apply multi-frame noise reduction, as the stock camera app does
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "set mtk mfb mode: " + mtk_mfb_mode);
+                    stillBuilder.set(mtk_mfb_mode_key, new int[]{mtk_mfb_mode});
+                }
                 if( use_fake_precapture_mode && fake_precapture_torch_performed ) {
                     if( MyDebug.LOG )
                         Log.d(TAG, "setting torch for capture");
